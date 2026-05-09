@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0a1a0f">
+<title>ObraSnap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --green:#22c55e;--green-dim:#16a34a;--green-dark:#052e16;
+  --amber:#f59e0b;--red:#ef4444;
+  --bg:#0a1a0f;--bg2:#0f2416;--bg3:#152d1b;
+  --surface:#1a3522;--surface2:#203d28;
+  --text:#e8f5e9;--text2:#86efac;--text3:#4ade80;
+  --mono:'Share Tech Mono',monospace;
+  --sans:'Barlow',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+#screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* NAV BAR */
+#navbar{display:flex;background:var(--bg);border-top:1px solid #1a3522;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 6px;border:none;background:none;color:#4a7a5a;font-family:var(--sans);font-size:10px;cursor:pointer;transition:color .2s;}
+.nav-btn.active{color:var(--green);}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── CAMERA SCREEN ── */
+#cam-screen{background:#000;}
+#video-wrap{flex:1;position:relative;overflow:hidden;background:#000;}
+#video{width:100%;height:100%;object-fit:cover;}
+
+/* SCAN LINE effect */
+#scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scan 3s linear infinite;opacity:.4;pointer-events:none;}
+@keyframes scan{0%{top:0%}100%{top:100%}}
+
+/* OVERLAY STAMP */
+#stamp{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));padding:10px 14px 12px;pointer-events:none;}
+#stamp-obra{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;}
+#stamp-pk{font-family:var(--mono);font-size:22px;color:#fff;line-height:1;margin:2px 0;}
+#stamp-pk span{font-size:13px;color:var(--text2);}
+#stamp-row2{display:flex;gap:12px;margin-top:4px;flex-wrap:wrap;}
+#stamp-coords{font-family:var(--mono);font-size:10px;color:var(--text2);}
+#stamp-dt{font-family:var(--mono);font-size:10px;color:#888;}
+#stamp-act{font-family:var(--sans);font-size:11px;color:#ccc;margin-top:3px;font-style:italic;}
+
+/* GPS accuracy dot */
+#gps-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* CAMERA CONTROLS */
+#cam-controls{background:var(--bg);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+#btn-gallery-thumb{width:48px;height:48px;border-radius:10px;overflow:hidden;background:var(--surface);border:1.5px solid var(--surface2);cursor:pointer;}
+#thumb-img{width:100%;height:100%;object-fit:cover;display:none;}
+#thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+#thumb-placeholder svg{width:20px;height:20px;stroke:#4a7a5a;fill:none;stroke-width:1.8;}
+#btn-capture{width:68px;height:68px;border-radius:50%;background:transparent;border:3px solid #fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s;active:scale(.95);}
+#btn-capture:active{transform:scale(.93);}
+#btn-capture-inner{width:56px;height:56px;border-radius:50%;background:#fff;transition:background .1s;}
+#btn-capture:active #btn-capture-inner{background:#ccc;}
+#btn-activity{width:48px;height:48px;border-radius:10px;background:var(--surface);border:1.5px solid var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+#btn-activity svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.8;}
+#btn-activity span{font-size:8px;color:var(--text2);font-family:var(--sans);}
+
+/* FLASH */
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .15s;}
+
+/* ── MAP SCREEN ── */
+#map-screen{background:var(--bg);}
+#map-header{padding:12px 16px 10px;border-bottom:1px solid var(--surface);display:flex;align-items:center;justify-content:space-between;}
+#map-header h2{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--green);letter-spacing:.5px;}
+#map-kmz-name{font-size:11px;color:var(--text2);font-family:var(--mono);}
+#map-canvas-wrap{flex:1;position:relative;overflow:hidden;}
+#map-canvas{width:100%;height:100%;}
+#map-info-chip{position:absolute;top:10px;left:10px;right:10px;background:rgba(10,26,15,.85);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
+#map-pk-chip{font-family:var(--mono);font-size:15px;color:var(--green);font-weight:bold;}
+#map-dist-chip{font-size:11px;color:var(--text2);}
+#btn-load-kmz-map{position:absolute;bottom:16px;right:16px;background:var(--green-dim);border:none;border-radius:10px;padding:10px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;}
+#btn-load-kmz-map svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;}
+
+/* ── GALLERY SCREEN ── */
+#gallery-screen{background:var(--bg);}
+#gallery-header{padding:12px 16px 10px;border-bottom:1px solid var(--surface);display:flex;align-items:center;justify-content:space-between;}
+#gallery-header h2{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--green);letter-spacing:.5px;}
+#gallery-count{font-size:11px;color:var(--text2);font-family:var(--mono);}
+#gallery-grid{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.gallery-item{position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;cursor:pointer;background:var(--surface);}
+.gallery-item img{width:100%;height:100%;object-fit:cover;}
+.gallery-item-meta{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:6px 7px 5px;}
+.gallery-pk{font-family:var(--mono);font-size:10px;color:var(--green);font-weight:bold;}
+.gallery-dt{font-size:9px;color:#888;}
+#gallery-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);opacity:.5;}
+#gallery-empty svg{width:48px;height:48px;stroke:currentColor;fill:none;stroke-width:1.2;}
+#gallery-empty p{font-size:14px;}
+
+/* ── CONFIG SCREEN ── */
+#config-screen{background:var(--bg);overflow-y:auto;}
+#config-header{padding:12px 16px 10px;border-bottom:1px solid var(--surface);}
+#config-header h2{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--green);letter-spacing:.5px;}
+.config-section{padding:14px 16px 0;}
+.config-label{font-size:11px;color:var(--text2);font-family:var(--mono);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;}
+.config-card{background:var(--surface);border-radius:10px;overflow:hidden;margin-bottom:16px;}
+.config-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bg2);gap:10px;}
+.config-row:last-child{border-bottom:none;}
+.config-row-icon{width:32px;height:32px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.config-row-icon svg{width:16px;height:16px;stroke:var(--text2);fill:none;stroke-width:1.8;}
+.config-row-body{flex:1;}
+.config-row-title{font-size:13px;color:var(--text);font-weight:500;}
+.config-row-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+.config-row input[type=text]{background:transparent;border:none;border-bottom:1px solid var(--surface2);color:var(--text);font-family:var(--sans);font-size:13px;width:100%;padding:2px 0;outline:none;}
+.config-row input[type=text]::placeholder{color:#4a7a5a;}
+#btn-load-kmz{background:var(--green-dim);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;width:100%;}
+#kmz-status{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:6px;text-align:center;}
+
+/* STAMP PREVIEW */
+#stamp-preview{background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:4px;border:1px solid var(--surface);}
+#sp-obra{font-family:var(--cond);font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;}
+#sp-pk{font-family:var(--mono);font-size:16px;color:#fff;}
+#sp-act{font-size:11px;color:#aaa;font-style:italic;margin-top:2px;}
+#sp-bottom{font-family:var(--mono);font-size:9px;color:#666;margin-top:3px;}
+
+/* MODAL ACTIVITY */
+#modal-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
+#modal-bg.open{display:flex;}
+#modal-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;}
+#modal-title{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--green);margin-bottom:14px;letter-spacing:.5px;}
+#activity-input{width:100%;background:var(--surface);border:1px solid var(--surface2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;}
+#activity-input::placeholder{color:#4a7a5a;}
+#modal-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.sugg-chip{background:var(--surface);border:1px solid var(--surface2);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;}
+.sugg-chip:active{background:var(--surface2);}
+#modal-btn{width:100%;margin-top:14px;background:var(--green-dim);border:none;border-radius:10px;padding:12px;color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
+
+/* TOAST */
+#toast{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--surface2);border:1px solid var(--green-dim);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--text2);font-family:var(--mono);transition:transform .3s;white-space:nowrap;z-index:200;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* hidden file inputs */
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screens">
+
+    <!-- ── CAMERA ── -->
+    <div id="cam-screen" class="screen active">
+      <div id="video-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <div id="scan-line"></div>
+        <div id="stamp">
+          <div id="stamp-obra">Laguna Verde - La Mancha</div>
+          <div id="stamp-pk"><span>PK </span><span id="pk-value">--+---</span></div>
+          <div id="stamp-row2">
+            <span id="stamp-coords"><span id="gps-dot"></span><span id="coords-val">buscando GPS...</span></span>
+            <span id="stamp-dt" id="dt-val"></span>
+          </div>
+          <div id="stamp-act" id="act-val">Actividad: —</div>
+        </div>
+        <div id="flash"></div>
+      </div>
+      <div id="cam-controls">
+        <div id="btn-gallery-thumb" onclick="switchTab('gallery')">
+          <div id="thumb-placeholder">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-5 6 7"/></svg>
+          </div>
+          <img id="thumb-img">
+        </div>
+        <button id="btn-capture" onclick="capturePhoto()">
+          <div id="btn-capture-inner"></div>
+        </button>
+        <button id="btn-activity" onclick="openActivityModal()">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>actividad</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── MAP ── -->
+    <div id="map-screen" class="screen">
+      <div id="map-header">
+        <h2>Mapa de obra</h2>
+        <span id="map-kmz-name">sin KMZ</span>
+      </div>
+      <div id="map-canvas-wrap">
+        <canvas id="map-canvas"></canvas>
+        <div id="map-info-chip">
+          <span id="map-pk-chip">PK --+---</span>
+          <span id="map-dist-chip">carga un KMZ para comenzar</span>
+        </div>
+        <button id="btn-load-kmz-map" onclick="document.getElementById('kmz-file-map').click()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Cargar KMZ
+        </button>
+        <input type="file" id="kmz-file-map" accept=".kmz,.kml" onchange="loadKMZ(this)">
+      </div>
+    </div>
+
+    <!-- ── GALLERY ── -->
+    <div id="gallery-screen" class="screen">
+      <div id="gallery-header">
+        <h2>Galería</h2>
+        <span id="gallery-count">0 fotos</span>
+      </div>
+      <div id="gallery-grid" style="display:none;"></div>
+      <div id="gallery-empty">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <p>Aún no hay fotos</p>
+      </div>
+    </div>
+
+    <!-- ── CONFIG ── -->
+    <div id="config-screen" class="screen">
+      <div id="config-header"><h2>Configuración</h2></div>
+
+      <div class="config-section">
+        <div class="config-label">Vista previa del stamp</div>
+        <div id="stamp-preview">
+          <div id="sp-obra">Laguna Verde - La Mancha</div>
+          <div id="sp-pk">PK --+---</div>
+          <div id="sp-act">Actividad: —</div>
+          <div id="sp-bottom">19.000000°N  96.000000°W  |  --</div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-label">Proyecto</div>
+        <div class="config-card">
+          <div class="config-row">
+            <div class="config-row-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+            </div>
+            <div class="config-row-body">
+              <div class="config-row-title">Nombre de obra</div>
+              <input type="text" id="cfg-obra" value="Laguna Verde - La Mancha" placeholder="Nombre del proyecto" oninput="updateConfig()">
+            </div>
+          </div>
+          <div class="config-row">
+            <div class="config-row-icon">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="config-row-body">
+              <div class="config-row-title">Actividad actual</div>
+              <input type="text" id="cfg-act" placeholder="Ej: Colado de losa, Trazo..." oninput="updateConfig()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-label">Archivo KMZ de ruta</div>
+        <div class="config-card">
+          <div class="config-row">
+            <div class="config-row-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="config-row-body">
+              <div class="config-row-title">KMZ cargado</div>
+              <div class="config-row-sub" id="kmz-loaded-name">Ninguno</div>
+            </div>
+          </div>
+          <div class="config-row">
+            <div style="width:100%">
+              <button id="btn-load-kmz" onclick="document.getElementById('kmz-file-cfg').click()">
+                Cargar archivo KMZ / KML
+              </button>
+              <input type="file" id="kmz-file-cfg" accept=".kmz,.kml" onchange="loadKMZ(this)">
+              <div id="kmz-status">Sin KMZ — el PK se calculará cuando cargues uno</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section" style="padding-bottom:24px;">
+        <div class="config-label">GPS</div>
+        <div class="config-card">
+          <div class="config-row">
+            <div class="config-row-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+            </div>
+            <div class="config-row-body">
+              <div class="config-row-title">Estado GPS</div>
+              <div class="config-row-sub" id="gps-status-cfg">Buscando señal...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL ACTIVIDAD -->
+    <div id="modal-bg" onclick="closeModal(event)">
+      <div id="modal-box">
+        <div id="modal-title">Actividad en curso</div>
+        <input type="text" id="activity-input" placeholder="Describe la actividad..." maxlength="60">
+        <div id="modal-suggestions">
+          <div class="sugg-chip" onclick="setActivity('Colado de losa')">Colado de losa</div>
+          <div class="sugg-chip" onclick="setActivity('Trazo y nivelación')">Trazo y nivelación</div>
+          <div class="sugg-chip" onclick="setActivity('Excavación')">Excavación</div>
+          <div class="sugg-chip" onclick="setActivity('Relleno compactado')">Relleno compactado</div>
+          <div class="sugg-chip" onclick="setActivity('Encofrado')">Encofrado</div>
+          <div class="sugg-chip" onclick="setActivity('Armado de acero')">Armado de acero</div>
+          <div class="sugg-chip" onclick="setActivity('Supervisión')">Supervisión</div>
+          <div class="sugg-chip" onclick="setActivity('Levantamiento topográfico')">Levantamiento topo</div>
+        </div>
+        <button id="modal-btn" onclick="saveActivity()">Guardar</button>
+      </div>
+    </div>
+
+    <div id="toast">Foto guardada</div>
+
+  </div>
+
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <button class="nav-btn active" id="tab-cam" onclick="switchTab('cam')">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Cámara
+    </button>
+    <button class="nav-btn" id="tab-map" onclick="switchTab('map')">
+      <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Mapa
+    </button>
+    <button class="nav-btn" id="tab-gallery" onclick="switchTab('gallery')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      Galería
+    </button>
+    <button class="nav-btn" id="tab-config" onclick="switchTab('config')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Config
+    </button>
+  </nav>
+</div>
+
+<canvas id="capture-canvas" style="display:none;"></canvas>
+
+<script>
+// ── STATE ──
+const state = {
+  obra: 'Laguna Verde - La Mancha',
+  activity: '',
+  lat: null, lon: null, accuracy: null,
+  pk: null, pkLabel: '--+---',
+  routeCoords: [],   // [{lat,lon,dist}] distancia acumulada en metros
+  routeName: null,
+  photos: [],        // {dataUrl, pk, dt, coords}
+  mapOffset: {x:0,y:0}, mapScale:1,
+  mapDragging:false, mapDragStart:null
+};
+
+// ── CLOCK ──
+function nowLabel(){
+  const d=new Date();
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][d.getMonth()];
+  const yy=d.getFullYear();
+  const hh=String(d.getHours()).padStart(2,'0');
+  const mi=String(d.getMinutes()).padStart(2,'0');
+  const ss=String(d.getSeconds()).padStart(2,'0');
+  return `${dd} ${mm} ${yy}  ${hh}:${mi}:${ss}`;
+}
+setInterval(()=>{
+  const v=nowLabel();
+  const el=document.getElementById('stamp-dt');
+  if(el)el.textContent=v;
+  const sp=document.getElementById('sp-bottom');
+  if(sp&&state.lat) sp.textContent=`${state.lat.toFixed(6)}°N  ${Math.abs(state.lon).toFixed(6)}°W  |  ${v}`;
+},1000);
+
+// ── GPS ──
+function startGPS(){
+  if(!navigator.geolocation){showToast('GPS no disponible');return;}
+  navigator.geolocation.watchPosition(pos=>{
+    state.lat=pos.coords.latitude;
+    state.lon=pos.coords.longitude;
+    state.accuracy=pos.coords.accuracy;
+    const cv=document.getElementById('coords-val');
+    if(cv)cv.textContent=`${state.lat.toFixed(5)}°N  ${Math.abs(state.lon).toFixed(5)}°W`;
+    document.getElementById('gps-status-cfg').textContent=`Activo · precisión ±${Math.round(state.accuracy)} m`;
+    if(state.routeCoords.length) computePK();
+    drawMap();
+  },{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+}
+
+// ── PK CALCULATION ──
+function latLonToMeters(lat1,lon1,lat2,lon2){
+  const R=6371000;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function projectPointOnSegment(px,py,ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay;
+  const lenSq=dx*dx+dy*dy;
+  if(lenSq===0)return{t:0,x:ax,y:ay};
+  let t=((px-ax)*dx+(py-ay)*dy)/lenSq;
+  t=Math.max(0,Math.min(1,t));
+  return{t,x:ax+t*dx,y:ay+t*dy};
+}
+
+function computePK(){
+  if(!state.lat||!state.routeCoords.length)return;
+  const coords=state.routeCoords;
+  let bestDist=Infinity,bestAccum=0;
+  for(let i=0;i<coords.length-1;i++){
+    const A=coords[i],B=coords[i+1];
+    const proj=projectPointOnSegment(state.lat,state.lon,A.lat,A.lon,B.lat,B.lon);
+    const d=latLonToMeters(state.lat,state.lon,proj.x,proj.y);
+    if(d<bestDist){
+      bestDist=d;
+      const segLen=latLonToMeters(A.lat,A.lon,B.lat,B.lon);
+      bestAccum=A.dist+proj.t*segLen;
+    }
+  }
+  state.pk=bestAccum;
+  const km=Math.floor(bestAccum/1000);
+  const m=Math.round(bestAccum%1000);
+  state.pkLabel=`${km}+${String(m).padStart(3,'0')}`;
+  document.getElementById('pk-value').textContent=state.pkLabel;
+  document.getElementById('sp-pk').textContent=`PK ${state.pkLabel}`;
+  document.getElementById('map-pk-chip').textContent=`PK ${state.pkLabel}`;
+  document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(bestDist)} m`;
+}
+
+// ── KMZ / KML PARSER ──
+async function loadKMZ(input){
+  const file=input.files[0];
+  if(!file)return;
+  showToast('Leyendo KMZ...');
+  try{
+    let kmlText;
+    if(file.name.toLowerCase().endsWith('.kmz')){
+      // KMZ = ZIP containing doc.kml
+      const JSZip=await loadJSZip();
+      const zip=await JSZip.loadAsync(file);
+      const kmlFile=Object.values(zip.files).find(f=>f.name.endsWith('.kml'));
+      if(!kmlFile)throw new Error('No se encontró .kml dentro del KMZ');
+      kmlText=await kmlFile.async('text');
+    } else {
+      kmlText=await file.text();
+    }
+    parseKML(kmlText, file.name);
+  } catch(e){
+    showToast('Error: '+e.message);
+    console.error(e);
+  }
+  input.value='';
+}
+
+function loadJSZip(){
+  return new Promise((res,rej)=>{
+    if(window.JSZip){res(window.JSZip);return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload=()=>res(window.JSZip);
+    s.onerror=()=>rej(new Error('No se pudo cargar JSZip'));
+    document.head.appendChild(s);
+  });
+}
+
+function parseKML(kmlText, fname){
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(kmlText,'text/xml');
+  // Collect all coordinates from LineString / LineStringGeometry / MultiGeometry
+  const coordNodes=doc.querySelectorAll('coordinates');
+  let allCoords=[];
+  coordNodes.forEach(node=>{
+    const txt=node.textContent.trim();
+    const pairs=txt.split(/\s+/).filter(Boolean);
+    pairs.forEach(pair=>{
+      const parts=pair.split(',');
+      if(parts.length>=2){
+        const lon=parseFloat(parts[0]),lat=parseFloat(parts[1]);
+        if(!isNaN(lat)&&!isNaN(lon))allCoords.push({lat,lon});
+      }
+    });
+  });
+  if(allCoords.length<2){showToast('KML sin línea de ruta válida');return;}
+  // Compute cumulative distance
+  let dist=0;
+  state.routeCoords=allCoords.map((c,i)=>{
+    if(i>0)dist+=latLonToMeters(allCoords[i-1].lat,allCoords[i-1].lon,c.lat,c.lon);
+    return{...c,dist};
+  });
+  state.routeName=fname.replace(/\.[^.]+$/,'');
+  document.getElementById('kmz-loaded-name').textContent=state.routeName;
+  document.getElementById('map-kmz-name').textContent=state.routeName;
+  document.getElementById('kmz-status').textContent=`✓ ${allCoords.length} puntos · ${(dist/1000).toFixed(2)} km`;
+  showToast(`KMZ cargado · ${allCoords.length} pts`);
+  resetMapView();
+  drawMap();
+  if(state.lat)computePK();
+}
+
+// ── CAMERA ──
+let stream=null;
+async function startCamera(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}},audio:false
+    });
+    document.getElementById('video').srcObject=stream;
+  } catch(e){showToast('Sin acceso a cámara');}
+}
+
+function capturePhoto(){
+  const video=document.getElementById('video');
+  const canvas=document.getElementById('capture-canvas');
+  const W=video.videoWidth||1280,H=video.videoHeight||720;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(video,0,0,W,H);
+  drawStampOnCanvas(ctx,W,H);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.92);
+  // Save
+  const photo={dataUrl,pk:state.pkLabel,dt:nowLabel(),coords:`${(state.lat||0).toFixed(5)}°N ${Math.abs(state.lon||0).toFixed(5)}°W`,act:state.activity};
+  state.photos.unshift(photo);
+  updateGallery();
+  // thumb
+  const ti=document.getElementById('thumb-img');
+  ti.src=dataUrl;ti.style.display='block';
+  document.getElementById('thumb-placeholder').style.display='none';
+  // flash
+  const f=document.getElementById('flash');
+  f.style.opacity=1;setTimeout(()=>f.style.opacity=0,150);
+  showToast('Foto guardada · PK '+state.pkLabel);
+}
+
+function drawStampOnCanvas(ctx,W,H){
+  const pad=W*0.02;
+  const bh=H*0.18;
+  // gradient bg
+  const grad=ctx.createLinearGradient(0,H-bh,0,H);
+  grad.addColorStop(0,'rgba(0,0,0,0)');
+  grad.addColorStop(1,'rgba(0,0,0,0.82)');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,H-bh,W,bh);
+  // obra name
+  ctx.fillStyle='#22c55e';
+  ctx.font=`700 ${W*0.028}px 'Barlow Condensed',sans-serif`;
+  ctx.fillText((state.obra||'Obra').toUpperCase(),pad,H-bh+H*0.045);
+  // PK
+  ctx.fillStyle='#ffffff';
+  ctx.font=`500 ${W*0.055}px 'Share Tech Mono',monospace`;
+  ctx.fillText('PK '+state.pkLabel,pad,H-bh+H*0.095);
+  // coords + date
+  ctx.fillStyle='#86efac';
+  ctx.font=`400 ${W*0.022}px 'Share Tech Mono',monospace`;
+  const coordStr=state.lat?`${state.lat.toFixed(5)}°N  ${Math.abs(state.lon).toFixed(5)}°W`:'Sin GPS';
+  ctx.fillText(coordStr,pad,H-bh+H*0.132);
+  ctx.fillStyle='#888888';
+  ctx.fillText(nowLabel(),pad+W*0.3,H-bh+H*0.132);
+  // activity
+  if(state.activity){
+    ctx.fillStyle='#cccccc';
+    ctx.font=`italic 400 ${W*0.022}px 'Barlow',sans-serif`;
+    ctx.fillText(state.activity,pad,H-bh+H*0.163);
+  }
+}
+
+// ── MAP ──
+let mapCanvas,mapCtx,mapW,mapH;
+function initMap(){
+  mapCanvas=document.getElementById('map-canvas');
+  mapCtx=mapCanvas.getContext('2d');
+  resizeMap();
+  window.addEventListener('resize',resizeMap);
+  mapCanvas.addEventListener('touchstart',onMapTouchStart,{passive:true});
+  mapCanvas.addEventListener('touchmove',onMapTouchMove,{passive:true});
+  mapCanvas.addEventListener('touchend',()=>{state.mapDragging=false;});
+}
+
+function resizeMap(){
+  const wrap=document.getElementById('map-canvas-wrap');
+  mapW=mapCanvas.width=wrap.offsetWidth;
+  mapH=mapCanvas.height=wrap.offsetHeight;
+  drawMap();
+}
+
+function resetMapView(){
+  if(!state.routeCoords.length)return;
+  const lats=state.routeCoords.map(c=>c.lat);
+  const lons=state.routeCoords.map(c=>c.lon);
+  const minLat=Math.min(...lats),maxLat=Math.max(...lats);
+  const minLon=Math.min(...lons),maxLon=Math.max(...lons);
+  const spanLat=maxLat-minLat||0.001;
+  const spanLon=maxLon-minLon||0.001;
+  const scaleX=(mapW*0.8)/spanLon;
+  const scaleY=(mapH*0.75)/spanLat;
+  state.mapScale=Math.min(scaleX,scaleY);
+  const cLat=(minLat+maxLat)/2,cLon=(minLon+maxLon)/2;
+  state.mapOffset={x:mapW/2-cLon*state.mapScale,y:mapH/2+cLat*state.mapScale};
+}
+
+function toScreen(lat,lon){
+  return{x:lon*state.mapScale+state.mapOffset.x,y:-lat*state.mapScale+state.mapOffset.y};
+}
+
+function drawMap(){
+  if(!mapCtx)return;
+  mapCtx.clearRect(0,0,mapW,mapH);
+  // bg
+  mapCtx.fillStyle='#0d1a0f';
+  mapCtx.fillRect(0,0,mapW,mapH);
+  // grid lines subtle
+  mapCtx.strokeStyle='rgba(34,197,94,0.06)';
+  mapCtx.lineWidth=1;
+  for(let x=0;x<mapW;x+=40){mapCtx.beginPath();mapCtx.moveTo(x,0);mapCtx.lineTo(x,mapH);mapCtx.stroke();}
+  for(let y=0;y<mapH;y+=40){mapCtx.beginPath();mapCtx.moveTo(0,y);mapCtx.lineTo(mapW,y);mapCtx.stroke();}
+
+  if(!state.routeCoords.length){
+    mapCtx.fillStyle='rgba(34,197,94,0.3)';
+    mapCtx.font='14px Barlow, sans-serif';
+    mapCtx.textAlign='center';
+    mapCtx.fillText('Carga un KMZ para ver la ruta',mapW/2,mapH/2);
+    mapCtx.textAlign='left';
+    return;
+  }
+
+  // route
+  mapCtx.beginPath();
+  state.routeCoords.forEach((c,i)=>{
+    const p=toScreen(c.lat,c.lon);
+    if(i===0)mapCtx.moveTo(p.x,p.y);else mapCtx.lineTo(p.x,p.y);
+  });
+  mapCtx.strokeStyle='#22c55e';
+  mapCtx.lineWidth=3;
+  mapCtx.setLineDash([]);
+  mapCtx.stroke();
+
+  // PK markers every ~500m
+  const totalDist=state.routeCoords[state.routeCoords.length-1].dist;
+  const interval=totalDist>5000?1000:500;
+  let nextMark=interval;
+  for(let i=1;i<state.routeCoords.length;i++){
+    const c=state.routeCoords[i];
+    if(c.dist>=nextMark){
+      const p=toScreen(c.lat,c.lon);
+      mapCtx.beginPath();mapCtx.arc(p.x,p.y,3,0,Math.PI*2);
+      mapCtx.fillStyle='#4ade80';mapCtx.fill();
+      const km=Math.floor(nextMark/1000),m=Math.round(nextMark%1000);
+      const lbl=`${km}+${String(m).padStart(3,'0')}`;
+      mapCtx.fillStyle='#86efac';mapCtx.font='9px Share Tech Mono,monospace';
+      mapCtx.fillText(lbl,p.x+5,p.y-4);
+      nextMark+=interval;
+    }
+  }
+
+  // user position
+  if(state.lat){
+    const p=toScreen(state.lat,state.lon);
+    mapCtx.beginPath();mapCtx.arc(p.x,p.y,10,0,Math.PI*2);
+    mapCtx.fillStyle='rgba(34,197,94,0.2)';mapCtx.fill();
+    mapCtx.beginPath();mapCtx.arc(p.x,p.y,5,0,Math.PI*2);
+    mapCtx.fillStyle='#22c55e';mapCtx.fill();
+    mapCtx.beginPath();mapCtx.arc(p.x,p.y,2.5,0,Math.PI*2);
+    mapCtx.fillStyle='#fff';mapCtx.fill();
+    // label
+    mapCtx.fillStyle='#fff';mapCtx.font='bold 10px Barlow Condensed,sans-serif';
+    mapCtx.fillText('Tú · PK '+state.pkLabel,p.x+10,p.y-6);
+  }
+}
+
+let mapLastTouch=null;
+function onMapTouchStart(e){
+  if(e.touches.length===1){
+    state.mapDragging=true;
+    state.mapDragStart={x:e.touches[0].clientX,y:e.touches[0].clientY,ox:state.mapOffset.x,oy:state.mapOffset.y};
+  }
+  if(e.touches.length===2) mapLastTouch=e.touches;
+}
+function onMapTouchMove(e){
+  if(e.touches.length===1&&state.mapDragging){
+    const dx=e.touches[0].clientX-state.mapDragStart.x;
+    const dy=e.touches[0].clientY-state.mapDragStart.y;
+    state.mapOffset={x:state.mapDragStart.ox+dx,y:state.mapDragStart.oy+dy};
+    drawMap();
+  }
+  if(e.touches.length===2&&mapLastTouch){
+    const d0=Math.hypot(mapLastTouch[0].clientX-mapLastTouch[1].clientX,mapLastTouch[0].clientY-mapLastTouch[1].clientY);
+    const d1=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const factor=d1/d0;
+    state.mapScale*=factor;
+    mapLastTouch=e.touches;
+    drawMap();
+  }
+}
+
+// ── GALLERY ──
+function updateGallery(){
+  const grid=document.getElementById('gallery-grid');
+  const empty=document.getElementById('gallery-empty');
+  document.getElementById('gallery-count').textContent=state.photos.length+' fotos';
+  if(!state.photos.length){grid.style.display='none';empty.style.display='flex';return;}
+  empty.style.display='none';grid.style.display='grid';
+  grid.innerHTML='';
+  state.photos.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='gallery-item';
+    div.innerHTML=`<img src="${p.dataUrl}" loading="lazy"><div class="gallery-item-meta"><div class="gallery-pk">PK ${p.pk}</div><div class="gallery-dt">${p.dt.slice(0,15)}</div></div>`;
+    div.onclick=()=>previewPhoto(i);
+    grid.appendChild(div);
+  });
+}
+
+function previewPhoto(i){
+  const p=state.photos[i];
+  const w=window.open('','_blank');
+  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${p.dataUrl}" style="max-width:100%;max-height:100vh;"><p style="position:fixed;bottom:8px;left:0;right:0;text-align:center;color:#22c55e;font-family:monospace;font-size:12px;">PK ${p.pk} · ${p.dt}</p></body></html>`);
+}
+
+// ── CONFIG ──
+function updateConfig(){
+  state.obra=document.getElementById('cfg-obra').value||'Obra';
+  state.activity=document.getElementById('cfg-act').value||'';
+  document.getElementById('stamp-obra').textContent=state.obra;
+  document.getElementById('sp-obra').textContent=state.obra;
+  document.getElementById('stamp-act').textContent='Actividad: '+(state.activity||'—');
+  document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
+}
+
+// ── ACTIVITY MODAL ──
+function openActivityModal(){
+  document.getElementById('activity-input').value=state.activity;
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(()=>document.getElementById('activity-input').focus(),100);
+}
+function closeModal(e){if(e.target===document.getElementById('modal-bg'))saveActivity();}
+function setActivity(v){document.getElementById('activity-input').value=v;}
+function saveActivity(){
+  state.activity=document.getElementById('activity-input').value.trim();
+  document.getElementById('stamp-act').textContent='Actividad: '+(state.activity||'—');
+  document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
+  document.getElementById('cfg-act').value=state.activity;
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+// ── TAB NAVIGATION ──
+function switchTab(tab){
+  ['cam','map','gallery','config'].forEach(t=>{
+    document.getElementById(t+'-screen').classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='map'){resizeMap();drawMap();}
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── INIT ──
+window.addEventListener('load',()=>{
+  startCamera();
+  startGPS();
+  initMap();
+  setInterval(computePK,5000);
+});
+</script>
+</body>
+</html>
