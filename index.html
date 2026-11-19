@@ -73,6 +73,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #btn-activity svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.8;}
 #btn-activity span{font-size:8px;color:var(--text2);font-family:var(--sans);}
 
+/* CAMERA MESSAGE */
+#cam-msg{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.75);color:var(--text2);font-family:var(--mono);font-size:13px;text-align:center;padding:24px;cursor:pointer;z-index:5;}
+#cam-msg.show{display:flex;}
+#cam-msg div{font-size:34px;color:var(--amber);}
+.diag{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+.cfg-btn2{background:var(--bg2);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;}
+.config-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);}
+
 /* FLASH */
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .15s;}
 
@@ -164,11 +172,12 @@ input[type=file]{display:none;}
           <div id="stamp-pk"><span>PK </span><span id="pk-value">--+---</span></div>
           <div id="stamp-row2">
             <span id="stamp-coords"><span id="gps-dot"></span><span id="coords-val">buscando GPS...</span></span>
-            <span id="stamp-dt" id="dt-val"></span>
+            <span id="stamp-dt"></span>
           </div>
-          <div id="stamp-act" id="act-val">Actividad: —</div>
+          <div id="stamp-act">Actividad: —</div>
         </div>
         <div id="flash"></div>
+        <div id="cam-msg" onclick="startCamera(true)"><div>&#9888;</div><p id="cam-msg-txt">Toca para activar la cámara</p></div>
       </div>
       <div id="cam-controls">
         <div id="btn-gallery-thumb" onclick="switchTab('gallery')">
@@ -203,7 +212,7 @@ input[type=file]{display:none;}
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Cargar KMZ
         </button>
-        <input type="file" id="kmz-file-map" accept=".kmz,.kml" onchange="loadKMZ(this)">
+        <input type="file" id="kmz-file-map" onchange="loadKMZ(this)">
       </div>
     </div>
 
@@ -275,9 +284,22 @@ input[type=file]{display:none;}
               <button id="btn-load-kmz" onclick="document.getElementById('kmz-file-cfg').click()">
                 Cargar archivo KMZ / KML
               </button>
-              <input type="file" id="kmz-file-cfg" accept=".kmz,.kml" onchange="loadKMZ(this)">
+              <input type="file" id="kmz-file-cfg" onchange="loadKMZ(this)">
               <div id="kmz-status">Sin KMZ — el PK se calculará cuando cargues uno</div>
             </div>
+          </div>
+          <div class="config-row">
+            <div class="config-row-body">
+              <div class="config-row-title">PK inicial del eje</div>
+              <input type="text" id="cfg-pk0" placeholder="0+000" oninput="updateRouteOpts()">
+            </div>
+          </div>
+          <div class="config-row">
+            <div class="config-row-body">
+              <div class="config-row-title">Invertir sentido del cadenamiento</div>
+              <div class="config-row-sub">Si el PK crece al revés de lo esperado</div>
+            </div>
+            <input type="checkbox" id="cfg-rev" onchange="updateRouteOpts()">
           </div>
         </div>
       </div>
@@ -293,6 +315,14 @@ input[type=file]{display:none;}
               <div class="config-row-title">Estado GPS</div>
               <div class="config-row-sub" id="gps-status-cfg">Buscando señal...</div>
             </div>
+          </div>
+        </div>
+        <div class="config-label">Diagnóstico</div>
+        <div class="config-card">
+          <div class="config-row"><div class="diag" id="diag"></div></div>
+          <div class="config-row" style="gap:8px;">
+            <button class="cfg-btn2" onclick="startCamera(true);switchTab('cam')">Reiniciar cámara</button>
+            <button class="cfg-btn2" onclick="clearRoute()">Borrar KMZ</button>
           </div>
         </div>
       </div>
@@ -345,8 +375,11 @@ input[type=file]{display:none;}
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
 <script>
+const APP_VERSION='2026.11.19-a';
 // ── STATE ──
 const state = {
+  tab:'cam', pk0:0, reverse:false, pkDist:null,
+  camState:'-', lastError:'',
   obra: 'Laguna Verde - La Mancha',
   activity: '',
   lat: null, lon: null, accuracy: null,
@@ -374,7 +407,7 @@ setInterval(()=>{
   const el=document.getElementById('stamp-dt');
   if(el)el.textContent=v;
   const sp=document.getElementById('sp-bottom');
-  if(sp&&state.lat) sp.textContent=`${state.lat.toFixed(6)}°N  ${Math.abs(state.lon).toFixed(6)}°W  |  ${v}`;
+  if(sp) sp.textContent=`${coordStr(6)}  |  ${v}`;
 },1000);
 
 // ── GPS ──
@@ -385,147 +418,399 @@ function startGPS(){
     state.lon=pos.coords.longitude;
     state.accuracy=pos.coords.accuracy;
     const cv=document.getElementById('coords-val');
-    if(cv)cv.textContent=`${state.lat.toFixed(5)}°N  ${Math.abs(state.lon).toFixed(5)}°W`;
+    if(cv)cv.textContent=coordStr(5);
     document.getElementById('gps-status-cfg').textContent=`Activo · precisión ±${Math.round(state.accuracy)} m`;
     if(state.routeCoords.length) computePK();
     drawMap();
-  },{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+  },err=>{
+    state.lastError='GPS: '+err.message;
+    document.getElementById('gps-status-cfg').textContent='Error: '+err.message;
+    if(err.code===1)document.getElementById('coords-val').textContent='GPS sin permiso';
+  },{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
+}
+function coordStr(d){
+  if(state.lat==null)return 'Sin GPS';
+  return `${Math.abs(state.lat).toFixed(d)}°${state.lat>=0?'N':'S'}  ${Math.abs(state.lon).toFixed(d)}°${state.lon>=0?'E':'W'}`;
 }
 
 // ── PK CALCULATION ──
+const R_EARTH=6371000;
 function latLonToMeters(lat1,lon1,lat2,lon2){
-  const R=6371000;
   const dLat=(lat2-lat1)*Math.PI/180;
   const dLon=(lon2-lon1)*Math.PI/180;
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return R_EARTH*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-
-function projectPointOnSegment(px,py,ax,ay,bx,by){
-  const dx=bx-ax,dy=by-ay;
-  const lenSq=dx*dx+dy*dy;
-  if(lenSq===0)return{t:0,x:ax,y:ay};
-  let t=((px-ax)*dx+(py-ay)*dy)/lenSq;
-  t=Math.max(0,Math.min(1,t));
-  return{t,x:ax+t*dx,y:ay+t*dy};
+// Proyección local en metros (equirectangular) — evita el sesgo de proyectar en grados
+let projLat0=0;
+function toXY(lat,lon){
+  const k=Math.PI/180*R_EARTH;
+  return{x:lon*k*Math.cos(projLat0*Math.PI/180),y:lat*k};
+}
+function fmtPK(m){
+  if(m<0)return '-'+fmtPK(-m);
+  let km=Math.floor(m/1000),r=Math.round(m-km*1000);
+  if(r===1000){km++;r=0;}
+  return `${km}+${String(r).padStart(3,'0')}`;
+}
+function parsePK(s){
+  s=(s||'').trim();if(!s)return 0;
+  const m=s.match(/^(-?\d+)\s*\+\s*(\d+(?:\.\d+)?)$/);
+  if(m)return parseInt(m[1])*1000+parseFloat(m[2]);
+  const n=parseFloat(s);return isNaN(n)?0:n;
 }
 
 function computePK(){
-  if(!state.lat||!state.routeCoords.length)return;
+  if(state.lat==null||state.routeCoords.length<2)return;
   const coords=state.routeCoords;
-  let bestDist=Infinity,bestAccum=0;
+  const P=toXY(state.lat,state.lon);
+  let best=Infinity,bestAccum=0;
   for(let i=0;i<coords.length-1;i++){
     const A=coords[i],B=coords[i+1];
-    const proj=projectPointOnSegment(state.lat,state.lon,A.lat,A.lon,B.lat,B.lon);
-    const d=latLonToMeters(state.lat,state.lon,proj.x,proj.y);
-    if(d<bestDist){
-      bestDist=d;
-      const segLen=latLonToMeters(A.lat,A.lon,B.lat,B.lon);
-      bestAccum=A.dist+proj.t*segLen;
-    }
+    const dx=B.x-A.x,dy=B.y-A.y,len2=dx*dx+dy*dy;
+    let t=len2?((P.x-A.x)*dx+(P.y-A.y)*dy)/len2:0;
+    t=Math.max(0,Math.min(1,t));
+    const qx=A.x+t*dx,qy=A.y+t*dy;
+    const d=Math.hypot(P.x-qx,P.y-qy);
+    if(d<best){best=d;bestAccum=A.dist+t*(B.dist-A.dist);}
   }
-  state.pk=bestAccum;
-  const km=Math.floor(bestAccum/1000);
-  const m=Math.round(bestAccum%1000);
-  state.pkLabel=`${km}+${String(m).padStart(3,'0')}`;
+  const total=coords[coords.length-1].dist;
+  const along=state.reverse?total-bestAccum:bestAccum;
+  state.pk=state.pk0+along;
+  state.pkDist=best;
+  state.pkLabel=fmtPK(state.pk);
   document.getElementById('pk-value').textContent=state.pkLabel;
   document.getElementById('sp-pk').textContent=`PK ${state.pkLabel}`;
   document.getElementById('map-pk-chip').textContent=`PK ${state.pkLabel}`;
-  document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(bestDist)} m`;
+  document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(best)} m`+(best>500?' ⚠ fuera de ruta':'');
 }
 
 // ── KMZ / KML PARSER ──
 async function loadKMZ(input){
   const file=input.files[0];
-  if(!file)return;
-  showToast('Leyendo KMZ...');
-  try{
-    let kmlText;
-    if(file.name.toLowerCase().endsWith('.kmz')){
-      // KMZ = ZIP containing doc.kml
-      const JSZip=await loadJSZip();
-      const zip=await JSZip.loadAsync(file);
-      const kmlFile=Object.values(zip.files).find(f=>f.name.endsWith('.kml'));
-      if(!kmlFile)throw new Error('No se encontró .kml dentro del KMZ');
-      kmlText=await kmlFile.async('text');
-    } else {
-      kmlText=await file.text();
-    }
-    parseKML(kmlText, file.name);
-  } catch(e){
-    showToast('Error: '+e.message);
-    console.error(e);
-  }
   input.value='';
+  if(!file)return;
+  setKmzStatus('Leyendo '+file.name+' ('+Math.round(file.size/1024)+' KB)...');
+  try{
+    const buf=new Uint8Array(await file.arrayBuffer());
+    let kmlText;
+    // Detectar ZIP por "firma" (PK\x03\x04), no por extensión: en Android el nombre a veces llega sin extensión
+    if(buf[0]===0x50&&buf[1]===0x4B){
+      kmlText=await kmlFromZip(buf);
+    } else {
+      kmlText=new TextDecoder('utf-8').decode(buf);
+      if(!/<kml|<coordinates|<Placemark/i.test(kmlText))throw new Error('El archivo no es KMZ ni KML');
+    }
+    const res=parseKML(kmlText);
+    applyRoute(res,file.name.replace(/\.[^.]+$/,''));
+    saveRoute();
+  } catch(e){
+    console.error(e);
+    state.lastError='KMZ: '+e.message;
+    setKmzStatus('✗ '+e.message);
+    showToast('Error KMZ: '+e.message);
+  }
+  updateDiag();
 }
 
+function setKmzStatus(t){document.getElementById('kmz-status').textContent=t;}
+
+// Lector ZIP nativo (sin internet) con DecompressionStream; si no existe, usa JSZip del CDN
+async function kmlFromZip(buf){
+  let entries=null;
+  try{entries=readZipDir(buf);}catch(e){console.warn('zip dir',e);}
+  if(entries&&typeof DecompressionStream!=='undefined'){
+    const kmls=entries.filter(e=>/\.kml$/i.test(e.name)&&!e.name.startsWith('__MACOSX'));
+    if(!kmls.length)throw new Error('No hay archivo .kml dentro del KMZ');
+    const pick=kmls.find(e=>/(^|\/)doc\.kml$/i.test(e.name))||kmls.sort((a,b)=>b.usize-a.usize)[0];
+    const data=await zipExtract(buf,pick);
+    return new TextDecoder('utf-8').decode(data);
+  }
+  const JSZip=await loadJSZip();
+  const zip=await JSZip.loadAsync(buf);
+  const files=Object.values(zip.files).filter(f=>!f.dir&&/\.kml$/i.test(f.name));
+  if(!files.length)throw new Error('No hay archivo .kml dentro del KMZ');
+  const f=files.find(f=>/(^|\/)doc\.kml$/i.test(f.name))||files[0];
+  return await f.async('text');
+}
+function readZipDir(b){
+  const dv=new DataView(b.buffer,b.byteOffset,b.byteLength);
+  let eocd=-1;
+  for(let i=b.length-22;i>=Math.max(0,b.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}}
+  if(eocd<0)throw new Error('ZIP dañado o incompleto');
+  const n=dv.getUint16(eocd+10,true);let p=dv.getUint32(eocd+16,true);
+  const out=[];
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(p,true)!==0x02014b50)throw new Error('ZIP: directorio inválido');
+    const method=dv.getUint16(p+10,true),csize=dv.getUint32(p+20,true),usize=dv.getUint32(p+24,true);
+    const nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true);
+    const off=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(b.subarray(p+46,p+46+nl));
+    out.push({name,method,csize,usize,off});
+    p+=46+nl+xl+cl;
+  }
+  return out;
+}
+async function zipExtract(b,e){
+  const dv=new DataView(b.buffer,b.byteOffset,b.byteLength);
+  const p=e.off;
+  const start=p+30+dv.getUint16(p+26,true)+dv.getUint16(p+28,true);
+  const raw=b.subarray(start,start+e.csize);
+  if(e.method===0)return raw;
+  if(e.method!==8)throw new Error('Compresión ZIP no soportada ('+e.method+')');
+  const ds=new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(ds).arrayBuffer());
+}
 function loadJSZip(){
   return new Promise((res,rej)=>{
     if(window.JSZip){res(window.JSZip);return;}
     const s=document.createElement('script');
     s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
     s.onload=()=>res(window.JSZip);
-    s.onerror=()=>rej(new Error('No se pudo cargar JSZip'));
+    s.onerror=()=>rej(new Error('No se pudo cargar JSZip (¿sin internet?)'));
     document.head.appendChild(s);
   });
 }
 
-function parseKML(kmlText, fname){
-  const parser=new DOMParser();
-  const doc=parser.parseFromString(kmlText,'text/xml');
-  // Collect all coordinates from LineString / LineStringGeometry / MultiGeometry
-  const coordNodes=doc.querySelectorAll('coordinates');
-  let allCoords=[];
-  coordNodes.forEach(node=>{
-    const txt=node.textContent.trim();
-    const pairs=txt.split(/\s+/).filter(Boolean);
-    pairs.forEach(pair=>{
-      const parts=pair.split(',');
-      if(parts.length>=2){
-        const lon=parseFloat(parts[0]),lat=parseFloat(parts[1]);
-        if(!isNaN(lat)&&!isNaN(lon))allCoords.push({lat,lon});
-      }
+function parseCoordText(txt){
+  const out=[];
+  (txt||'').trim().split(/\s+/).forEach(t=>{
+    const p=t.split(',');
+    if(p.length>=2){const lon=parseFloat(p[0]),lat=parseFloat(p[1]);if(isFinite(lat)&&isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)out.push({lat,lon});}
+  });
+  return out;
+}
+
+// Devuelve {lines:[[{lat,lon}]], points:[{lat,lon,name}]}
+function parseKML(text){
+  text=text.replace(/^﻿/,'');
+  const lines=[],points=[];
+  const doc=new DOMParser().parseFromString(text,'text/xml');
+  const ok=!doc.getElementsByTagName('parsererror').length;
+  if(ok){
+    const all=(n)=>Array.from(doc.getElementsByTagNameNS('*',n));
+    all('LineString').forEach(ls=>{
+      const c=ls.getElementsByTagNameNS('*','coordinates')[0];
+      const pts=parseCoordText(c&&c.textContent);
+      if(pts.length>=2)lines.push(pts);
     });
-  });
-  if(allCoords.length<2){showToast('KML sin línea de ruta válida');return;}
-  // Compute cumulative distance
+    all('Track').forEach(tr=>{ // gx:Track (rutas grabadas con GPS)
+      const pts=Array.from(tr.getElementsByTagNameNS('*','coord')).map(c=>{
+        const p=c.textContent.trim().split(/\s+/);return{lon:parseFloat(p[0]),lat:parseFloat(p[1])};
+      }).filter(p=>isFinite(p.lat)&&isFinite(p.lon));
+      if(pts.length>=2)lines.push(pts);
+    });
+    all('Point').forEach(pt=>{
+      const c=pt.getElementsByTagNameNS('*','coordinates')[0];
+      const p=parseCoordText(c&&c.textContent)[0];
+      if(!p)return;
+      const pm=pt.closest?pt.closest('Placemark'):null;
+      const nm=pm&&pm.getElementsByTagNameNS('*','name')[0];
+      points.push({...p,name:nm?nm.textContent.trim():''});
+    });
+  } else {
+    // XML inválido (p.ej. prefijo gx: sin declarar): extraer con expresiones regulares
+    const re=/<(?:\w+:)?LineString\b[\s\S]*?<(?:\w+:)?coordinates>([\s\S]*?)<\/(?:\w+:)?coordinates>/gi;
+    let m;while((m=re.exec(text))){const pts=parseCoordText(m[1]);if(pts.length>=2)lines.push(pts);}
+    if(!lines.length)throw new Error('KML con XML inválido: '+doc.getElementsByTagName('parsererror')[0].textContent.slice(0,80));
+  }
+  return{lines,points};
+}
+
+function polyLen(pts){let d=0;for(let i=1;i<pts.length;i++)d+=latLonToMeters(pts[i-1].lat,pts[i-1].lon,pts[i].lat,pts[i].lon);return d;}
+
+// Une tramos de línea consecutivos en un solo eje (empezando por el más largo)
+function stitchLines(lines){
+  if(!lines.length)return[];
+  const segs=lines.map(l=>({pts:l,len:polyLen(l)})).sort((a,b)=>b.len-a.len);
+  let axis=segs.shift().pts.slice();
+  const GAP=150; // m máx. entre tramos para unirlos
+  let changed=true;
+  while(changed&&segs.length){
+    changed=false;
+    let best=null;
+    segs.forEach((s,i)=>{
+      const a=s.pts[0],b=s.pts[s.pts.length-1],h=axis[0],t=axis[axis.length-1];
+      [[t,a,'ta'],[t,b,'tb'],[h,b,'hb'],[h,a,'ha']].forEach(([p,q,k])=>{
+        const d=latLonToMeters(p.lat,p.lon,q.lat,q.lon);
+        if(d<GAP&&(!best||d<best.d))best={d,i,k};
+      });
+    });
+    if(best){
+      const s=segs.splice(best.i,1)[0].pts;
+      if(best.k==='ta')axis=axis.concat(s);
+      else if(best.k==='tb')axis=axis.concat(s.slice().reverse());
+      else if(best.k==='hb')axis=s.concat(axis);
+      else axis=s.slice().reverse().concat(axis);
+      changed=true;
+    }
+  }
+  return{axis,unused:segs.length};
+}
+
+function applyRoute(res,name){
+  let axis,info;
+  if(res.lines.length){
+    const st=stitchLines(res.lines);axis=st.axis;
+    // mantener el sentido de la primera línea del archivo
+    const f=res.lines[0],key=c=>c.lat+','+c.lon;
+    const i0=axis.findIndex(c=>key(c)===key(f[0])),i1=axis.findIndex(c=>key(c)===key(f[f.length-1]));
+    if(i0>=0&&i1>=0&&i0>i1)axis=axis.slice().reverse();
+    info=`${res.lines.length} línea(s)`+(st.unused?` · ${st.unused} sin unir`:'');
+  } else if(res.points.length>=2){
+    axis=res.points;info=`${res.points.length} puntos (sin líneas)`;
+  } else throw new Error('El KML no tiene una línea de ruta (LineString)');
+  // quitar duplicados consecutivos
+  axis=axis.filter((c,i)=>i===0||c.lat!==axis[i-1].lat||c.lon!==axis[i-1].lon);
+  if(axis.length<2)throw new Error('La ruta tiene menos de 2 puntos');
+  setRoute(axis,name);
+  const total=state.routeCoords[state.routeCoords.length-1].dist;
+  setKmzStatus(`✓ ${axis.length} pts · ${(total/1000).toFixed(2)} km · ${info}`);
+  showToast(`KMZ cargado · ${(total/1000).toFixed(2)} km`);
+}
+
+function setRoute(axis,name){
+  projLat0=axis.reduce((s,c)=>s+c.lat,0)/axis.length;
   let dist=0;
-  state.routeCoords=allCoords.map((c,i)=>{
-    if(i>0)dist+=latLonToMeters(allCoords[i-1].lat,allCoords[i-1].lon,c.lat,c.lon);
-    return{...c,dist};
+  state.routeCoords=axis.map((c,i)=>{
+    if(i>0)dist+=latLonToMeters(axis[i-1].lat,axis[i-1].lon,c.lat,c.lon);
+    return{lat:c.lat,lon:c.lon,dist,...toXY(c.lat,c.lon)};
   });
-  state.routeName=fname.replace(/\.[^.]+$/,'');
-  document.getElementById('kmz-loaded-name').textContent=state.routeName;
-  document.getElementById('map-kmz-name').textContent=state.routeName;
-  document.getElementById('kmz-status').textContent=`✓ ${allCoords.length} puntos · ${(dist/1000).toFixed(2)} km`;
-  showToast(`KMZ cargado · ${allCoords.length} pts`);
-  resetMapView();
-  drawMap();
-  if(state.lat)computePK();
+  state.routeName=name;
+  document.getElementById('kmz-loaded-name').textContent=name;
+  document.getElementById('map-kmz-name').textContent=name;
+  resetMapView();drawMap();
+  if(state.lat!=null)computePK();
+}
+
+function saveRoute(){
+  try{localStorage.setItem('obrasnap.route',JSON.stringify({name:state.routeName,pts:state.routeCoords.map(c=>[+c.lat.toFixed(7),+c.lon.toFixed(7)])}));}
+  catch(e){console.warn('no se pudo guardar ruta',e);}
+}
+function restoreRoute(){
+  try{
+    const r=JSON.parse(localStorage.getItem('obrasnap.route')||'null');
+    if(r&&r.pts&&r.pts.length>=2){
+      setRoute(r.pts.map(p=>({lat:p[0],lon:p[1]})),r.name||'ruta');
+      const total=state.routeCoords[state.routeCoords.length-1].dist;
+      setKmzStatus(`✓ ${r.pts.length} pts · ${(total/1000).toFixed(2)} km (guardado)`);
+    }
+  }catch(e){console.warn(e);}
+}
+function clearRoute(){
+  try{localStorage.removeItem('obrasnap.route');}catch(e){}
+  state.routeCoords=[];state.routeName=null;state.pk=null;state.pkLabel='--+---';
+  document.getElementById('kmz-loaded-name').textContent='Ninguno';
+  document.getElementById('map-kmz-name').textContent='sin KMZ';
+  document.getElementById('pk-value').textContent='--+---';
+  setKmzStatus('Sin KMZ — el PK se calculará cuando cargues uno');
+  drawMap();updateDiag();
+}
+function updateRouteOpts(){
+  state.pk0=parsePK(document.getElementById('cfg-pk0').value);
+  state.reverse=document.getElementById('cfg-rev').checked;
+  saveSettings();computePK();drawMap();
 }
 
 // ── CAMERA ──
-let stream=null;
-async function startCamera(){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}},audio:false
-    });
-    document.getElementById('video').srcObject=stream;
-  } catch(e){showToast('Sin acceso a cámara');}
+// Android congela/mata el stream al salir de la app. Estrategia:
+// 1) al ocultarse la página o salir de la pestaña Cámara → detener pistas
+// 2) al volver → pedir un stream nuevo
+// 3) vigilante cada 2 s: si la pista murió o el video no avanza → reiniciar
+// 4) si nada funciona → mensaje "Toca para activar" (un toque del usuario desbloquea play())
+let stream=null,camBusy=false,camFails=0,lastVT=-1,stallCount=0;
+const video=()=>document.getElementById('video');
+
+function stopCamera(){
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  const v=video();if(v)v.srcObject=null;
+  state.camState='detenida';
 }
+
+async function startCamera(fromUser){
+  if(camBusy)return;
+  if(document.hidden||state.tab!=='cam')return;
+  camBusy=true;
+  showCamMsg(null);
+  try{
+    stopCamera();
+    state.camState='iniciando';
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    }catch(e){
+      if(e.name==='NotAllowedError'||e.name==='SecurityError')throw e;
+      stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false}); // fallback
+    }
+    const track=stream.getVideoTracks()[0];
+    track.addEventListener('ended',()=>{state.camState='pista terminada';if(!document.hidden)setTimeout(()=>startCamera(),300);});
+    const v=video();
+    v.srcObject=stream;
+    await v.play();
+    camFails=0;lastVT=-1;stallCount=0;
+    state.camState='activa';
+  }catch(e){
+    camFails++;
+    state.camState='error: '+e.name;
+    state.lastError='Cámara: '+(e.name||'')+' '+(e.message||'');
+    console.error(e);
+    if(e.name==='NotAllowedError')showCamMsg('Permiso de cámara denegado.\nActívalo en Ajustes del navegador → Permisos del sitio, y toca aquí.');
+    else if(e.name==='NotReadableError')showCamMsg('La cámara está ocupada por otra app.\nCiérrala y toca aquí.');
+    else showCamMsg('Toca para activar la cámara');
+  }finally{
+    camBusy=false;updateDiag();
+  }
+}
+
+function cameraHealthy(){
+  const t=stream&&stream.getVideoTracks()[0];
+  const v=video();
+  if(!t||t.readyState!=='live')return false;
+  if(v.paused||v.readyState<2)return false;
+  return true;
+}
+
+function camWatchdog(){
+  if(document.hidden||state.tab!=='cam'||camBusy)return;
+  if(!stream){ if(camFails<3)startCamera(); return; }
+  if(!cameraHealthy()){
+    const v=video();
+    if(v.paused&&stream){v.play().catch(()=>showCamMsg('Toca para reactivar la cámara'));return;}
+    if(camFails<3)startCamera();else showCamMsg('Toca para reactivar la cámara');
+    return;
+  }
+  // detectar imagen congelada: currentTime no avanza
+  const vt=video().currentTime;
+  if(vt===lastVT){if(++stallCount>=2){state.camState='congelada → reiniciando';startCamera();}}
+  else stallCount=0;
+  lastVT=vt;
+}
+
+function showCamMsg(txt){
+  const m=document.getElementById('cam-msg');
+  if(!txt){m.classList.remove('show');return;}
+  document.getElementById('cam-msg-txt').textContent=txt;
+  m.classList.add('show');
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)stopCamera();
+  else setTimeout(()=>startCamera(),250);
+});
+window.addEventListener('pageshow',e=>{if(e.persisted)startCamera();});
+window.addEventListener('focus',()=>{if(!cameraHealthy())startCamera();});
 
 function capturePhoto(){
   const video=document.getElementById('video');
+  if(!cameraHealthy()||!video.videoWidth){showToast('Cámara no lista — reactivando...');startCamera(true);return;}
   const canvas=document.getElementById('capture-canvas');
-  const W=video.videoWidth||1280,H=video.videoHeight||720;
+  const W=video.videoWidth,H=video.videoHeight;
   canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');
   ctx.drawImage(video,0,0,W,H);
   drawStampOnCanvas(ctx,W,H);
   const dataUrl=canvas.toDataURL('image/jpeg',0.92);
   // Save
-  const photo={dataUrl,pk:state.pkLabel,dt:nowLabel(),coords:`${(state.lat||0).toFixed(5)}°N ${Math.abs(state.lon||0).toFixed(5)}°W`,act:state.activity};
+  const photo={dataUrl,pk:state.pkLabel,dt:nowLabel(),coords:coordStr(5),act:state.activity};
   state.photos.unshift(photo);
   updateGallery();
   // thumb
@@ -558,8 +843,7 @@ function drawStampOnCanvas(ctx,W,H){
   // coords + date
   ctx.fillStyle='#86efac';
   ctx.font=`400 ${W*0.022}px 'Share Tech Mono',monospace`;
-  const coordStr=state.lat?`${state.lat.toFixed(5)}°N  ${Math.abs(state.lon).toFixed(5)}°W`:'Sin GPS';
-  ctx.fillText(coordStr,pad,H-bh+H*0.132);
+  ctx.fillText(coordStr(5),pad,H-bh+H*0.132);
   ctx.fillStyle='#888888';
   ctx.fillText(nowLabel(),pad+W*0.3,H-bh+H*0.132);
   // activity
@@ -729,6 +1013,34 @@ function updateConfig(){
   document.getElementById('sp-obra').textContent=state.obra;
   document.getElementById('stamp-act').textContent='Actividad: '+(state.activity||'—');
   document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
+  saveSettings();
+}
+function saveSettings(){
+  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse}));}catch(e){}
+}
+function restoreSettings(){
+  try{
+    const c=JSON.parse(localStorage.getItem('obrasnap.cfg')||'null');if(!c)return;
+    if(c.obra)document.getElementById('cfg-obra').value=c.obra;
+    document.getElementById('cfg-act').value=c.activity||'';
+    document.getElementById('cfg-pk0').value=c.pk0||'';
+    document.getElementById('cfg-rev').checked=!!c.reverse;
+    state.pk0=parsePK(c.pk0);state.reverse=!!c.reverse;
+    updateConfig();
+  }catch(e){}
+}
+function updateDiag(){
+  const el=document.getElementById('diag');if(!el)return;
+  const t=stream&&stream.getVideoTracks()[0];
+  const st=t&&t.getSettings?t.getSettings():{};
+  el.textContent=
+`Versión: ${APP_VERSION}
+Cámara: ${state.camState}${st.width?` · ${st.width}×${st.height}`:''}
+Pista: ${t?t.readyState+(t.muted?' (muted)':''):'—'}
+GPS: ${state.lat!=null?`±${Math.round(state.accuracy)} m`:'sin fix'}
+Ruta: ${state.routeCoords.length?state.routeCoords.length+' pts':'—'}${state.pkDist!=null?` · a ${Math.round(state.pkDist)} m del eje`:''}
+Unzip nativo: ${typeof DecompressionStream!=='undefined'?'sí':'no (usa JSZip/internet)'}
+Último error: ${state.lastError||'ninguno'}`;
 }
 
 // ── ACTIVITY MODAL ──
@@ -745,10 +1057,15 @@ function saveActivity(){
   document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
   document.getElementById('cfg-act').value=state.activity;
   document.getElementById('modal-bg').classList.remove('open');
+  saveSettings();
 }
 
 // ── TAB NAVIGATION ──
 function switchTab(tab){
+  const prev=state.tab;state.tab=tab;
+  if(tab!=='cam'&&prev==='cam')stopCamera();
+  if(tab==='cam'&&prev!=='cam')setTimeout(()=>startCamera(),50);
+  if(tab==='config')updateDiag();
   ['cam','map','gallery','config'].forEach(t=>{
     document.getElementById(t+'-screen').classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
@@ -765,10 +1082,14 @@ function showToast(msg){
 
 // ── INIT ──
 window.addEventListener('load',()=>{
+  initMap();
+  restoreSettings();
+  restoreRoute();
   startCamera();
   startGPS();
-  initMap();
   setInterval(computePK,5000);
+  setInterval(camWatchdog,2000);
+  setInterval(()=>{if(state.tab==='config')updateDiag();},2000);
 });
 </script>
 </body>
