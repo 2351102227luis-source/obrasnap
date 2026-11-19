@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0a1a0f">
 <title>ObraSnap</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -46,14 +49,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 @keyframes scan{0%{top:0%}100%{top:100%}}
 
 /* OVERLAY STAMP */
-#stamp{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));padding:10px 14px 12px;pointer-events:none;}
-#stamp-obra{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;}
-#stamp-pk{font-family:var(--mono);font-size:22px;color:#fff;line-height:1;margin:2px 0;}
-#stamp-pk span{font-size:13px;color:var(--text2);}
-#stamp-row2{display:flex;gap:12px;margin-top:4px;flex-wrap:wrap;}
-#stamp-coords{font-family:var(--mono);font-size:10px;color:var(--text2);}
-#stamp-dt{font-family:var(--mono);font-size:10px;color:#888;}
-#stamp-act{font-family:var(--sans);font-size:11px;color:#ccc;margin-top:3px;font-style:italic;}
+#stamp{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 20px);background:rgba(0,0,0,.58);border-left:4px solid var(--green);border-radius:8px;padding:8px 12px 9px;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.6);}
+#stamp-obra{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#stamp-pk{font-family:var(--mono);font-size:26px;color:#fff;line-height:1.05;margin:1px 0 2px;white-space:nowrap;}
+#pk-side{font-size:11px;color:#bbf7d0;margin-left:6px;}
+#stamp-act{font-family:var(--sans);font-size:13px;font-weight:500;color:#fff;margin-bottom:2px;}
+#stamp-act:empty{display:none;}
+#stamp-dt,#stamp-coords{display:block;font-family:var(--mono);font-size:10.5px;color:#e5e7eb;}
+#stamp-brand{position:absolute;top:10px;right:12px;font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.75);pointer-events:none;}
 
 /* GPS accuracy dot */
 #gps-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse-dot 2s infinite;}
@@ -80,6 +83,30 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .diag{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap;word-break:break-word;}
 .cfg-btn2{background:var(--bg2);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;color:var(--text2);font-family:var(--sans);font-size:12px;cursor:pointer;}
 .config-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--green);}
+
+/* VISOR / EXPORTAR */
+.hdr-btn{background:var(--green-dim);border:none;border-radius:8px;padding:6px 12px;color:#fff;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;}
+#viewer{position:fixed;inset:0;background:#000;z-index:150;display:none;flex-direction:column;}
+#viewer.open{display:flex;}
+#viewer-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));}
+#viewer-top button{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer;}
+#viewer-idx{font-family:var(--mono);font-size:12px;color:var(--text2);}
+#viewer-img-wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;}
+#viewer-img{max-width:100%;max-height:100%;object-fit:contain;}
+.vnav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:56px;border:none;border-radius:8px;background:rgba(0,0,0,.35);color:#fff;font-size:28px;cursor:pointer;}
+#viewer-info{padding:10px 16px 4px;font-size:12px;color:var(--text);display:grid;gap:3px;}
+#viewer-info b{font-family:var(--mono);font-weight:400;color:var(--text2);display:inline-block;min-width:74px;font-size:11px;}
+#viewer-actions{display:flex;gap:8px;padding:10px 16px;padding-bottom:max(14px,env(safe-area-inset-bottom));}
+#viewer-actions button{flex:1;padding:12px 0;border-radius:10px;border:1px solid var(--surface2);background:var(--surface);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
+#viewer-actions button:first-child{background:var(--green-dim);border-color:var(--green-dim);color:#fff;}
+#viewer-actions .danger{color:#fca5a5;border-color:#7f1d1d;background:transparent;}
+#export-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
+#export-bg.open{display:flex;}
+#export-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;}
+.exp-l{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--text);padding:8px 0;border-bottom:1px solid var(--surface);}
+.exp-l select{background:var(--surface);color:var(--text);border:1px solid var(--surface2);border-radius:8px;padding:6px 8px;font-family:var(--sans);font-size:13px;}
+#exp-count{font-family:var(--mono);font-size:11px;color:var(--text2);margin-top:10px;min-height:14px;}
+button:disabled{opacity:.5;}
 
 /* FLASH */
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .15s;}
@@ -167,14 +194,13 @@ input[type=file]{display:none;}
       <div id="video-wrap">
         <video id="video" autoplay playsinline muted></video>
         <div id="scan-line"></div>
+        <div id="stamp-brand">OBRASNAP</div>
         <div id="stamp">
           <div id="stamp-obra">Laguna Verde - La Mancha</div>
-          <div id="stamp-pk"><span>PK </span><span id="pk-value">--+---</span></div>
-          <div id="stamp-row2">
-            <span id="stamp-coords"><span id="gps-dot"></span><span id="coords-val">buscando GPS...</span></span>
-            <span id="stamp-dt"></span>
-          </div>
-          <div id="stamp-act">Actividad: —</div>
+          <div id="stamp-pk">PK <span id="pk-value">--+---</span><span id="pk-side"></span></div>
+          <div id="stamp-act"></div>
+          <span id="stamp-dt"></span>
+          <span id="stamp-coords"><span id="gps-dot"></span><span id="coords-val">buscando GPS...</span></span>
         </div>
         <div id="flash"></div>
         <div id="cam-msg" onclick="startCamera(true)"><div>&#9888;</div><p id="cam-msg-txt">Toca para activar la cámara</p></div>
@@ -220,7 +246,7 @@ input[type=file]{display:none;}
     <div id="gallery-screen" class="screen">
       <div id="gallery-header">
         <h2>Galería</h2>
-        <span id="gallery-count">0 fotos</span>
+        <span style="display:flex;align-items:center;gap:10px;"><span id="gallery-count">0 fotos</span><button id="btn-export" class="hdr-btn" onclick="openExport()" style="display:none;">Exportar</button></span>
       </div>
       <div id="gallery-grid" style="display:none;"></div>
       <div id="gallery-empty">
@@ -263,6 +289,13 @@ input[type=file]{display:none;}
               <div class="config-row-title">Actividad actual</div>
               <input type="text" id="cfg-act" placeholder="Ej: Colado de losa, Trazo..." oninput="updateConfig()">
             </div>
+          </div>
+          <div class="config-row">
+            <div class="config-row-body">
+              <div class="config-row-title">Guardar cada foto en Descargas</div>
+              <div class="config-row-sub">Copia de respaldo en el teléfono al tomar la foto</div>
+            </div>
+            <input type="checkbox" id="cfg-autosave" checked onchange="state.autoSave=this.checked;saveSettings()">
           </div>
         </div>
       </div>
@@ -347,6 +380,17 @@ input[type=file]{display:none;}
       </div>
     </div>
 
+    <div id="export-bg" onclick="if(event.target===this)closeExport()">
+      <div id="export-box">
+        <div id="modal-title">Exportar fotos</div>
+        <label class="exp-l">Fotos<select id="exp-range" onchange="updateExportCount()"><option value="today">De hoy</option><option value="week">Últimos 7 días</option><option value="all">Todas</option></select></label>
+        <label class="exp-l">Orden<select id="exp-order" onchange="updateExportCount()"><option value="pk">Por PK</option><option value="time">Por hora</option></select></label>
+        <div id="exp-count"></div>
+        <button id="modal-btn" onclick="runExport('pdf')">Reporte PDF</button>
+        <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="runExport('zip')">Descargar fotos (.zip)</button>
+      </div>
+    </div>
+
     <div id="toast">Foto guardada</div>
 
   </div>
@@ -372,13 +416,23 @@ input[type=file]{display:none;}
   </nav>
 </div>
 
+<div id="viewer">
+  <div id="viewer-top"><button onclick="closeViewer()" aria-label="Cerrar">✕</button><span id="viewer-idx"></span><span style="width:36px"></span></div>
+  <div id="viewer-img-wrap"><button class="vnav" onclick="viewerStep(-1)" style="left:6px">‹</button><img id="viewer-img" alt=""><button class="vnav" onclick="viewerStep(1)" style="right:6px">›</button></div>
+  <div id="viewer-info"></div>
+  <div id="viewer-actions">
+    <button onclick="viewerShare()">Compartir</button>
+    <button onclick="viewerDownload()">Descargar</button>
+    <button class="danger" onclick="viewerDelete()">Eliminar</button>
+  </div>
+</div>
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
 <script>
-const APP_VERSION='2026.11.19-a';
+const APP_VERSION='2026.11.19-b';
 // ── STATE ──
 const state = {
-  tab:'cam', pk0:0, reverse:false, pkDist:null,
+  tab:'cam', pk0:0, reverse:false, pkDist:null, pkSide:'', autoSave:true,
   camState:'-', lastError:'',
   obra: 'Laguna Verde - La Mancha',
   activity: '',
@@ -386,14 +440,13 @@ const state = {
   pk: null, pkLabel: '--+---',
   routeCoords: [],   // [{lat,lon,dist}] distancia acumulada en metros
   routeName: null,
-  photos: [],        // {dataUrl, pk, dt, coords}
+  photos: [],        // metadatos; la imagen está en IndexedDB
   mapOffset: {x:0,y:0}, mapScale:1,
   mapDragging:false, mapDragStart:null
 };
 
 // ── CLOCK ──
-function nowLabel(){
-  const d=new Date();
+function nowLabel(d=new Date()){
   const dd=String(d.getDate()).padStart(2,'0');
   const mm=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][d.getMonth()];
   const yy=d.getFullYear();
@@ -418,7 +471,7 @@ function startGPS(){
     state.lon=pos.coords.longitude;
     state.accuracy=pos.coords.accuracy;
     const cv=document.getElementById('coords-val');
-    if(cv)cv.textContent=coordStr(5);
+    if(cv)cv.textContent=coordStr(5)+`  ±${Math.round(state.accuracy)} m`;
     document.getElementById('gps-status-cfg').textContent=`Activo · precisión ±${Math.round(state.accuracy)} m`;
     if(state.routeCoords.length) computePK();
     drawMap();
@@ -464,7 +517,7 @@ function computePK(){
   if(state.lat==null||state.routeCoords.length<2)return;
   const coords=state.routeCoords;
   const P=toXY(state.lat,state.lon);
-  let best=Infinity,bestAccum=0;
+  let best=Infinity,bestAccum=0,bestCross=0;
   for(let i=0;i<coords.length-1;i++){
     const A=coords[i],B=coords[i+1];
     const dx=B.x-A.x,dy=B.y-A.y,len2=dx*dx+dy*dy;
@@ -472,14 +525,17 @@ function computePK(){
     t=Math.max(0,Math.min(1,t));
     const qx=A.x+t*dx,qy=A.y+t*dy;
     const d=Math.hypot(P.x-qx,P.y-qy);
-    if(d<best){best=d;bestAccum=A.dist+t*(B.dist-A.dist);}
+    if(d<best){best=d;bestAccum=A.dist+t*(B.dist-A.dist);bestCross=dx*(P.y-A.y)-dy*(P.x-A.x);}
   }
   const total=coords[coords.length-1].dist;
   const along=state.reverse?total-bestAccum:bestAccum;
   state.pk=state.pk0+along;
   state.pkDist=best;
+  // cruz>0 → a la izquierda en el sentido de la línea; si se invierte el cadenamiento, se invierte el lado
+  state.pkSide=((bestCross>0)!==state.reverse)?'Izq':'Der';
   state.pkLabel=fmtPK(state.pk);
   document.getElementById('pk-value').textContent=state.pkLabel;
+  document.getElementById('pk-side').textContent=sideLabel({dist:best,side:state.pkSide});
   document.getElementById('sp-pk').textContent=`PK ${state.pkLabel}`;
   document.getElementById('map-pk-chip').textContent=`PK ${state.pkLabel}`;
   document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(best)} m`+(best>500?' ⚠ fuera de ruta':'');
@@ -703,6 +759,7 @@ function clearRoute(){
   document.getElementById('kmz-loaded-name').textContent='Ninguno';
   document.getElementById('map-kmz-name').textContent='sin KMZ';
   document.getElementById('pk-value').textContent='--+---';
+  document.getElementById('pk-side').textContent='';state.pkDist=null;
   setKmzStatus('Sin KMZ — el PK se calculará cuando cargues uno');
   drawMap();updateDiag();
 }
@@ -798,61 +855,6 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pageshow',e=>{if(e.persisted)startCamera();});
 window.addEventListener('focus',()=>{if(!cameraHealthy())startCamera();});
-
-function capturePhoto(){
-  const video=document.getElementById('video');
-  if(!cameraHealthy()||!video.videoWidth){showToast('Cámara no lista — reactivando...');startCamera(true);return;}
-  const canvas=document.getElementById('capture-canvas');
-  const W=video.videoWidth,H=video.videoHeight;
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext('2d');
-  ctx.drawImage(video,0,0,W,H);
-  drawStampOnCanvas(ctx,W,H);
-  const dataUrl=canvas.toDataURL('image/jpeg',0.92);
-  // Save
-  const photo={dataUrl,pk:state.pkLabel,dt:nowLabel(),coords:coordStr(5),act:state.activity};
-  state.photos.unshift(photo);
-  updateGallery();
-  // thumb
-  const ti=document.getElementById('thumb-img');
-  ti.src=dataUrl;ti.style.display='block';
-  document.getElementById('thumb-placeholder').style.display='none';
-  // flash
-  const f=document.getElementById('flash');
-  f.style.opacity=1;setTimeout(()=>f.style.opacity=0,150);
-  showToast('Foto guardada · PK '+state.pkLabel);
-}
-
-function drawStampOnCanvas(ctx,W,H){
-  const pad=W*0.02;
-  const bh=H*0.18;
-  // gradient bg
-  const grad=ctx.createLinearGradient(0,H-bh,0,H);
-  grad.addColorStop(0,'rgba(0,0,0,0)');
-  grad.addColorStop(1,'rgba(0,0,0,0.82)');
-  ctx.fillStyle=grad;
-  ctx.fillRect(0,H-bh,W,bh);
-  // obra name
-  ctx.fillStyle='#22c55e';
-  ctx.font=`700 ${W*0.028}px 'Barlow Condensed',sans-serif`;
-  ctx.fillText((state.obra||'Obra').toUpperCase(),pad,H-bh+H*0.045);
-  // PK
-  ctx.fillStyle='#ffffff';
-  ctx.font=`500 ${W*0.055}px 'Share Tech Mono',monospace`;
-  ctx.fillText('PK '+state.pkLabel,pad,H-bh+H*0.095);
-  // coords + date
-  ctx.fillStyle='#86efac';
-  ctx.font=`400 ${W*0.022}px 'Share Tech Mono',monospace`;
-  ctx.fillText(coordStr(5),pad,H-bh+H*0.132);
-  ctx.fillStyle='#888888';
-  ctx.fillText(nowLabel(),pad+W*0.3,H-bh+H*0.132);
-  // activity
-  if(state.activity){
-    ctx.fillStyle='#cccccc';
-    ctx.font=`italic 400 ${W*0.022}px 'Barlow',sans-serif`;
-    ctx.fillText(state.activity,pad,H-bh+H*0.163);
-  }
-}
 
 // ── MAP ──
 let mapCanvas,mapCtx,mapW,mapH;
@@ -982,27 +984,457 @@ function onMapTouchMove(e){
   }
 }
 
-// ── GALLERY ──
+// ── ALMACENAMIENTO (IndexedDB: las fotos sobreviven a cerrar la app) ──
+let dbp=null;
+function db(){
+  if(!dbp)dbp=new Promise((res,rej)=>{
+    const r=indexedDB.open('obrasnap',1);
+    r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('photos',{keyPath:'id'});d.createObjectStore('blobs');};
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+  });
+  return dbp;
+}
+function idbReq(req){return new Promise((res,rej)=>{req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}
+async function dbSavePhoto(meta,blob){
+  const d=await db();
+  await new Promise((res,rej)=>{
+    const t=d.transaction(['photos','blobs'],'readwrite');
+    const m={...meta};delete m._blob;
+    t.objectStore('photos').put(m);t.objectStore('blobs').put(blob,meta.id);
+    t.oncomplete=res;t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error||new Error('sin espacio'));
+  });
+}
+async function dbAllMeta(){const d=await db();return idbReq(d.transaction('photos').objectStore('photos').getAll());}
+async function dbGetBlob(id){const d=await db();return idbReq(d.transaction('blobs').objectStore('blobs').get(id));}
+async function dbDelete(id){
+  const d=await db();
+  await new Promise((res,rej)=>{const t=d.transaction(['photos','blobs'],'readwrite');t.objectStore('photos').delete(id);t.objectStore('blobs').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error);});
+}
+async function photoBlob(m){return m._blob||await dbGetBlob(m.id);}
+async function loadPhotos(){
+  try{
+    const all=await dbAllMeta();
+    state.photos=all.sort((a,b)=>b.ts-a.ts);
+    updateGallery();updateThumb();
+  }catch(e){state.lastError='Galería: '+e.message;console.error(e);}
+}
+
+// ── CAPTURA ──
+let capturing=false;
+async function capturePhoto(){
+  if(capturing)return;
+  const video=document.getElementById('video');
+  if(!cameraHealthy()||!video.videoWidth){showToast('Cámara no lista — reactivando...');startCamera(true);return;}
+  capturing=true;
+  try{
+    const W=video.videoWidth,H=video.videoHeight;
+    const canvas=document.getElementById('capture-canvas');
+    canvas.width=W;canvas.height=H;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(video,0,0,W,H);
+    const f=document.getElementById('flash');
+    f.style.opacity=1;setTimeout(()=>f.style.opacity=0,150);
+    const meta=snapshotMeta(W,H);
+    await fontsReady();
+    drawStampOnCanvas(ctx,W,H,meta);
+    let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
+    try{blob=await addExif(blob,meta);}catch(e){console.warn('exif',e);}
+    meta.thumb=makeThumb(canvas);
+    meta.size=blob.size;
+    try{
+      await dbSavePhoto(meta,blob);
+      if(navigator.storage&&navigator.storage.persist&&!state.persistAsked){state.persistAsked=true;navigator.storage.persist().catch(()=>{});}
+    }catch(e){
+      meta._blob=blob; // solo en memoria
+      state.lastError='Guardar foto: '+e.message;
+      showToast('⚠ No se pudo guardar en el teléfono — descárgala');
+    }
+    state.photos.unshift(meta);
+    updateGallery();updateThumb();
+    if(state.autoSave)downloadBlob(blob,photoFileName(meta));
+    showToast('Foto guardada · PK '+meta.pkLabel);
+  }catch(e){
+    console.error(e);state.lastError='Captura: '+e.message;showToast('Error al capturar: '+e.message);
+  }finally{capturing=false;}
+}
+
+function snapshotMeta(W,H){
+  const ts=Date.now();
+  const onRoute=state.routeCoords.length>1&&state.lat!=null&&state.pk!=null;
+  return{
+    id:'p'+ts+'_'+Math.random().toString(36).slice(2,6),ts,w:W,h:H,
+    obra:state.obra,act:state.activity,route:state.routeName,
+    pk:onRoute?state.pk:null,pkLabel:onRoute?state.pkLabel:'--+---',
+    dist:onRoute?state.pkDist:null,side:onRoute?state.pkSide:'',
+    lat:state.lat,lon:state.lon,acc:state.accuracy,dt:nowLabel(new Date(ts))
+  };
+}
+
+function metaCoords(m,d=5){
+  if(m.lat==null)return 'Sin GPS';
+  return `${Math.abs(m.lat).toFixed(d)}°${m.lat>=0?'N':'S'}  ${Math.abs(m.lon).toFixed(d)}°${m.lon>=0?'E':'W'}`+(m.acc!=null?`  ±${Math.round(m.acc)} m`:'');
+}
+function sideLabel(m){
+  if(m.dist==null)return '';
+  const d=Math.round(m.dist);
+  if(d>500)return `${d} m del eje (fuera de ruta)`;
+  return d<1?'sobre el eje':`${d} m ${m.side==='Izq'?'Izq.':'Der.'}`;
+}
+
+function fontsReady(){
+  if(!document.fonts||!document.fonts.load)return Promise.resolve();
+  return Promise.race([
+    Promise.all(["700 20px 'Barlow Condensed'","20px 'Share Tech Mono'","500 20px 'Barlow'"].map(f=>document.fonts.load(f).catch(()=>{}))),
+    new Promise(r=>setTimeout(r,800))
+  ]);
+}
+
+// Stamp: panel semitransparente abajo-izquierda con barra de acento, escalado al lado corto de la imagen
+function drawStampOnCanvas(ctx,W,H,m){
+  const s=Math.min(W,H)/1000,mg=26*s,pad=22*s,bar=8*s;
+  const F={cond:"'Barlow Condensed',sans-serif",mono:"'Share Tech Mono',monospace",sans:"'Barlow',sans-serif"};
+  const side=sideLabel(m);
+  const L=[
+    {t:(m.obra||'Obra').toUpperCase(),sz:34*s,f:`700 ${34*s}px ${F.cond}`,c:'#4ade80',gap:4*s},
+    {t:'PK '+m.pkLabel,sz:72*s,f:`400 ${72*s}px ${F.mono}`,c:'#ffffff',gap:6*s,ex:side,exf:`400 ${30*s}px ${F.mono}`,exc:'#bbf7d0'},
+  ];
+  if(m.act)L.push({t:m.act,sz:34*s,f:`500 ${34*s}px ${F.sans}`,c:'#ffffff',gap:8*s});
+  L.push({t:m.dt,sz:28*s,f:`400 ${28*s}px ${F.mono}`,c:'#e5e7eb',gap:4*s});
+  L.push({t:metaCoords(m),sz:28*s,f:`400 ${28*s}px ${F.mono}`,c:'#e5e7eb',gap:0});
+  const maxText=W-2*mg-2*pad-bar;
+  let wMax=0,hSum=0;
+  L.forEach(l=>{
+    ctx.font=l.f;l.t=fitText(ctx,l.t,maxText);let w=ctx.measureText(l.t).width;
+    if(l.ex){ctx.font=l.exf;const room=maxText-w-16*s;l.ex=room>40*s?fitText(ctx,l.ex,room):'';if(l.ex)w+=16*s+ctx.measureText(l.ex).width;}
+    wMax=Math.max(wMax,w);hSum+=l.sz*1.12+l.gap;
+  });
+  const pw=wMax+2*pad+bar,ph=hSum+2*pad-2*s;
+  const x0=mg,y0=H-mg-ph;
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.58)';
+  roundRect(ctx,x0,y0,pw,ph,14*s);ctx.fill();
+  ctx.fillStyle='#22c55e';
+  roundRect(ctx,x0,y0,bar,ph,[14*s,0,0,14*s]);ctx.fill();
+  ctx.textBaseline='top';
+  ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4*s;ctx.shadowOffsetY=1*s;
+  let y=y0+pad;const x=x0+bar+pad;
+  L.forEach(l=>{
+    ctx.font=l.f;ctx.fillStyle=l.c;ctx.fillText(l.t,x,y);
+    if(l.ex){const w=ctx.measureText(l.t).width;ctx.font=l.exf;ctx.fillStyle=l.exc;ctx.fillText(l.ex,x+w+16*s,y+l.sz*0.42);}
+    y+=l.sz*1.12+l.gap;
+  });
+  // marca discreta arriba a la derecha
+  ctx.font=`600 ${24*s}px ${F.cond}`;ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.fillText('OBRASNAP',W-mg,mg);
+  ctx.restore();
+}
+function fitText(ctx,t,max){
+  if(ctx.measureText(t).width<=max)return t;
+  while(t.length>1&&ctx.measureText(t+'…').width>max)t=t.slice(0,-1);
+  return t+'…';
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  if(ctx.roundRect){ctx.roundRect(x,y,w,h,r);return;}
+  ctx.rect(x,y,w,h);
+}
+function makeThumb(src){
+  const tw=360,th=Math.round(src.height*tw/src.width);
+  const c=document.createElement('canvas');c.width=tw;c.height=th;
+  c.getContext('2d').drawImage(src,0,0,tw,th);
+  return c.toDataURL('image/jpeg',0.72);
+}
+
+// ── EXIF: fecha y GPS dentro del JPG (Google Fotos / Maps los leen) ──
+function exifDate(ts){
+  const d=new Date(ts),p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}:${p(d.getMonth()+1)}:${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function asciiZ(s){const a=[];for(const ch of s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')){const c=ch.charCodeAt(0);a.push(c>=32&&c<127?c:63);}a.push(0);return a;}
+async function addExif(blob,m){
+  const u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+  const rat=(n,d)=>[...u32(n),...u32(d)];
+  const dms=x=>{x=Math.abs(x);const d=Math.floor(x),mf=(x-d)*60,mi=Math.floor(mf),sc=Math.round((mf-mi)*60*10000);return[...rat(d,1),...rat(mi,1),...rat(sc,10000)];};
+  const dt=asciiZ(exifDate(m.ts));
+  const desc=asciiZ(`${m.obra||''} | PK ${m.pkLabel}${m.dist!=null?' '+sideLabel(m):''}${m.act?' | '+m.act:''}`);
+  const hasGps=m.lat!=null;
+  const ifd0=[[0x010E,2,desc],[0x0131,2,asciiZ('ObraSnap')],[0x0132,2,dt],[0x8769,4,null]];
+  if(hasGps)ifd0.push([0x8825,4,null]);
+  const exif=[[0x9003,2,dt],[0x9004,2,dt]];
+  const gps=hasGps?[[0x0000,1,[2,3,0,0]],[0x0001,2,asciiZ(m.lat>=0?'N':'S')],[0x0002,5,dms(m.lat)],[0x0003,2,asciiZ(m.lon>=0?'E':'W')],[0x0004,5,dms(m.lon)]]:[];
+  const size=e=>2+12*e.length+4+e.reduce((s,[, ,v])=>s+(v&&v.length>4?v.length+(v.length&1):0),0);
+  const o0=8,oE=o0+size(ifd0),oG=oE+size(exif);
+  ifd0.forEach(e=>{if(e[0]===0x8769)e[2]=u32(oE);if(e[0]===0x8825)e[2]=u32(oG);});
+  const out=[0x49,0x49,0x2A,0x00,...u32(8)];
+  const write=(entries,start)=>{
+    let data=start+2+12*entries.length+4;const dataBytes=[];
+    out.push(entries.length&255,entries.length>>8);
+    entries.forEach(([tag,type,v])=>{
+      const count=type===5?v.length/8:type===4?1:v.length;
+      out.push(tag&255,tag>>8,type,0,...u32(count));
+      if(v.length<=4){const b=v.slice();while(b.length<4)b.push(0);out.push(...b);}
+      else{out.push(...u32(data));dataBytes.push(...v);if(v.length&1)dataBytes.push(0);data+=v.length+(v.length&1);}
+    });
+    out.push(0,0,0,0);out.push(...dataBytes);
+  };
+  write(ifd0,o0);write(exif,oE);if(hasGps)write(gps,oG);
+  const tiff=new Uint8Array(out);
+  const len=2+6+tiff.length;
+  const app1=new Uint8Array([0xFF,0xE1,len>>8,len&255,0x45,0x78,0x69,0x66,0,0]);
+  const jpg=new Uint8Array(await blob.arrayBuffer());
+  if(jpg[0]!==0xFF||jpg[1]!==0xD8)return blob;
+  return new Blob([jpg.subarray(0,2),app1,tiff,jpg.subarray(2)],{type:'image/jpeg'});
+}
+
+// ── DESCARGA / COMPARTIR ──
+function photoFileName(m){
+  const d=new Date(m.ts),p=n=>String(n).padStart(2,'0');
+  const stamp=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
+  return `ObraSnap_${m.pk!=null?'PK'+m.pkLabel+'_':''}${stamp}.jpg`;
+}
+function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),15000);
+}
+async function shareOrDownload(blob,name,title){
+  const file=new File([blob],name,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title});return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  downloadBlob(blob,name);
+}
+
+// ── GALERÍA ──
+function updateThumb(){
+  const ti=document.getElementById('thumb-img'),ph=document.getElementById('thumb-placeholder');
+  if(state.photos.length){ti.src=state.photos[0].thumb;ti.style.display='block';ph.style.display='none';}
+  else{ti.style.display='none';ph.style.display='flex';}
+}
 function updateGallery(){
   const grid=document.getElementById('gallery-grid');
   const empty=document.getElementById('gallery-empty');
-  document.getElementById('gallery-count').textContent=state.photos.length+' fotos';
-  if(!state.photos.length){grid.style.display='none';empty.style.display='flex';return;}
+  const n=state.photos.length;
+  document.getElementById('gallery-count').textContent=n+(n===1?' foto':' fotos');
+  document.getElementById('btn-export').style.display=n?'':'none';
+  if(!n){grid.style.display='none';empty.style.display='flex';return;}
   empty.style.display='none';grid.style.display='grid';
   grid.innerHTML='';
   state.photos.forEach((p,i)=>{
     const div=document.createElement('div');
     div.className='gallery-item';
-    div.innerHTML=`<img src="${p.dataUrl}" loading="lazy"><div class="gallery-item-meta"><div class="gallery-pk">PK ${p.pk}</div><div class="gallery-dt">${p.dt.slice(0,15)}</div></div>`;
-    div.onclick=()=>previewPhoto(i);
+    const img=document.createElement('img');img.src=p.thumb;img.loading='lazy';
+    const meta=document.createElement('div');meta.className='gallery-item-meta';
+    meta.innerHTML=`<div class="gallery-pk"></div><div class="gallery-dt"></div>`;
+    meta.children[0].textContent='PK '+p.pkLabel;
+    meta.children[1].textContent=p.dt.slice(0,18)+(p._blob?' · ⚠ sin guardar':'');
+    div.append(img,meta);
+    div.onclick=()=>openViewer(i);
     grid.appendChild(div);
   });
 }
 
-function previewPhoto(i){
-  const p=state.photos[i];
-  const w=window.open('','_blank');
-  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${p.dataUrl}" style="max-width:100%;max-height:100vh;"><p style="position:fixed;bottom:8px;left:0;right:0;text-align:center;color:#22c55e;font-family:monospace;font-size:12px;">PK ${p.pk} · ${p.dt}</p></body></html>`);
+let viewerIdx=-1,viewerUrl=null;
+async function openViewer(i){
+  if(i<0||i>=state.photos.length)return;
+  viewerIdx=i;
+  const m=state.photos[i];
+  const img=document.getElementById('viewer-img');
+  img.src=m.thumb;
+  document.getElementById('viewer-idx').textContent=`${i+1} / ${state.photos.length}`;
+  const info=document.getElementById('viewer-info');
+  info.innerHTML='';
+  [['PK',m.pkLabel+(m.dist!=null?' · '+sideLabel(m):'')],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—']].forEach(([k,v])=>{
+    const r=document.createElement('div');r.innerHTML='<b></b> <span></span>';r.children[0].textContent=k;r.children[1].textContent=v;info.appendChild(r);
+  });
+  document.getElementById('viewer').classList.add('open');
+  try{
+    const b=await photoBlob(m);
+    if(viewerIdx!==i||!b)return;
+    if(viewerUrl)URL.revokeObjectURL(viewerUrl);
+    viewerUrl=URL.createObjectURL(b);img.src=viewerUrl;
+  }catch(e){console.error(e);}
+}
+function closeViewer(){
+  document.getElementById('viewer').classList.remove('open');
+  if(viewerUrl){URL.revokeObjectURL(viewerUrl);viewerUrl=null;}
+  viewerIdx=-1;
+}
+function viewerStep(d){const n=viewerIdx+d;if(n>=0&&n<state.photos.length)openViewer(n);}
+async function viewerShare(){const m=state.photos[viewerIdx];if(!m)return;await shareOrDownload(await photoBlob(m),photoFileName(m),'PK '+m.pkLabel);}
+async function viewerDownload(){const m=state.photos[viewerIdx];if(!m)return;downloadBlob(await photoBlob(m),photoFileName(m));showToast('Descargando foto...');}
+async function viewerDelete(){
+  const m=state.photos[viewerIdx];if(!m)return;
+  if(!confirm(`¿Eliminar la foto PK ${m.pkLabel} del ${m.dt}?`))return;
+  try{await dbDelete(m.id);}catch(e){}
+  state.photos.splice(viewerIdx,1);
+  updateGallery();updateThumb();
+  if(state.photos.length)openViewer(Math.min(viewerIdx,state.photos.length-1));else closeViewer();
+}
+(function swipe(){
+  let x0=null;
+  document.addEventListener('touchstart',e=>{if(e.target.closest&&e.target.closest('#viewer-img-wrap'))x0=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>60)viewerStep(dx<0?1:-1);},{passive:true});
+})();
+
+// ── EXPORTAR (PDF / ZIP) ──
+function openExport(){updateExportCount();document.getElementById('export-bg').classList.add('open');}
+function closeExport(){document.getElementById('export-bg').classList.remove('open');}
+function exportSelection(){
+  const range=document.getElementById('exp-range').value,order=document.getElementById('exp-order').value;
+  const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  let list=state.photos.filter(p=>range==='all'||(range==='today'?p.ts>=start:p.ts>=start-6*864e5));
+  list=list.slice().sort(order==='pk'?(a,b)=>(a.pk??Infinity)-(b.pk??Infinity)||a.ts-b.ts:(a,b)=>a.ts-b.ts);
+  return list;
+}
+function updateExportCount(){
+  const n=exportSelection().length;
+  document.getElementById('exp-count').textContent=n?`${n} foto(s) seleccionadas`:'No hay fotos en ese rango';
+}
+async function runExport(kind){
+  const list=exportSelection();if(!list.length){showToast('No hay fotos en ese rango');return;}
+  const btns=document.querySelectorAll('#export-box button');btns.forEach(b=>b.disabled=true);
+  const st=document.getElementById('exp-count');
+  try{
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    const tag=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+    const safe=(state.obra||'Obra').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_');
+    if(kind==='pdf'){
+      const blob=await buildReportPDF(list,t=>st.textContent=t);
+      await shareOrDownload(blob,`Reporte_${safe}_${tag}.pdf`,'Reporte fotográfico');
+    }else{
+      const files=[];
+      for(let i=0;i<list.length;i++){st.textContent=`Empaquetando ${i+1}/${list.length}...`;files.push({name:photoFileName(list[i]),data:new Uint8Array(await (await photoBlob(list[i])).arrayBuffer()),ts:list[i].ts});}
+      downloadBlob(makeZip(files),`Fotos_${safe}_${tag}.zip`);
+    }
+    st.textContent='✓ Listo';
+  }catch(e){console.error(e);state.lastError='Exportar: '+e.message;st.textContent='✗ '+e.message;}
+  finally{btns.forEach(b=>b.disabled=false);}
+}
+
+// ZIP sin compresión (las JPG ya están comprimidas)
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC_T[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+function makeZip(files){
+  const parts=[],central=[];let off=0;
+  const le=(n,b)=>{const a=[];for(let i=0;i<b;i++)a.push((n>>>(8*i))&255);return a;};
+  files.forEach(f=>{
+    const name=new TextEncoder().encode(f.name),crc=crc32(f.data),sz=f.data.length;
+    const d=new Date(f.ts);
+    const time=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
+    const date=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+    const common=[...le(20,2),...le(0x0800,2),...le(0,2),...le(time,2),...le(date,2),...le(crc,4),...le(sz,4),...le(sz,4),...le(name.length,2),...le(0,2)];
+    parts.push(new Uint8Array([...le(0x04034b50,4),...common]),name,f.data);
+    central.push(new Uint8Array([...le(0x02014b50,4),...le(20,2),...common,...le(0,2),...le(0,2),...le(0,2),...le(0,4),...le(off,4)]),name);
+    off+=30+name.length+sz;
+  });
+  const cdSize=central.reduce((s,u)=>s+u.length,0);
+  const eocd=new Uint8Array([...le(0x06054b50,4),0,0,0,0,...le(files.length,2),...le(files.length,2),...le(cdSize,4),...le(off,4),0,0]);
+  return new Blob([...parts,...central,eocd],{type:'application/zip'});
+}
+
+// PDF propio (sin librerías, funciona sin internet). A4, 2 fotos por página + tabla resumen.
+function pdfText(s){
+  s=String(s??'').replace(/—/g,'\x97').replace(/–/g,'\x96').replace(/…/g,'\x85').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/⚠/g,'!');
+  let o='';for(const ch of s){const c=ch.charCodeAt(0);o+=c<256?ch:'?';}
+  return '('+o.replace(/[\\()]/g,'\\$&').replace(/[\r\n\t]/g,' ')+')';
+}
+function latin1(s){const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u;}
+async function pdfImage(blob,maxW){
+  const bmp=await createImageBitmap(blob);
+  const sc=Math.min(1,maxW/bmp.width),w=Math.round(bmp.width*sc),h=Math.round(bmp.height*sc);
+  const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(bmp,0,0,w,h);
+  if(bmp.close)bmp.close();
+  const b=await new Promise(r=>c.toBlob(r,'image/jpeg',0.82));
+  return{w,h,data:new Uint8Array(await b.arrayBuffer())};
+}
+async function buildReportPDF(list,progress){
+  const PW=595,PH=842,M=36;
+  const objs=[];const add=p=>{objs.push(p);return objs.length;};
+  add(null);add(null); // 1 catálogo, 2 páginas
+  const fR=add(['<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>']);
+  const fB=add(['<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>']);
+  const est=(t,sz,b)=>String(t).length*sz*(b?0.56:0.51);
+  const clip=(t,sz,b,max)=>{t=String(t??'');while(t.length>1&&est(t,sz,b)>max)t=t.slice(0,-2);return t;};
+  const n2=v=>(+v).toFixed(2);
+  const T=(x,y,sz,b,t,rgb='0.1 0.1 0.1')=>`BT /${b?'F2':'F1'} ${sz} Tf ${rgb} rg ${n2(x)} ${n2(PH-y)} Td ${pdfText(t)} Tj ET\n`;
+  const TR=(xr,y,sz,b,t,rgb)=>T(xr-est(t,sz,b),y,sz,b,t,rgb);
+  const RECT=(x,y,w,h,rgb)=>`${rgb} rg ${n2(x)} ${n2(PH-y-h)} ${n2(w)} ${n2(h)} re f\n`;
+  const LINE=(x1,y,x2,rgb='0.8 0.8 0.8',lw=0.6)=>`${rgb} RG ${lw} w ${n2(x1)} ${n2(PH-y)} m ${n2(x2)} ${n2(PH-y)} l S\n`;
+  const pages=[]; // {content, xobjs:{name:objnum}}
+  const genDate=nowLabel();
+  const obra=state.obra||'Obra';
+  const header=()=>RECT(0,0,PW,6,'0.086 0.639 0.290')+T(M,34,15,true,clip(obra.toUpperCase(),15,true,360))+T(M,50,9,false,'Reporte fotográfico de avance','0.4 0.4 0.4')+TR(PW-M,34,9,false,'Generado: '+genDate,'0.4 0.4 0.4')+TR(PW-M,50,9,false,state.routeName?'Eje: '+clip(state.routeName,9,false,200):'','0.4 0.4 0.4')+LINE(M,60,PW-M);
+
+  // Resumen
+  const pks=list.filter(p=>p.pk!=null).map(p=>p.pk);
+  const ts=list.map(p=>p.ts);
+  const dfmt=t=>nowLabel(new Date(t)).slice(0,11);
+  let c=header();
+  let y=84;
+  c+=T(M,y,11,true,'Resumen');y+=16;
+  [['Fotos',String(list.length)],['Periodo',dfmt(Math.min(...ts))+(dfmt(Math.min(...ts))!==dfmt(Math.max(...ts))?' — '+dfmt(Math.max(...ts)):'')],
+   ['Tramo',pks.length?`PK ${fmtPK(Math.min(...pks))} — PK ${fmtPK(Math.max(...pks))}`:'sin PK (no había KMZ o GPS)']].forEach(([k,v])=>{c+=T(M,y,9,true,k+':')+T(M+60,y,9,false,v);y+=13;});
+  y+=10;
+  const cols=[[M,'#'],[M+26,'PK'],[M+96,'Lado'],[M+176,'Fecha y hora'],[M+300,'Actividad']];
+  const tableHead=()=>{let s=RECT(M,y-10,PW-2*M,15,'0.93 0.96 0.93');cols.forEach(([x,t])=>s+=T(x+3,y,8.5,true,t));y+=16;return s;};
+  c+=tableHead();
+  list.forEach((p,i)=>{
+    if(y>PH-50){pages.push({content:c,x:{}});c=header();y=84;c+=tableHead();}
+    if(i%2)c+=RECT(M,y-10,PW-2*M,13,'0.97 0.97 0.97');
+    c+=T(cols[0][0]+3,y,8.5,false,i+1)+T(cols[1][0]+3,y,8.5,true,p.pkLabel)+T(cols[2][0]+3,y,8.5,false,clip(sideLabel(p)||'—',8.5,false,76))+T(cols[3][0]+3,y,8.5,false,p.dt.replace(/\s+/g,' '))+T(cols[4][0]+3,y,8.5,false,clip(p.act||'—',8.5,false,PW-M-cols[4][0]-6));
+    y+=13;
+  });
+  pages.push({content:c,x:{}});
+
+  // Páginas de fotos: 2 por página
+  const slotH=(PH-70-40)/2,boxW=PW-2*M,boxH=slotH-62;
+  for(let i=0;i<list.length;i+=2){
+    let pc=header();const xo={};
+    for(let k=0;k<2&&i+k<list.length;k++){
+      const p=list[i+k],idx=i+k;
+      progress&&progress(`Preparando foto ${idx+1}/${list.length}...`);
+      const blob=await photoBlob(p);
+      const im=await pdfImage(blob,1400);
+      const num=add([`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.data.length} >>\nstream\n`,im.data,'\nendstream']);
+      const nm='Im'+idx;xo[nm]=num;
+      const top=70+k*slotH;
+      const sc=Math.min(boxW/im.w,boxH/im.h),w=im.w*sc,h=im.h*sc,x=M+(boxW-w)/2;
+      pc+=RECT(M,top,boxW,boxH,'0.95 0.95 0.95');
+      pc+=`q ${n2(w)} 0 0 ${n2(h)} ${n2(x)} ${n2(PH-top-(boxH-h)/2-h)} cm /${nm} Do Q\n`;
+      let cy=top+boxH+15;
+      pc+=T(M,cy,11,true,`Foto ${idx+1} de ${list.length}  ·  PK ${p.pkLabel}`,'0.05 0.35 0.15');
+      if(p.dist!=null)pc+=TR(PW-M,cy,9,false,sideLabel(p),'0.3 0.3 0.3');
+      cy+=13;pc+=T(M,cy,9,false,p.dt+'     '+metaCoords(p),'0.25 0.25 0.25');
+      cy+=12;pc+=T(M,cy,9,false,clip('Actividad: '+(p.act||'—'),9,false,boxW),'0.25 0.25 0.25');
+    }
+    pages.push({content:pc,x:xo});
+  }
+  // ensamblar páginas
+  const kids=[];
+  pages.forEach((pg,i)=>{
+    const content=pg.content+TR(PW-M,PH-20,8,false,`ObraSnap  ·  Página ${i+1} de ${pages.length}`,'0.5 0.5 0.5');
+    const cnum=add([`<< /Length ${content.length} >>\nstream\n`,content,'\nendstream']);
+    const xs=Object.entries(pg.x).map(([k,v])=>`/${k} ${v} 0 R`).join(' ');
+    kids.push(add([`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 ${fR} 0 R /F2 ${fB} 0 R >>${xs?` /XObject << ${xs} >>`:''} >> /Contents ${cnum} 0 R >>`]));
+  });
+  objs[0]=['<< /Type /Catalog /Pages 2 0 R >>'];
+  objs[1]=[`<< /Type /Pages /Kids [${kids.map(k=>k+' 0 R').join(' ')}] /Count ${kids.length} >>`];
+  const d=new Date(),pd=n=>String(n).padStart(2,'0');
+  const info=add([`<< /Title ${pdfText('Reporte fotográfico — '+obra)} /Producer (ObraSnap) /CreationDate (D:${d.getFullYear()}${pd(d.getMonth()+1)}${pd(d.getDate())}${pd(d.getHours())}${pd(d.getMinutes())}${pd(d.getSeconds())}) >>`]);
+  // serializar
+  const chunks=[];let pos=0;const offs=[];
+  const push=x=>{const u=typeof x==='string'?latin1(x):x;chunks.push(u);pos+=u.length;};
+  push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  objs.forEach((parts,i)=>{offs[i]=pos;push(`${i+1} 0 obj\n`);parts.forEach(push);push('\nendobj\n');});
+  const xref=pos;
+  let x=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`;
+  offs.forEach(o=>x+=String(o).padStart(10,'0')+' 00000 n \n');
+  push(x);
+  push(`trailer\n<< /Size ${objs.length+1} /Root 1 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(chunks,{type:'application/pdf'});
 }
 
 // ── CONFIG ──
@@ -1011,12 +1443,12 @@ function updateConfig(){
   state.activity=document.getElementById('cfg-act').value||'';
   document.getElementById('stamp-obra').textContent=state.obra;
   document.getElementById('sp-obra').textContent=state.obra;
-  document.getElementById('stamp-act').textContent='Actividad: '+(state.activity||'—');
+  document.getElementById('stamp-act').textContent=state.activity||'';
   document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
   saveSettings();
 }
 function saveSettings(){
-  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse}));}catch(e){}
+  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse,autoSave:state.autoSave}));}catch(e){}
 }
 function restoreSettings(){
   try{
@@ -1026,6 +1458,7 @@ function restoreSettings(){
     document.getElementById('cfg-pk0').value=c.pk0||'';
     document.getElementById('cfg-rev').checked=!!c.reverse;
     state.pk0=parsePK(c.pk0);state.reverse=!!c.reverse;
+    if(c.autoSave===false){state.autoSave=false;document.getElementById('cfg-autosave').checked=false;}
     updateConfig();
   }catch(e){}
 }
@@ -1039,6 +1472,8 @@ Cámara: ${state.camState}${st.width?` · ${st.width}×${st.height}`:''}
 Pista: ${t?t.readyState+(t.muted?' (muted)':''):'—'}
 GPS: ${state.lat!=null?`±${Math.round(state.accuracy)} m`:'sin fix'}
 Ruta: ${state.routeCoords.length?state.routeCoords.length+' pts':'—'}${state.pkDist!=null?` · a ${Math.round(state.pkDist)} m del eje`:''}
+Fotos: ${state.photos.length}${state.storage?` · ${state.storage}`:''}
+Modo offline: ${navigator.serviceWorker&&navigator.serviceWorker.controller?'activo':'no'}
 Unzip nativo: ${typeof DecompressionStream!=='undefined'?'sí':'no (usa JSZip/internet)'}
 Último error: ${state.lastError||'ninguno'}`;
 }
@@ -1053,7 +1488,7 @@ function closeModal(e){if(e.target===document.getElementById('modal-bg'))saveAct
 function setActivity(v){document.getElementById('activity-input').value=v;}
 function saveActivity(){
   state.activity=document.getElementById('activity-input').value.trim();
-  document.getElementById('stamp-act').textContent='Actividad: '+(state.activity||'—');
+  document.getElementById('stamp-act').textContent=state.activity||'';
   document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
   document.getElementById('cfg-act').value=state.activity;
   document.getElementById('modal-bg').classList.remove('open');
@@ -1085,11 +1520,14 @@ window.addEventListener('load',()=>{
   initMap();
   restoreSettings();
   restoreRoute();
+  loadPhotos();
   startCamera();
   startGPS();
   setInterval(computePK,5000);
   setInterval(camWatchdog,2000);
   setInterval(()=>{if(state.tab==='config')updateDiag();},2000);
+  if(navigator.storage&&navigator.storage.estimate)setInterval(()=>navigator.storage.estimate().then(e=>{state.storage=`${(e.usage/1048576).toFixed(1)} MB usados`;}).catch(()=>{}),10000);
+  if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
 });
 </script>
 </body>
