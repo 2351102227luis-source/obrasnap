@@ -356,6 +356,7 @@ input[type=file]{display:none;}
           <div class="config-row" style="gap:8px;">
             <button class="cfg-btn2" onclick="startCamera(true);switchTab('cam')">Reiniciar cámara</button>
             <button class="cfg-btn2" onclick="clearRoute()">Borrar KMZ</button>
+            <button class="cfg-btn2" onclick="loadProjectAxis(true)">Usar eje del proyecto</button>
           </div>
         </div>
       </div>
@@ -429,7 +430,7 @@ input[type=file]{display:none;}
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
 <script>
-const APP_VERSION='2026.11.19-b';
+const APP_VERSION='2026.11.19-c';
 // ── STATE ──
 const state = {
   tab:'cam', pk0:0, reverse:false, pkDist:null, pkSide:'', autoSave:true,
@@ -496,9 +497,28 @@ function latLonToMeters(lat1,lon1,lat2,lon2){
 }
 // Proyección local en metros (equirectangular) — evita el sesgo de proyectar en grados
 let projLat0=0;
+// Radios de curvatura del elipsoide WGS84 en la latitud media de la ruta (más exacto que una esfera)
+let projM=R_EARTH,projN=R_EARTH;
+function setProjLat(lat){
+  projLat0=lat;
+  const a=6378137,e2=0.00669437999014,sn=Math.sin(lat*Math.PI/180),w=1-e2*sn*sn;
+  projM=a*(1-e2)/Math.pow(w,1.5);projN=a/Math.sqrt(w);
+}
 function toXY(lat,lon){
-  const k=Math.PI/180*R_EARTH;
-  return{x:lon*k*Math.cos(projLat0*Math.PI/180),y:lat*k};
+  const r=Math.PI/180;
+  return{x:lon*r*projN*Math.cos(projLat0*r),y:lat*r*projM};
+}
+// PK a partir de la distancia sobre la línea: tabla de marcas del KML (interpolada) o PK inicial + sentido
+function pkFromAlong(along,total){
+  const T=state.pkTable;
+  if(T&&T.length>=2){
+    let lo=0,hi=T.length-1;
+    if(along<=T[0][0])hi=1;else if(along>=T[hi][0])lo=hi-1;
+    else{while(hi-lo>1){const m=(lo+hi)>>1;if(T[m][0]<=along)lo=m;else hi=m;}}
+    const[a0,p0]=T[lo],[a1,p1]=T[hi];
+    return p0+(along-a0)*(p1-p0)/(a1-a0);
+  }
+  return state.pk0+(state.reverse?total-along:along);
 }
 function fmtPK(m){
   if(m<0)return '-'+fmtPK(-m);
@@ -516,20 +536,10 @@ function parsePK(s){
 function computePK(){
   if(state.lat==null||state.routeCoords.length<2)return;
   const coords=state.routeCoords;
-  const P=toXY(state.lat,state.lon);
-  let best=Infinity,bestAccum=0,bestCross=0;
-  for(let i=0;i<coords.length-1;i++){
-    const A=coords[i],B=coords[i+1];
-    const dx=B.x-A.x,dy=B.y-A.y,len2=dx*dx+dy*dy;
-    let t=len2?((P.x-A.x)*dx+(P.y-A.y)*dy)/len2:0;
-    t=Math.max(0,Math.min(1,t));
-    const qx=A.x+t*dx,qy=A.y+t*dy;
-    const d=Math.hypot(P.x-qx,P.y-qy);
-    if(d<best){best=d;bestAccum=A.dist+t*(B.dist-A.dist);bestCross=dx*(P.y-A.y)-dy*(P.x-A.x);}
-  }
+  const pr=projectOnRoute(state.lat,state.lon);
+  const best=pr.dist,bestAccum=pr.along,bestCross=pr.cross;
   const total=coords[coords.length-1].dist;
-  const along=state.reverse?total-bestAccum:bestAccum;
-  state.pk=state.pk0+along;
+  state.pk=pkFromAlong(bestAccum,total);
   state.pkDist=best;
   // cruz>0 → a la izquierda en el sentido de la línea; si se invierte el cadenamiento, se invierte el lado
   state.pkSide=((bestCross>0)!==state.reverse)?'Izq':'Der';
@@ -548,7 +558,17 @@ async function loadKMZ(input){
   if(!file)return;
   setKmzStatus('Leyendo '+file.name+' ('+Math.round(file.size/1024)+' KB)...');
   try{
-    const buf=new Uint8Array(await file.arrayBuffer());
+    await processKmz(new Uint8Array(await file.arrayBuffer()),file.name.replace(/\.[^.]+$/,''));
+  } catch(e){
+    console.error(e);
+    state.lastError='KMZ: '+e.message;
+    setKmzStatus('✗ '+e.message);
+    showToast('Error KMZ: '+e.message);
+  }
+  updateDiag();
+}
+
+async function processKmz(buf,name){
     let kmlText;
     // Detectar ZIP por "firma" (PK\x03\x04), no por extensión: en Android el nombre a veces llega sin extensión
     if(buf[0]===0x50&&buf[1]===0x4B){
@@ -558,13 +578,19 @@ async function loadKMZ(input){
       if(!/<kml|<coordinates|<Placemark/i.test(kmlText))throw new Error('El archivo no es KMZ ni KML');
     }
     const res=parseKML(kmlText);
-    applyRoute(res,file.name.replace(/\.[^.]+$/,''));
+    applyRoute(res,name);
     saveRoute();
-  } catch(e){
-    console.error(e);
-    state.lastError='KMZ: '+e.message;
-    setKmzStatus('✗ '+e.message);
-    showToast('Error KMZ: '+e.message);
+}
+
+// Eje del proyecto publicado junto a la app (EJE.kmz): se carga solo si no hay otro
+async function loadProjectAxis(force){
+  try{
+    const r=await fetch('EJE.kmz',{cache:'no-cache'});
+    if(!r.ok)throw new Error('no se encontró EJE.kmz ('+r.status+')');
+    await processKmz(new Uint8Array(await r.arrayBuffer()),'EJE (proyecto)');
+  }catch(e){
+    if(force){state.lastError='Eje proyecto: '+e.message;setKmzStatus('✗ '+e.message);showToast('Error: '+e.message);}
+    else console.warn('EJE.kmz',e);
   }
   updateDiag();
 }
@@ -629,12 +655,43 @@ function loadJSZip(){
 }
 
 function parseCoordText(txt){
+  txt=(txt||'').trim();if(!txt)return[];
+  const toks=txt.split(/\s+/);
+  const wellFormed=toks.every(t=>{const n=t.split(',').filter(Boolean).length;return n===2||n===3;});
+  let pairs;
+  if(wellFormed)pairs=toks.map(t=>t.split(',').map(Number));
+  else{
+    // Istram/Ispol y otros: "lon,lat,alt,lon,lat,alt,..." sin espacios → agrupar de 3 en 3 (o de 2 en 2)
+    const v=txt.split(/[\s,]+/).filter(Boolean).map(Number);
+    const tryStride=st=>{
+      if(v.length%st)return null;
+      const p=[];for(let i=0;i<v.length;i+=st)p.push([v[i],v[i+1]]);
+      for(let i=0;i<p.length;i++){
+        const[lo,la]=p[i];
+        if(!(Math.abs(la)<=90&&Math.abs(lo)<=180))return null;
+        if(i&&(Math.abs(lo-p[i-1][0])>0.5||Math.abs(la-p[i-1][1])>0.5))return null;
+      }
+      return p;
+    };
+    pairs=tryStride(3)||tryStride(2)||[];
+  }
   const out=[];
-  (txt||'').trim().split(/\s+/).forEach(t=>{
-    const p=t.split(',');
-    if(p.length>=2){const lon=parseFloat(p[0]),lat=parseFloat(p[1]);if(isFinite(lat)&&isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)out.push({lat,lon});}
-  });
+  pairs.forEach(([lon,lat])=>{if(isFinite(lat)&&isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)out.push({lat,lon});});
   return out;
+}
+
+// distancia (m) de un punto a una polilínea [{lat,lon}]
+function distToPolyline(p,pts){
+  const k=Math.PI/180*R_EARTH,cx=Math.cos(p.lat*Math.PI/180);
+  const X=c=>(c.lon-p.lon)*k*cx,Y=c=>(c.lat-p.lat)*k;
+  let best=Infinity;
+  for(let i=0;i<pts.length-1;i++){
+    const ax=X(pts[i]),ay=Y(pts[i]),bx=X(pts[i+1]),by=Y(pts[i+1]);
+    const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+    let t=l2?-(ax*dx+ay*dy)/l2:0;t=Math.max(0,Math.min(1,t));
+    best=Math.min(best,Math.hypot(ax+t*dx,ay+t*dy));
+  }
+  return best;
 }
 
 // Devuelve {lines:[[{lat,lon}]], points:[{lat,lon,name}]}
@@ -681,9 +738,12 @@ function stitchLines(lines){
   const segs=lines.map(l=>({pts:l,len:polyLen(l)})).sort((a,b)=>b.len-a.len);
   let axis=segs.shift().pts.slice();
   const GAP=150; // m máx. entre tramos para unirlos
-  let changed=true;
+  let changed=true,dups=0;
+  const isDup=sg=>{const q=sg.pts;return[q[0],q[q.length>>1],q[q.length-1]].every(c=>distToPolyline(c,axis)<3);};
   while(changed&&segs.length){
     changed=false;
+    for(let i=segs.length-1;i>=0;i--)if(isDup(segs[i])){segs.splice(i,1);dups++;}
+    if(!segs.length)break;
     let best=null;
     segs.forEach((s,i)=>{
       const a=s.pts[0],b=s.pts[s.pts.length-1],h=axis[0],t=axis[axis.length-1];
@@ -701,7 +761,7 @@ function stitchLines(lines){
       changed=true;
     }
   }
-  return{axis,unused:segs.length};
+  return{axis,unused:segs.length,dups};
 }
 
 function applyRoute(res,name){
@@ -712,7 +772,7 @@ function applyRoute(res,name){
     const f=res.lines[0],key=c=>c.lat+','+c.lon;
     const i0=axis.findIndex(c=>key(c)===key(f[0])),i1=axis.findIndex(c=>key(c)===key(f[f.length-1]));
     if(i0>=0&&i1>=0&&i0>i1)axis=axis.slice().reverse();
-    info=`${res.lines.length} línea(s)`+(st.unused?` · ${st.unused} sin unir`:'');
+    info=`${res.lines.length} línea(s)`+(st.dups?` · ${st.dups} duplicada(s) ignorada(s)`:'')+(st.unused?` · ${st.unused} sin unir`:'');
   } else if(res.points.length>=2){
     axis=res.points;info=`${res.points.length} puntos (sin líneas)`;
   } else throw new Error('El KML no tiene una línea de ruta (LineString)');
@@ -720,17 +780,69 @@ function applyRoute(res,name){
   axis=axis.filter((c,i)=>i===0||c.lat!==axis[i-1].lat||c.lon!==axis[i-1].lon);
   if(axis.length<2)throw new Error('La ruta tiene menos de 2 puntos');
   setRoute(axis,name);
+  const cal=calibrateFromPoints(res.points);
+  if(cal)info+=` · PK calibrado con ${cal.n} marcas del KML`;
   const total=state.routeCoords[state.routeCoords.length-1].dist;
   setKmzStatus(`✓ ${axis.length} pts · ${(total/1000).toFixed(2)} km · ${info}`);
   showToast(`KMZ cargado · ${(total/1000).toFixed(2)} km`);
 }
 
+// Si el KML trae puntos con el PK en el nombre ("0+020", "19+700.000"), ajustar PK inicial y sentido
+function calibrateFromPoints(points){
+  let marks=[];
+  points.forEach(pt=>{
+    const m=(pt.name||'').match(/(?:^|PK\s*)(\d+)\s*\+\s*(\d{1,3}(?:[.,]\d+)?)\s*$/i);
+    if(!m)return;
+    const pr=projectOnRoute(pt.lat,pt.lon);
+    // las etiquetas de Istram/Civil3D suelen ir desplazadas unos metros del eje
+    if(pr&&pr.dist<60)marks.push({label:parseInt(m[1])*1000+parseFloat(m[2].replace(',','.')),along:pr.along});
+  });
+  if(marks.length<2)return null;
+  marks.sort((a,b)=>a.along-b.along);
+  const total=state.routeCoords[state.routeCoords.length-1].dist;
+  // sentido: ¿el PK crece al avanzar por la línea?
+  let up=0;marks.forEach((a,i)=>{if(i){const b=marks[i-1];up+=Math.sign((a.label-b.label)*(a.along-b.along));}});
+  const rev=up<0;
+  const offs=marks.map(m=>m.label-(rev?total-m.along:m.along)).sort((a,b)=>a-b);
+  const pk0=offs[offs.length>>1];
+  // descartar marcas incoherentes y armar tabla distancia→PK monótona
+  const off=m=>m.label-(rev?total-m.along:m.along);
+  marks=marks.filter(m=>Math.abs(off(m)-pk0)<150);
+  const T=[];
+  marks.forEach(m=>{const l=T[T.length-1];if(!l||(m.along-l[0]>0.5&&(rev?m.label<l[1]:m.label>l[1])))T.push([m.along,m.label]);});
+  if(T.length<2)return null;
+  const err=Math.max(...marks.map(m=>Math.abs(off(m)-pk0))); // diferencia máx. vs. distancia geométrica
+  state.pk0=pk0;state.reverse=rev;state.pkTable=T;
+  document.getElementById('cfg-pk0').value=Math.abs(pk0)<0.05?'':fmtPK(pk0);
+  document.getElementById('cfg-rev').checked=rev;
+  saveSettings();
+  return{n:T.length,err};
+}
+
+function projectOnRoute(lat,lon){
+  const coords=state.routeCoords;if(coords.length<2)return null;
+  const P=toXY(lat,lon);
+  let best=Infinity,along=0,cross=0;
+  for(let i=0;i<coords.length-1;i++){
+    const A=coords[i],B=coords[i+1];
+    const dx=B.x-A.x,dy=B.y-A.y,len2=dx*dx+dy*dy;
+    let t=len2?((P.x-A.x)*dx+(P.y-A.y)*dy)/len2:0;
+    t=Math.max(0,Math.min(1,t));
+    const d=Math.hypot(P.x-(A.x+t*dx),P.y-(A.y+t*dy));
+    if(d<best){best=d;along=A.dist+t*(B.dist-A.dist);cross=dx*(P.y-A.y)-dy*(P.x-A.x);}
+  }
+  return{along,dist:best,cross};
+}
+
 function setRoute(axis,name){
-  projLat0=axis.reduce((s,c)=>s+c.lat,0)/axis.length;
-  let dist=0;
-  state.routeCoords=axis.map((c,i)=>{
-    if(i>0)dist+=latLonToMeters(axis[i-1].lat,axis[i-1].lon,c.lat,c.lon);
-    return{lat:c.lat,lon:c.lon,dist,...toXY(c.lat,c.lon)};
+  setProjLat(axis.reduce((s,c)=>s+c.lat,0)/axis.length);
+  let dist=0,prev=null;
+  state.pkTable=null;
+  state.routeCoords=axis.map(c=>{
+    const q=toXY(c.lat,c.lon);
+    if(prev)dist+=Math.hypot(q.x-prev.x,q.y-prev.y);
+    prev=q;
+    return{lat:c.lat,lon:c.lon,dist,...q};
   });
   state.routeName=name;
   document.getElementById('kmz-loaded-name').textContent=name;
@@ -740,7 +852,7 @@ function setRoute(axis,name){
 }
 
 function saveRoute(){
-  try{localStorage.setItem('obrasnap.route',JSON.stringify({name:state.routeName,pts:state.routeCoords.map(c=>[+c.lat.toFixed(7),+c.lon.toFixed(7)])}));}
+  try{localStorage.setItem('obrasnap.route',JSON.stringify({name:state.routeName,pts:state.routeCoords.map(c=>[+c.lat.toFixed(7),+c.lon.toFixed(7)]),tbl:state.pkTable?state.pkTable.map(([a,l])=>[+a.toFixed(2),+l.toFixed(3)]):null}));}
   catch(e){console.warn('no se pudo guardar ruta',e);}
 }
 function restoreRoute(){
@@ -748,14 +860,15 @@ function restoreRoute(){
     const r=JSON.parse(localStorage.getItem('obrasnap.route')||'null');
     if(r&&r.pts&&r.pts.length>=2){
       setRoute(r.pts.map(p=>({lat:p[0],lon:p[1]})),r.name||'ruta');
+      if(r.tbl&&r.tbl.length>=2){state.pkTable=r.tbl;computePK();}
       const total=state.routeCoords[state.routeCoords.length-1].dist;
-      setKmzStatus(`✓ ${r.pts.length} pts · ${(total/1000).toFixed(2)} km (guardado)`);
+      setKmzStatus(`✓ ${r.pts.length} pts · ${(total/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''} (guardado)`);
     }
   }catch(e){console.warn(e);}
 }
 function clearRoute(){
   try{localStorage.removeItem('obrasnap.route');}catch(e){}
-  state.routeCoords=[];state.routeName=null;state.pk=null;state.pkLabel='--+---';
+  state.routeCoords=[];state.routeName=null;state.pk=null;state.pkLabel='--+---';state.pkTable=null;
   document.getElementById('kmz-loaded-name').textContent='Ninguno';
   document.getElementById('map-kmz-name').textContent='sin KMZ';
   document.getElementById('pk-value').textContent='--+---';
@@ -764,6 +877,7 @@ function clearRoute(){
   drawMap();updateDiag();
 }
 function updateRouteOpts(){
+  if(state.pkTable){state.pkTable=null;saveRoute();setKmzStatus('Calibración del KML desactivada — usando PK inicial manual');}
   state.pk0=parsePK(document.getElementById('cfg-pk0').value);
   state.reverse=document.getElementById('cfg-rev').checked;
   saveSettings();computePK();drawMap();
@@ -872,11 +986,15 @@ function resizeMap(){
   const wrap=document.getElementById('map-canvas-wrap');
   mapW=mapCanvas.width=wrap.offsetWidth;
   mapH=mapCanvas.height=wrap.offsetHeight;
+  if(!state.mapFitted&&state.routeCoords.length)resetMapView();
   drawMap();
 }
 
 function resetMapView(){
   if(!state.routeCoords.length)return;
+  // con la pestaña oculta el canvas mide 0: ajustar al abrir el mapa
+  if(!mapW||!mapH){state.mapFitted=false;return;}
+  state.mapFitted=true;
   const lats=state.routeCoords.map(c=>c.lat);
   const lons=state.routeCoords.map(c=>c.lon);
   const minLat=Math.min(...lats),maxLat=Math.max(...lats);
@@ -929,19 +1047,23 @@ function drawMap(){
   // PK markers every ~500m
   const totalDist=state.routeCoords[state.routeCoords.length-1].dist;
   const interval=totalDist>5000?1000:500;
-  let nextMark=interval;
+  // marcas en PK reales (múltiplos del intervalo), sea cual sea el sentido o la calibración
+  let prevPk=pkFromAlong(0,totalDist);
   for(let i=1;i<state.routeCoords.length;i++){
-    const c=state.routeCoords[i];
-    if(c.dist>=nextMark){
-      const p=toScreen(c.lat,c.lon);
+    const c=state.routeCoords[i],pk=pkFromAlong(c.dist,totalDist);
+    const lo=Math.min(prevPk,pk),hi=Math.max(prevPk,pk);
+    const A=state.routeCoords[i-1];
+    // puede haber varias marcas dentro de un mismo tramo recto: interpolar cada una
+    for(let mk=Math.floor(lo/interval)*interval+interval;mk<=hi;mk+=interval){
+      if(mk<=lo||pk===prevPk)continue;
+      const t=(mk-prevPk)/(pk-prevPk);
+      const p=toScreen(A.lat+t*(c.lat-A.lat),A.lon+t*(c.lon-A.lon));
       mapCtx.beginPath();mapCtx.arc(p.x,p.y,3,0,Math.PI*2);
       mapCtx.fillStyle='#4ade80';mapCtx.fill();
-      const km=Math.floor(nextMark/1000),m=Math.round(nextMark%1000);
-      const lbl=`${km}+${String(m).padStart(3,'0')}`;
       mapCtx.fillStyle='#86efac';mapCtx.font='9px Share Tech Mono,monospace';
-      mapCtx.fillText(lbl,p.x+5,p.y-4);
-      nextMark+=interval;
+      mapCtx.fillText(fmtPK(mk),p.x+5,p.y-4);
     }
+    prevPk=pk;
   }
 
   // user position
@@ -1520,6 +1642,7 @@ window.addEventListener('load',()=>{
   initMap();
   restoreSettings();
   restoreRoute();
+  if(!state.routeCoords.length)loadProjectAxis(false);
   loadPhotos();
   startCamera();
   startGPS();
