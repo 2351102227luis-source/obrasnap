@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "2.1",
+  "versionCode": 4,
+  "versionName": "2.2",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Obras: guarda y comparte la configuración completa (logo, actividades, formatos, estilo y eje) en un archivo .obrasnap."
+  "notas": "Nuevo diseño: paleta Arena (crema y azul marino) y nuevo ícono. Incluye Obras compartibles (.obrasnap)."
 }
