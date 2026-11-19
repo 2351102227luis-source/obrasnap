@@ -39,42 +39,57 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .nav-btn.active{color:var(--green);}
 .nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 
-/* ── CAMERA SCREEN ── */
+/* ── CAMERA SCREEN (estilo cámara de iPhone) ── */
 #cam-screen{background:#000;}
-#video-wrap{flex:1;position:relative;overflow:hidden;background:#000;}
-#video{width:100%;height:100%;object-fit:cover;}
-
-/* SCAN LINE effect */
-#scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scan 3s linear infinite;opacity:.4;pointer-events:none;}
-@keyframes scan{0%{top:0%}100%{top:100%}}
-
-/* OVERLAY STAMP */
-#stamp{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 20px);background:rgba(0,0,0,.58);border-left:4px solid var(--green);border-radius:8px;padding:8px 12px 9px;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.6);}
-#stamp-obra{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#stamp-pk{font-family:var(--mono);font-size:26px;color:#fff;line-height:1.05;margin:1px 0 2px;white-space:nowrap;}
-#pk-side{font-size:11px;color:#bbf7d0;margin-left:6px;}
-#stamp-act{font-family:var(--sans);font-size:13px;font-weight:500;color:#fff;margin-bottom:2px;}
-#stamp-act:empty{display:none;}
-#stamp-dt,#stamp-coords{display:block;font-family:var(--mono);font-size:10.5px;color:#e5e7eb;}
-#stamp-brand{position:absolute;top:10px;right:12px;font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.75);pointer-events:none;}
-
-/* GPS accuracy dot */
-#gps-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse-dot 2s infinite;}
-@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* CAMERA CONTROLS */
-#cam-controls{background:var(--bg);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
-#btn-gallery-thumb{width:48px;height:48px;border-radius:10px;overflow:hidden;background:var(--surface);border:1.5px solid var(--surface2);cursor:pointer;}
+body.cam-on #navbar{background:#000;border-top-color:#111;}
+#cam-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;min-height:52px;}
+.cam-icon{width:36px;height:36px;flex-shrink:0;border-radius:50%;border:none;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;padding:0;}
+.cam-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.cam-icon.on{color:#000;background:#ffd60a;}
+.cam-icon.off{visibility:hidden;}
+#cam-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:16px;padding:6px 12px;font-family:var(--mono);font-size:12px;color:#fff;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pk-side{color:#d4d4d4;margin-left:2px;}
+#gps-dot{width:7px;height:7px;flex-shrink:0;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse-dot 2s infinite;}
+#gps-dot.ok{background:#22c55e;}#gps-dot.meh{background:#f59e0b;}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+#video-area{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;}
+#video-wrap{position:relative;overflow:hidden;background:#0d0d0d;width:100%;height:100%;}
+#video{width:100%;height:100%;object-fit:cover;display:block;}
+#video.mirror{transform:scaleX(-1);}
+#stamp-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+#cam-bottom{padding:6px 0 12px;background:#000;}
+#zoom-row{display:flex;justify-content:center;align-items:center;gap:8px;height:40px;}
+.zoom-btn{width:30px;height:30px;border-radius:50%;border:none;background:rgba(38,38,38,.9);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;padding:0;transition:all .15s;}
+.zoom-btn.on{width:38px;height:38px;color:#ffd60a;font-size:12.5px;}
+#mode-row{display:flex;justify-content:center;gap:28px;padding:6px 0 14px;}
+.mode{font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:1.3px;color:rgba(255,255,255,.88);background:none;border:none;cursor:pointer;padding:2px 0;}
+.mode.on{color:#ffd60a;}
+#cam-controls{display:flex;align-items:center;justify-content:space-between;padding:0 32px;}
+#btn-gallery-thumb{width:50px;height:50px;border-radius:8px;overflow:hidden;background:#1c1c1e;cursor:pointer;}
 #thumb-img{width:100%;height:100%;object-fit:cover;display:none;}
-#thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-#thumb-placeholder svg{width:20px;height:20px;stroke:#4a7a5a;fill:none;stroke-width:1.8;}
-#btn-capture{width:68px;height:68px;border-radius:50%;background:transparent;border:3px solid #fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s;active:scale(.95);}
-#btn-capture:active{transform:scale(.93);}
-#btn-capture-inner{width:56px;height:56px;border-radius:50%;background:#fff;transition:background .1s;}
-#btn-capture:active #btn-capture-inner{background:#ccc;}
-#btn-activity{width:48px;height:48px;border-radius:10px;background:var(--surface);border:1.5px solid var(--surface2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
-#btn-activity svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.8;}
-#btn-activity span{font-size:8px;color:var(--text2);font-family:var(--sans);}
+#thumb-placeholder{width:100%;height:100%;}
+#btn-capture{width:76px;height:76px;border-radius:50%;background:transparent;border:4px solid #fff;padding:4px;cursor:pointer;}
+#btn-capture-inner{width:100%;height:100%;border-radius:50%;background:#fff;transition:transform .12s;}
+#btn-capture:active #btn-capture-inner{transform:scale(.88);}
+#btn-flip{width:50px;height:50px;border-radius:50%;border:none;background:#1c1c1e;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+#btn-flip svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* HOJA DE ESTILO DEL STAMP */
+#style-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:flex-end;}
+#style-bg.open{display:flex;}
+#style-box{background:#1c1c1e;border-radius:16px 16px 0 0;padding:16px 16px 24px;width:100%;color:#fff;}
+#style-preview{width:100%;aspect-ratio:16/9;border-radius:10px;display:block;background:#333;}
+.st-label{font-size:11px;color:#a3a3a3;letter-spacing:.8px;text-transform:uppercase;margin:14px 0 8px;font-family:var(--sans);font-weight:600;}
+#st-swatches{display:flex;flex-wrap:wrap;gap:10px;}
+.swatch{width:36px;height:36px;border-radius:50%;border:2px solid #3a3a3c;cursor:pointer;padding:0;}
+.swatch.on{border-color:#ffd60a;box-shadow:0 0 0 2px #1c1c1e inset;}
+.swatch.transp{background:repeating-conic-gradient(#777 0 25%,#ddd 0 50%) 50%/12px 12px;}
+.seg{display:flex;background:#2c2c2e;border-radius:9px;padding:2px;}
+.seg button{flex:1;border:none;background:none;color:#fff;font-family:var(--sans);font-size:12.5px;padding:7px 0;border-radius:7px;cursor:pointer;}
+.seg button.on{background:#636366;}
+#st-op{width:100%;accent-color:#ffd60a;}
+#st-op:disabled{opacity:.35;}
+#st-done{width:100%;margin-top:16px;background:#ffd60a;border:none;border-radius:10px;padding:12px;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;}
 
 /* CAMERA MESSAGE */
 #cam-msg{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.75);color:var(--text2);font-family:var(--mono);font-size:13px;text-align:center;padding:24px;cursor:pointer;z-index:5;}
@@ -109,7 +124,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 button:disabled{opacity:.5;}
 
 /* FLASH */
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .15s;}
+#flash{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .15s;}
 
 /* ── MAP SCREEN ── */
 #map-screen{background:var(--bg);}
@@ -158,12 +173,6 @@ button:disabled{opacity:.5;}
 #btn-load-kmz{background:var(--green-dim);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;width:100%;}
 #kmz-status{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:6px;text-align:center;}
 
-/* STAMP PREVIEW */
-#stamp-preview{background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:4px;border:1px solid var(--surface);}
-#sp-obra{font-family:var(--cond);font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;}
-#sp-pk{font-family:var(--mono);font-size:16px;color:#fff;}
-#sp-act{font-size:11px;color:#aaa;font-style:italic;margin-top:2px;}
-#sp-bottom{font-family:var(--mono);font-size:9px;color:#666;margin-top:3px;}
 
 /* MODAL ACTIVITY */
 #modal-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
@@ -191,34 +200,40 @@ input[type=file]{display:none;}
 
     <!-- ── CAMERA ── -->
     <div id="cam-screen" class="screen active">
-      <div id="video-wrap">
-        <video id="video" autoplay playsinline muted></video>
-        <div id="scan-line"></div>
-        <div id="stamp-brand">OBRASNAP</div>
-        <div id="stamp">
-          <div id="stamp-obra">Laguna Verde - La Mancha</div>
-          <div id="stamp-pk">PK <span id="pk-value">--+---</span><span id="pk-side"></span></div>
-          <div id="stamp-act"></div>
-          <span id="stamp-dt"></span>
-          <span id="stamp-coords"><span id="gps-dot"></span><span id="coords-val">buscando GPS...</span></span>
-        </div>
-        <div id="flash"></div>
-        <div id="cam-msg" onclick="startCamera(true)"><div>&#9888;</div><p id="cam-msg-txt">Toca para activar la cámara</p></div>
+      <div id="cam-top">
+        <button class="cam-icon off" id="btn-flash" onclick="toggleFlash()" aria-label="Flash">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+        </button>
+        <div id="cam-pill"><span id="gps-dot"></span>PK&nbsp;<span id="pk-value">--+---</span><span id="pk-side"></span></div>
+        <button class="cam-icon" id="btn-style" onclick="openStyle()" aria-label="Estilo del stamp">
+          <svg viewBox="0 0 24 24"><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 17h6"/><path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5z"/></svg>
+        </button>
       </div>
-      <div id="cam-controls">
-        <div id="btn-gallery-thumb" onclick="switchTab('gallery')">
-          <div id="thumb-placeholder">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-5 6 7"/></svg>
-          </div>
-          <img id="thumb-img">
+      <div id="video-area">
+        <div id="video-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="stamp-canvas"></canvas>
+          <div id="flash"></div>
+          <div id="cam-msg" onclick="startCamera(true)"><div>&#9888;</div><p id="cam-msg-txt">Toca para activar la cámara</p></div>
         </div>
-        <button id="btn-capture" onclick="capturePhoto()">
-          <div id="btn-capture-inner"></div>
-        </button>
-        <button id="btn-activity" onclick="openActivityModal()">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          <span>actividad</span>
-        </button>
+      </div>
+      <div id="cam-bottom">
+        <div id="zoom-row"></div>
+        <div id="mode-row">
+          <button class="mode" onclick="openActivityModal()">ACTIVIDAD</button>
+          <button class="mode on">FOTO</button>
+          <button class="mode" onclick="openStyle()">ESTILO</button>
+        </div>
+        <div id="cam-controls">
+          <div id="btn-gallery-thumb" onclick="switchTab('gallery')">
+            <div id="thumb-placeholder"></div>
+            <img id="thumb-img" alt="">
+          </div>
+          <button id="btn-capture" onclick="capturePhoto()" aria-label="Tomar foto"><div id="btn-capture-inner"></div></button>
+          <button id="btn-flip" onclick="flipCamera()" aria-label="Cambiar cámara">
+            <svg viewBox="0 0 24 24"><path d="M20 7h-3.2l-1.6-2.2a1 1 0 00-.8-.4H9.6a1 1 0 00-.8.4L7.2 7H4a1 1 0 00-1 1v10a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z"/><path d="M9 12.5a3 3 0 015.2-2"/><path d="M15 12.5a3 3 0 01-5.2 2"/><path d="M14.4 8.6v2h-2"/><path d="M9.6 16.4v-2h2"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -261,12 +276,8 @@ input[type=file]{display:none;}
 
       <div class="config-section">
         <div class="config-label">Vista previa del stamp</div>
-        <div id="stamp-preview">
-          <div id="sp-obra">Laguna Verde - La Mancha</div>
-          <div id="sp-pk">PK --+---</div>
-          <div id="sp-act">Actividad: —</div>
-          <div id="sp-bottom">19.000000°N  96.000000°W  |  --</div>
-        </div>
+        <canvas id="cfg-stamp-preview" style="width:100%;aspect-ratio:16/9;border-radius:8px;display:block;background:#333;"></canvas>
+        <button class="cfg-btn2" style="width:100%;margin:8px 0 4px;padding:10px;" onclick="switchTab('cam');openStyle()">Cambiar fondo, tamaño y posición</button>
       </div>
 
       <div class="config-section">
@@ -392,6 +403,21 @@ input[type=file]{display:none;}
       </div>
     </div>
 
+    <div id="style-bg" onclick="if(event.target===this)closeStyle()">
+      <div id="style-box">
+        <canvas id="style-preview"></canvas>
+        <div class="st-label">Fondo de la información</div>
+        <div id="st-swatches"></div>
+        <div class="st-label">Opacidad del fondo <span id="st-op-val"></span></div>
+        <input type="range" id="st-op" min="20" max="100" step="5" oninput="setStyle('op',this.value/100)">
+        <div class="st-label">Tamaño</div>
+        <div class="seg" id="st-size"><button data-v="S">Chico</button><button data-v="M">Mediano</button><button data-v="L">Grande</button></div>
+        <div class="st-label">Posición</div>
+        <div class="seg" id="st-pos"><button data-v="bl">↙ Abajo izq.</button><button data-v="br">↘ Abajo der.</button><button data-v="tl">↖ Arriba izq.</button><button data-v="tr">↗ Arriba der.</button></div>
+        <button id="st-done" onclick="closeStyle()">Listo</button>
+      </div>
+    </div>
+
     <div id="toast">Foto guardada</div>
 
   </div>
@@ -430,9 +456,10 @@ input[type=file]{display:none;}
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
 <script>
-const APP_VERSION='2026.11.19-c';
+const APP_VERSION='2026.11.19-d';
 // ── STATE ──
 const state = {
+  stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
   tab:'cam', pk0:0, reverse:false, pkDist:null, pkSide:'', autoSave:true,
   camState:'-', lastError:'',
   obra: 'Laguna Verde - La Mancha',
@@ -456,13 +483,7 @@ function nowLabel(d=new Date()){
   const ss=String(d.getSeconds()).padStart(2,'0');
   return `${dd} ${mm} ${yy}  ${hh}:${mi}:${ss}`;
 }
-setInterval(()=>{
-  const v=nowLabel();
-  const el=document.getElementById('stamp-dt');
-  if(el)el.textContent=v;
-  const sp=document.getElementById('sp-bottom');
-  if(sp) sp.textContent=`${coordStr(6)}  |  ${v}`;
-},1000);
+setInterval(()=>scheduleStamp(),1000);
 
 // ── GPS ──
 function startGPS(){
@@ -471,15 +492,16 @@ function startGPS(){
     state.lat=pos.coords.latitude;
     state.lon=pos.coords.longitude;
     state.accuracy=pos.coords.accuracy;
-    const cv=document.getElementById('coords-val');
-    if(cv)cv.textContent=coordStr(5)+`  ±${Math.round(state.accuracy)} m`;
+    const dot=document.getElementById('gps-dot');
+    dot.className=state.accuracy<=15?'ok':'meh';
+    scheduleStamp();
     document.getElementById('gps-status-cfg').textContent=`Activo · precisión ±${Math.round(state.accuracy)} m`;
     if(state.routeCoords.length) computePK();
     drawMap();
   },err=>{
     state.lastError='GPS: '+err.message;
     document.getElementById('gps-status-cfg').textContent='Error: '+err.message;
-    if(err.code===1)document.getElementById('coords-val').textContent='GPS sin permiso';
+    if(err.code===1)showToast('GPS sin permiso — actívalo en el navegador');
   },{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
 }
 function coordStr(d){
@@ -545,8 +567,9 @@ function computePK(){
   state.pkSide=((bestCross>0)!==state.reverse)?'Izq':'Der';
   state.pkLabel=fmtPK(state.pk);
   document.getElementById('pk-value').textContent=state.pkLabel;
-  document.getElementById('pk-side').textContent=sideLabel({dist:best,side:state.pkSide});
-  document.getElementById('sp-pk').textContent=`PK ${state.pkLabel}`;
+  const sl=best>500?'fuera de eje':sideLabel({dist:best,side:state.pkSide});
+  document.getElementById('pk-side').textContent=sl?' · '+sl:'';
+  scheduleStamp();
   document.getElementById('map-pk-chip').textContent=`PK ${state.pkLabel}`;
   document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(best)} m`+(best>500?' ⚠ fuera de ruta':'');
 }
@@ -907,7 +930,7 @@ async function startCamera(fromUser){
     stopCamera();
     state.camState='iniciando';
     try{
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:state.facing},width:{ideal:1920},height:{ideal:1440}},audio:false});
     }catch(e){
       if(e.name==='NotAllowedError'||e.name==='SecurityError')throw e;
       stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false}); // fallback
@@ -919,6 +942,8 @@ async function startCamera(fromUser){
     await v.play();
     camFails=0;lastVT=-1;stallCount=0;
     state.camState='activa';
+    v.classList.toggle('mirror',state.facing==='user');
+    fitVideo();updateCamCaps();
   }catch(e){
     camFails++;
     state.camState='error: '+e.name;
@@ -1149,13 +1174,16 @@ async function capturePhoto(){
   if(!cameraHealthy()||!video.videoWidth){showToast('Cámara no lista — reactivando...');startCamera(true);return;}
   capturing=true;
   try{
+    const useTorch=state.flash&&camCaps.torch;
+    if(useTorch){await setTorch(true);await new Promise(r=>setTimeout(r,450));}
     const W=video.videoWidth,H=video.videoHeight;
     const canvas=document.getElementById('capture-canvas');
     canvas.width=W;canvas.height=H;
     const ctx=canvas.getContext('2d');
     ctx.drawImage(video,0,0,W,H);
+    if(useTorch)setTorch(false);
     const f=document.getElementById('flash');
-    f.style.opacity=1;setTimeout(()=>f.style.opacity=0,150);
+    f.style.opacity=.85;setTimeout(()=>f.style.opacity=0,90);
     const meta=snapshotMeta(W,H);
     await fontsReady();
     drawStampOnCanvas(ctx,W,H,meta);
@@ -1212,17 +1240,32 @@ function fontsReady(){
 }
 
 // Stamp: panel semitransparente abajo-izquierda con barra de acento, escalado al lado corto de la imagen
+// Fondos disponibles para el bloque de información
+const STAMP_THEMES={
+  transparente:{name:'Transparente',sw:null,bg:null,title:'#86efac',main:'#ffffff',sub:'#ffffff',side:'#ecfccb',outline:true},
+  negro:{name:'Negro',sw:'#000',bg:[0,0,0],title:'#4ade80',main:'#ffffff',sub:'#e5e7eb',side:'#bbf7d0',bar:'#22c55e',op:0.6},
+  blanco:{name:'Blanco',sw:'#fff',bg:[255,255,255],title:'#15803d',main:'#0a0a0a',sub:'#262626',side:'#166534',bar:'#22c55e',op:0.85,light:true},
+  verde:{name:'Verde',sw:'#15803d',bg:[21,128,61],title:'#dcfce7',main:'#ffffff',sub:'#f0fdf4',side:'#dcfce7',op:0.85},
+  azul:{name:'Azul',sw:'#1d4ed8',bg:[29,78,216],title:'#dbeafe',main:'#ffffff',sub:'#eff6ff',side:'#dbeafe',op:0.85},
+  amarillo:{name:'Amarillo',sw:'#facc15',bg:[250,204,21],title:'#422006',main:'#0a0a0a',sub:'#1c1917',side:'#422006',op:0.9,light:true},
+  naranja:{name:'Naranja',sw:'#ea580c',bg:[234,88,12],title:'#ffedd5',main:'#ffffff',sub:'#fff7ed',side:'#ffedd5',op:0.85},
+  rojo:{name:'Rojo',sw:'#b91c1c',bg:[185,28,28],title:'#fee2e2',main:'#ffffff',sub:'#fef2f2',side:'#fee2e2',op:0.85},
+};
+
+// Stamp: bloque de datos escalado al lado corto de la imagen; fondo, tamaño y posición según state.stampStyle
 function drawStampOnCanvas(ctx,W,H,m){
-  const s=Math.min(W,H)/1000,mg=26*s,pad=22*s,bar=8*s;
+  const st=state.stampStyle,th=STAMP_THEMES[st.bg]||STAMP_THEMES.negro;
+  const s=Math.min(W,H)/1000*({S:0.8,M:1,L:1.25}[st.size]||1);
+  const mg=26*s,pad=th.bg?22*s:4*s,bar=th.bar?8*s:0;
   const F={cond:"'Barlow Condensed',sans-serif",mono:"'Share Tech Mono',monospace",sans:"'Barlow',sans-serif"};
   const side=sideLabel(m);
   const L=[
-    {t:(m.obra||'Obra').toUpperCase(),sz:34*s,f:`700 ${34*s}px ${F.cond}`,c:'#4ade80',gap:4*s},
-    {t:'PK '+m.pkLabel,sz:72*s,f:`400 ${72*s}px ${F.mono}`,c:'#ffffff',gap:6*s,ex:side,exf:`400 ${30*s}px ${F.mono}`,exc:'#bbf7d0'},
+    {t:(m.obra||'Obra').toUpperCase(),sz:34*s,f:`700 ${34*s}px ${F.cond}`,c:th.title,gap:4*s},
+    {t:'PK '+m.pkLabel,sz:72*s,f:`400 ${72*s}px ${F.mono}`,c:th.main,gap:6*s,ex:side,exf:`400 ${30*s}px ${F.mono}`,exc:th.side},
   ];
-  if(m.act)L.push({t:m.act,sz:34*s,f:`500 ${34*s}px ${F.sans}`,c:'#ffffff',gap:8*s});
-  L.push({t:m.dt,sz:28*s,f:`400 ${28*s}px ${F.mono}`,c:'#e5e7eb',gap:4*s});
-  L.push({t:metaCoords(m),sz:28*s,f:`400 ${28*s}px ${F.mono}`,c:'#e5e7eb',gap:0});
+  if(m.act)L.push({t:m.act,sz:34*s,f:`500 ${34*s}px ${F.sans}`,c:th.main,gap:8*s});
+  L.push({t:m.dt,sz:28*s,f:`400 ${28*s}px ${F.mono}`,c:th.sub,gap:4*s});
+  L.push({t:metaCoords(m),sz:28*s,f:`400 ${28*s}px ${F.mono}`,c:th.sub,gap:0});
   const maxText=W-2*mg-2*pad-bar;
   let wMax=0,hSum=0;
   L.forEach(l=>{
@@ -1231,25 +1274,155 @@ function drawStampOnCanvas(ctx,W,H,m){
     wMax=Math.max(wMax,w);hSum+=l.sz*1.12+l.gap;
   });
   const pw=wMax+2*pad+bar,ph=hSum+2*pad-2*s;
-  const x0=mg,y0=H-mg-ph;
+  const right=st.pos==='br'||st.pos==='tr',top=st.pos==='tl'||st.pos==='tr';
+  const x0=right?W-mg-pw:mg,y0=top?mg:H-mg-ph;
   ctx.save();
-  ctx.fillStyle='rgba(0,0,0,0.58)';
-  roundRect(ctx,x0,y0,pw,ph,14*s);ctx.fill();
-  ctx.fillStyle='#22c55e';
-  roundRect(ctx,x0,y0,bar,ph,[14*s,0,0,14*s]);ctx.fill();
+  if(th.bg){
+    const op=st.op!=null?st.op:th.op;
+    ctx.fillStyle=`rgba(${th.bg.join(',')},${op})`;
+    roundRect(ctx,x0,y0,pw,ph,14*s);ctx.fill();
+    if(bar){ctx.fillStyle=th.bar;roundRect(ctx,x0,y0,bar,ph,[14*s,0,0,14*s]);ctx.fill();}
+  }
   ctx.textBaseline='top';
-  ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4*s;ctx.shadowOffsetY=1*s;
+  if(th.outline){ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=6*s;}
+  else if(!th.light){ctx.shadowColor='rgba(0,0,0,0.45)';ctx.shadowBlur=3*s;ctx.shadowOffsetY=1*s;}
+  const txt=(t,x,y,sz)=>{
+    if(th.outline){ctx.lineWidth=Math.max(2,sz*0.13);ctx.strokeText(t,x,y);}
+    ctx.fillText(t,x,y);
+  };
   let y=y0+pad;const x=x0+bar+pad;
   L.forEach(l=>{
-    ctx.font=l.f;ctx.fillStyle=l.c;ctx.fillText(l.t,x,y);
-    if(l.ex){const w=ctx.measureText(l.t).width;ctx.font=l.exf;ctx.fillStyle=l.exc;ctx.fillText(l.ex,x+w+16*s,y+l.sz*0.42);}
+    ctx.font=l.f;ctx.fillStyle=l.c;txt(l.t,x,y,l.sz);
+    if(l.ex){const w=ctx.measureText(l.t).width;ctx.font=l.exf;ctx.fillStyle=l.exc;txt(l.ex,x+w+16*s,y+l.sz*0.42,30*s);}
     y+=l.sz*1.12+l.gap;
   });
-  // marca discreta arriba a la derecha
-  ctx.font=`600 ${24*s}px ${F.cond}`;ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,0.75)';
-  ctx.fillText('OBRASNAP',W-mg,mg);
+  ctx.restore();
+  // marca discreta arriba, del lado contrario al bloque si éste va arriba
+  ctx.save();
+  const bRight=!(top&&right);
+  ctx.font=`600 ${24*s}px ${F.cond}`;ctx.textAlign=bRight?'right':'left';ctx.textBaseline='top';
+  ctx.fillStyle='rgba(255,255,255,0.8)';ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4*s;
+  ctx.fillText('OBRASNAP',bRight?W-mg:mg,mg);
   ctx.restore();
 }
+
+// ── VISTA PREVIA EN VIVO (mismo dibujo que la foto) ──
+let stampQueued=false;
+function scheduleStamp(){
+  if(stampQueued)return;stampQueued=true;
+  requestAnimationFrame(()=>{stampQueued=false;renderLiveStamp();if(document.getElementById('style-bg').classList.contains('open'))renderStylePreview();});
+}
+function liveMeta(){return snapshotMeta(0,0);}
+function renderLiveStamp(){
+  if(state.tab!=='cam')return;
+  const c=document.getElementById('stamp-canvas');
+  const dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
+  if(!w||!h)return;
+  if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}
+  const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
+  drawStampOnCanvas(ctx,c.width,c.height,liveMeta());
+}
+// Ajusta el recuadro de la vista previa a la proporción real de la foto (lo que ves = lo que sale)
+function fitVideo(){
+  const v=document.getElementById('video'),wrap=document.getElementById('video-wrap'),area=document.getElementById('video-area');
+  const aw=area.clientWidth,ah=area.clientHeight;
+  if(!aw||!ah)return;
+  if(!v.videoWidth){wrap.style.width='100%';wrap.style.height='100%';return;}
+  const r=v.videoWidth/v.videoHeight;
+  let w=aw,h=aw/r;if(h>ah){h=ah;w=ah*r;}
+  wrap.style.width=Math.round(w)+'px';wrap.style.height=Math.round(h)+'px';
+  scheduleStamp();
+}
+document.getElementById('video').addEventListener('loadedmetadata',fitVideo);
+document.getElementById('video').addEventListener('resize',fitVideo);
+
+// Vista previa sobre la imagen actual de la cámara (o un fondo neutro)
+function previewOn(canvas){
+  const dpr=window.devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;
+  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,v=document.getElementById('video');
+  if(v.videoWidth&&cameraHealthy()){
+    const r=Math.max(W/v.videoWidth,H/v.videoHeight),dw=v.videoWidth*r,dh=v.videoHeight*r;
+    ctx.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh);
+  }else{
+    const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#7dd3fc');g.addColorStop(.55,'#a3a3a3');g.addColorStop(1,'#57534e');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  }
+  drawStampOnCanvas(ctx,W,H,liveMeta());
+}
+function renderStylePreview(){previewOn(document.getElementById('style-preview'));}
+function renderCfgPreview(){previewOn(document.getElementById('cfg-stamp-preview'));}
+
+// ── HOJA DE ESTILO ──
+function openStyle(){
+  const box=document.getElementById('st-swatches');
+  if(!box.children.length){
+    Object.entries(STAMP_THEMES).forEach(([k,t])=>{
+      const b=document.createElement('button');b.className='swatch'+(t.sw?'':' transp');b.title=t.name;b.dataset.v=k;
+      if(t.sw)b.style.background=t.sw;
+      b.onclick=()=>{state.stampStyle.op=t.op??null;setStyle('bg',k);};
+      box.appendChild(b);
+    });
+    ['st-size','st-pos'].forEach(id=>document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>setStyle(id==='st-size'?'size':'pos',b.dataset.v)));
+  }
+  syncStyleUI();
+  document.getElementById('style-bg').classList.add('open');
+  setTimeout(renderStylePreview,20);
+}
+function closeStyle(){document.getElementById('style-bg').classList.remove('open');}
+function setStyle(k,v){
+  state.stampStyle[k]=v;
+  syncStyleUI();saveSettings();scheduleStamp();renderStylePreview();
+}
+function syncStyleUI(){
+  const st=state.stampStyle,th=STAMP_THEMES[st.bg]||STAMP_THEMES.negro;
+  document.querySelectorAll('#st-swatches .swatch').forEach(b=>b.classList.toggle('on',b.dataset.v===st.bg));
+  document.querySelectorAll('#st-size button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.size));
+  document.querySelectorAll('#st-pos button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.pos));
+  const op=document.getElementById('st-op'),val=st.op!=null?st.op:(th.op||0);
+  op.disabled=!th.bg;op.value=Math.round(val*100);
+  document.getElementById('st-op-val').textContent=th.bg?`· ${Math.round(val*100)}%`:'· sin fondo';
+}
+
+// ── CONTROLES DE CÁMARA: zoom, flash, cambiar cámara ──
+let camCaps={};
+function camTrack(){return stream&&stream.getVideoTracks()[0];}
+function updateCamCaps(){
+  const t=camTrack();
+  camCaps=t&&t.getCapabilities?t.getCapabilities():{};
+  document.getElementById('btn-flash').classList.toggle('off',!camCaps.torch);
+  document.getElementById('btn-flash').classList.toggle('on',!!(camCaps.torch&&state.flash));
+  const row=document.getElementById('zoom-row');row.innerHTML='';
+  const z=camCaps.zoom;
+  if(z&&z.max>z.min){
+    const opts=[z.min<1?z.min:null,1,2,z.max>=5?5:(z.max>=3?3:null)].filter(v=>v!=null&&v>=z.min&&v<=z.max);
+    if(!opts.includes(state.zoom))state.zoom=opts.includes(1)?1:opts[0];
+    opts.forEach(v=>{
+      const b=document.createElement('button');b.className='zoom-btn'+(v===state.zoom?' on':'');
+      const n=Number.isInteger(v)?String(v):v.toFixed(1).replace(/^0/,'');
+      b.textContent=v===state.zoom?n+'×':n;
+      b.onclick=()=>setZoom(v);
+      row.appendChild(b);
+    });
+    if(state.zoom!==1||z.min>1)setZoom(state.zoom,true);
+  }
+}
+async function setZoom(v,silent){
+  const t=camTrack();if(!t)return;
+  try{await t.applyConstraints({advanced:[{zoom:v}]});state.zoom=v;}catch(e){console.warn('zoom',e);}
+  if(!silent)updateCamCaps();
+}
+async function setTorch(on){const t=camTrack();if(!t)return;try{await t.applyConstraints({advanced:[{torch:on}]});}catch(e){}}
+function toggleFlash(){
+  state.flash=!state.flash;
+  document.getElementById('btn-flash').classList.toggle('on',state.flash);
+  showToast(state.flash?'Flash activado':'Flash desactivado');
+}
+function flipCamera(){
+  state.facing=state.facing==='user'?'environment':'user';
+  state.zoom=1;saveSettings();startCamera(true);
+}
+
 function fitText(ctx,t,max){
   if(ctx.measureText(t).width<=max)return t;
   while(t.length>1&&ctx.measureText(t+'…').width>max)t=t.slice(0,-1);
@@ -1563,14 +1736,11 @@ async function buildReportPDF(list,progress){
 function updateConfig(){
   state.obra=document.getElementById('cfg-obra').value||'Obra';
   state.activity=document.getElementById('cfg-act').value||'';
-  document.getElementById('stamp-obra').textContent=state.obra;
-  document.getElementById('sp-obra').textContent=state.obra;
-  document.getElementById('stamp-act').textContent=state.activity||'';
-  document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
+  scheduleStamp();
   saveSettings();
 }
 function saveSettings(){
-  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse,autoSave:state.autoSave}));}catch(e){}
+  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse,autoSave:state.autoSave,style:state.stampStyle,facing:state.facing}));}catch(e){}
 }
 function restoreSettings(){
   try{
@@ -1580,6 +1750,8 @@ function restoreSettings(){
     document.getElementById('cfg-pk0').value=c.pk0||'';
     document.getElementById('cfg-rev').checked=!!c.reverse;
     state.pk0=parsePK(c.pk0);state.reverse=!!c.reverse;
+    if(c.style)Object.assign(state.stampStyle,c.style);
+    if(c.facing)state.facing=c.facing;
     if(c.autoSave===false){state.autoSave=false;document.getElementById('cfg-autosave').checked=false;}
     updateConfig();
   }catch(e){}
@@ -1610,9 +1782,8 @@ function closeModal(e){if(e.target===document.getElementById('modal-bg'))saveAct
 function setActivity(v){document.getElementById('activity-input').value=v;}
 function saveActivity(){
   state.activity=document.getElementById('activity-input').value.trim();
-  document.getElementById('stamp-act').textContent=state.activity||'';
-  document.getElementById('sp-act').textContent='Actividad: '+(state.activity||'—');
   document.getElementById('cfg-act').value=state.activity;
+  scheduleStamp();
   document.getElementById('modal-bg').classList.remove('open');
   saveSettings();
 }
@@ -1620,6 +1791,8 @@ function saveActivity(){
 // ── TAB NAVIGATION ──
 function switchTab(tab){
   const prev=state.tab;state.tab=tab;
+  document.body.classList.toggle('cam-on',tab==='cam');
+  if(tab==='config')setTimeout(renderCfgPreview,30);
   if(tab!=='cam'&&prev==='cam')stopCamera();
   if(tab==='cam'&&prev!=='cam')setTimeout(()=>startCamera(),50);
   if(tab==='config')updateDiag();
@@ -1639,8 +1812,10 @@ function showToast(msg){
 
 // ── INIT ──
 window.addEventListener('load',()=>{
+  document.body.classList.add('cam-on');
   initMap();
   restoreSettings();
+  window.addEventListener('resize',fitVideo);
   restoreRoute();
   if(!state.routeCoords.length)loadProjectAxis(false);
   loadPhotos();
