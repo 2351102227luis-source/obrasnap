@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.obrasnap.camara",
-    "sha256_cert_fingerprints": ["E5:86:A9:FB:42:37:31:19:CD:F3:A4:1C:49:14:26:42:6C:34:CE:0D:13:C7:A1:45:A4:4A:5B:E8:62:FC:91:F9"]
-  }
-}]

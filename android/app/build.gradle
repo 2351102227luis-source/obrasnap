@@ -1,22 +1,35 @@
 plugins { id 'com.android.application' }
 
+import groovy.json.JsonSlurper
+
+// Versión: se toma de ../version.json (el mismo archivo que la app consulta para avisar de actualizaciones)
+def ver = new JsonSlurper().parse(rootProject.file('../version.json'))
+
 // La llave de firma NO va en el repo: se lee de android/keystore.properties (ignorado por git)
 def ksFile = rootProject.file('keystore.properties')
 def ks = new Properties()
 if (ksFile.exists()) ks.load(new FileInputStream(ksFile))
+
+// Copia la app web (carpeta raíz del repo) dentro del APK: assets/www/
+def wwwOut = layout.buildDirectory.dir('generated/www-assets')
+def copyWeb = tasks.register('copyWeb', Sync) {
+    from(rootProject.file('..')) {
+        include 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'EJE.kmz', 'fonts/**'
+    }
+    into wwwOut.map { it.dir('www') }
+}
 
 android {
     namespace 'com.obrasnap.camara'
     compileSdk 35
     defaultConfig {
         applicationId 'com.obrasnap.camara'
-        minSdk 23
-        targetSdk 35
-        versionCode 1
-        versionName '1.0'
-        manifestPlaceholders = [hostName: '2351102227luis-source.github.io',
-                                launchUrl: 'https://2351102227luis-source.github.io/obrasnap/']
+        minSdk 24
+        targetSdk 34   // 35 obliga a dibujar bajo la barra de estado; 34 basta para instalar fuera de Play Store
+        versionCode ver.versionCode as int
+        versionName ver.versionName as String
     }
+    sourceSets { main { assets.srcDirs += wwwOut } }
     signingConfigs {
         release {
             if (ksFile.exists()) {
@@ -35,7 +48,9 @@ android {
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
+tasks.named('preBuild') { dependsOn copyWeb }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+    implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'androidx.core:core:1.13.1'
 }

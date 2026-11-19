@@ -11,8 +11,17 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Fuentes incluidas en la app (funcionan sin internet). Licencia OFL: fonts/OFL.txt */
+@font-face{font-family:'Barlow';font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow';font-weight:500;font-display:swap;src:url(fonts/barlow-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow';font-weight:600;font-display:swap;src:url(fonts/barlow-latin-600-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow';font-weight:700;font-display:swap;src:url(fonts/barlow-latin-700-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2');}
+@font-face{font-family:'Share Tech Mono';font-weight:400;font-display:swap;src:url(fonts/share-tech-mono-latin-400-normal.woff2) format('woff2');}
+</style>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -80,13 +89,17 @@ body.cam-on #navbar{background:#000;border-top-color:#111;}
 #grid.on{display:block;}
 #countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:300;font-size:120px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);pointer-events:none;}
 
+#log-view{position:fixed;inset:0;z-index:170;background:#000;display:none;flex-direction:column;color:#fff;}
+#log-view.open{display:flex;}
+#log-text{flex:1;overflow:auto;margin:0;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.55;color:#d4d4d4;white-space:pre-wrap;word-break:break-word;}
+
 /* AJUSTES (estilo iOS) */
 #settings{position:fixed;inset:0;z-index:160;background:#000;display:none;flex-direction:column;color:#fff;font-family:var(--sans);}
 #settings.open{display:flex;}
-#set-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid #1c1c1e;}
-#set-head b{font-size:16px;font-weight:600;}
-#set-head span{width:52px;}
-#set-head button{background:none;border:none;color:#ffd60a;font-family:var(--sans);font-size:16px;font-weight:600;cursor:pointer;width:52px;text-align:right;}
+#set-head,.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid #1c1c1e;}
+#set-head b,.sheet-head b{font-size:16px;font-weight:600;}
+#set-head span,.sheet-head span{width:52px;}
+#set-head button,.sheet-head button{background:none;border:none;color:#ffd60a;font-family:var(--sans);font-size:16px;font-weight:600;cursor:pointer;width:52px;text-align:right;}
 #set-prev-wrap{height:30vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;padding:8px;}
 #set-preview{max-width:100%;max-height:100%;height:100%;border-radius:8px;background:#333;}
 #set-body{flex:1;overflow-y:auto;padding:4px 16px 32px;}
@@ -217,6 +230,7 @@ button:disabled{opacity:.5;}
 .config-row input[type=text]{background:transparent;border:none;border-bottom:1px solid var(--surface2);color:var(--text);font-family:var(--sans);font-size:13px;width:100%;padding:2px 0;outline:none;}
 .config-row input[type=text]::placeholder{color:#4a7a5a;}
 #btn-load-kmz{background:var(--green-dim);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;width:100%;}
+.btn-primary{background:var(--green-dim);border:none;border-radius:8px;padding:10px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;width:100%;}
 #kmz-status{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:6px;text-align:center;}
 
 
@@ -224,13 +238,13 @@ button:disabled{opacity:.5;}
 #modal-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
 #modal-bg.open{display:flex;}
 #modal-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;}
-#modal-title{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--green);margin-bottom:14px;letter-spacing:.5px;}
+#modal-title,.modal-title{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--green);margin-bottom:14px;letter-spacing:.5px;}
 #activity-input{width:100%;background:var(--surface);border:1px solid var(--surface2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;}
 #activity-input::placeholder{color:#4a7a5a;}
 #modal-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
 .sugg-chip{background:var(--surface);border:1px solid var(--surface2);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;}
 .sugg-chip:active{background:var(--surface2);}
-#modal-btn{width:100%;margin-top:14px;background:var(--green-dim);border:none;border-radius:10px;padding:12px;color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
+#modal-btn,.modal-btn{width:100%;margin-top:14px;background:var(--green-dim);border:none;border-radius:10px;padding:12px;color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
 
 /* TOAST */
 #toast{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--surface2);border:1px solid var(--green-dim);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--text2);font-family:var(--mono);transition:transform .3s;white-space:nowrap;z-index:200;}
@@ -409,6 +423,17 @@ input[type=file]{display:none;}
             </div>
           </div>
         </div>
+        <div id="app-section" style="display:none">
+          <div class="config-label">App</div>
+          <div class="config-card">
+            <div class="config-row"><div class="config-row-body"><div class="config-row-title">Versión instalada</div><div class="config-row-sub" id="app-ver"></div></div></div>
+            <div class="config-row" id="app-update" style="display:none;flex-direction:column;align-items:stretch;gap:8px;">
+              <div class="config-row-title" style="color:#ffd60a" id="app-update-txt"></div>
+              <button class="btn-primary" onclick="installUpdate()">Descargar e instalar actualización</button>
+            </div>
+            <div class="config-row"><button class="cfg-btn2" onclick="checkUpdate(true)">Buscar actualización</button></div>
+          </div>
+        </div>
         <div class="config-label">Diagnóstico</div>
         <div class="config-card">
           <div class="config-row"><div class="diag" id="diag"></div></div>
@@ -416,6 +441,10 @@ input[type=file]{display:none;}
             <button class="cfg-btn2" onclick="startCamera(true);switchTab('cam')">Reiniciar cámara</button>
             <button class="cfg-btn2" onclick="clearRoute()">Borrar KMZ</button>
             <button class="cfg-btn2" onclick="loadProjectAxis(true)">Usar eje del proyecto</button>
+          </div>
+          <div class="config-row" style="gap:8px;">
+            <button class="cfg-btn2" onclick="openLog()">Ver registro</button>
+            <button class="cfg-btn2" onclick="shareLog()">Compartir registro</button>
           </div>
         </div>
       </div>
@@ -442,11 +471,11 @@ input[type=file]{display:none;}
 
     <div id="export-bg" onclick="if(event.target===this)closeExport()">
       <div id="export-box">
-        <div id="modal-title">Exportar fotos</div>
+        <div class="modal-title">Exportar fotos</div>
         <label class="exp-l">Fotos<select id="exp-range" onchange="updateExportCount()"><option value="today">De hoy</option><option value="week">Últimos 7 días</option><option value="all">Todas</option></select></label>
         <label class="exp-l">Orden<select id="exp-order" onchange="updateExportCount()"><option value="pk">Por PK</option><option value="time">Por hora</option></select></label>
         <div id="exp-count"></div>
-        <button id="modal-btn" onclick="runExport('pdf')">Reporte PDF</button>
+        <button class="modal-btn" onclick="runExport('pdf')">Reporte PDF</button>
         <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="runExport('zip')">Descargar fotos (.zip)</button>
       </div>
     </div>
@@ -501,6 +530,11 @@ input[type=file]{display:none;}
     <button class="danger" onclick="viewerDelete()">Eliminar</button>
   </div>
 </div>
+<div id="log-view">
+  <div id="log-head" class="sheet-head"><span></span><b>Registro</b><button onclick="closeLog()">Cerrar</button></div>
+  <pre id="log-text"></pre>
+  <div style="padding:10px 16px 18px;"><button class="set-btn" style="width:100%;padding:12px" onclick="shareLog()">Compartir registro (para soporte)</button></div>
+</div>
 <div id="settings">
   <div id="set-head"><span></span><b>Ajustes</b><button onclick="closeSettings()">Listo</button></div>
   <div id="set-prev-wrap"><canvas id="set-preview"></canvas></div>
@@ -510,7 +544,13 @@ input[type=file]{display:none;}
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
 <script>
-const APP_VERSION='2026.11.19-e';
+// ── REGISTRO DE EVENTOS (Config → Diagnóstico → Ver registro) ──
+const LOG=[];
+function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${level.padEnd(5)} ${msg}`);if(LOG.length>400)LOG.shift();}
+['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
+window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
+window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
+const APP_VERSION='2026.11.20-f';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -526,6 +566,8 @@ const state = {
   mapOffset: {x:0,y:0}, mapScale:1,
   mapDragging:false, mapDragStart:null
 };
+// cada error asignado a state.lastError queda también en el registro
+{let le='';Object.defineProperty(state,'lastError',{get:()=>le,set:v=>{le=v;if(v)logEv('ERROR',v);}});}
 
 // ── CLOCK ──
 function nowLabel(d=new Date()){
@@ -862,6 +904,7 @@ function applyRoute(res,name){
   if(cal)info+=` · PK calibrado con ${cal.n} marcas del KML`;
   const total=state.routeCoords[state.routeCoords.length-1].dist;
   setKmzStatus(`✓ ${axis.length} pts · ${(total/1000).toFixed(2)} km · ${info}`);
+  logEv('INFO',`Eje cargado: ${name} · ${(total/1000).toFixed(2)} km · ${info}`);
   showToast(`KMZ cargado · ${(total/1000).toFixed(2)} km`);
 }
 
@@ -998,6 +1041,7 @@ async function startCamera(fromUser){
     camFails=0;lastVT=-1;stallCount=0;
     state.camState='activa';
     v.classList.toggle('mirror',state.facing==='user');
+    logEv('INFO',`Cámara activa (${state.facing==='user'?'frontal':'trasera'}) ${v.videoWidth}×${v.videoHeight}`);
     fitVideo();updateCamCaps();
   }catch(e){
     camFails++;
@@ -1045,7 +1089,7 @@ function showCamMsg(txt){
 
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)stopCamera();
-  else setTimeout(()=>startCamera(),250);
+  else setTimeout(()=>{if(!cameraHealthy())startCamera();},250);
 });
 window.addEventListener('pageshow',e=>{if(e.persisted)startCamera();});
 window.addEventListener('focus',()=>{if(!cameraHealthy())startCamera();});
@@ -1266,6 +1310,7 @@ async function capturePhoto(){
     updateGallery();updateThumb();
     if(state.autoSave)downloadBlob(blob,photoFileName(meta));
     showToast('Foto guardada · PK '+meta.pkLabel);
+    logEv('INFO',`Foto ${W}×${H} · PK ${meta.pkLabel} · ${Math.round(blob.size/1024)} KB`);
   }catch(e){
     console.error(e);state.lastError='Captura: '+e.message;showToast('Error al capturar: '+e.message);
   }finally{capturing=false;}
@@ -1874,12 +1919,14 @@ function photoFileName(m){
   return `ObraSnap_${m.pk!=null?'PK'+m.pkLabel+'_':''}${stamp}.jpg`;
 }
 function downloadBlob(blob,name){
+  if(NATIVE)return nativeTransfer(blob,name,'save').catch(e=>{state.lastError='Guardar: '+e.message;showToast('No se pudo guardar: '+e.message);});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
 async function shareOrDownload(blob,name,title){
+  if(NATIVE){try{await nativeTransfer(blob,name,'share');}catch(e){state.lastError='Compartir: '+e.message;showToast('No se pudo compartir: '+e.message);}return;}
   const file=new File([blob],name,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
     try{await navigator.share({files:[file],title});return;}
@@ -1887,6 +1934,92 @@ async function shareOrDownload(blob,name,title){
   }
   downloadBlob(blob,name);
 }
+
+// ── APP ANDROID (WebView): puente nativo, botón atrás, ciclo de vida, registro, actualizaciones ──
+// En la app independiente, MainActivity inyecta window.ObraSnapAndroid. En el navegador no existe y todo sigue igual.
+const NATIVE=window.ObraSnapAndroid||null;
+const UPDATE_URL='https://2351102227luis-source.github.io/obrasnap/version.json';
+
+function blobToB64(b){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.slice(r.result.indexOf(',')+1));r.onerror=()=>rej(r.error);r.readAsDataURL(b);});
+}
+// Envía un archivo a Android en trozos (para no reventar la memoria con PDFs/ZIP grandes)
+// mode: 'save' → Galería (fotos, Pictures/ObraSnap) o Descargas/ObraSnap · 'share' → menú Compartir
+async function nativeTransfer(blob,name,mode){
+  const id=NATIVE.begin(name,blob.type||'application/octet-stream');
+  const CH=384*1024;
+  for(let o=0;o<blob.size;o+=CH)NATIVE.append(id,await blobToB64(blob.slice(o,o+CH)));
+  const r=NATIVE.finish(id,mode);
+  if(!String(r).startsWith('ok'))throw new Error(String(r).replace(/^err:/,''));
+  logEv('INFO',`${mode==='share'?'Compartido':'Guardado'}: ${name} (${Math.round(blob.size/1024)} KB) ${String(r).slice(3)}`);
+  return r;
+}
+
+// Botón atrás de Android: cierra lo que esté abierto; si no hay nada, vuelve a la cámara; si ya está en cámara, sale
+window.obrasnapBack=function(){
+  const open=id=>document.getElementById(id).classList.contains('open');
+  if(open('log-view')){closeLog();return true;}
+  if(open('settings')){closeSettings();return true;}
+  if(open('viewer')){closeViewer();return true;}
+  if(open('style-bg')){closeStyle();return true;}
+  if(open('export-bg')){closeExport();return true;}
+  if(open('modal-bg')){saveActivity();return true;}
+  if(state.tab!=='cam'){switchTab('cam');return true;}
+  return false;
+};
+// Android avisa cuando la app pasa a segundo plano / vuelve (más fiable que visibilitychange en WebView)
+window.obrasnapLifecycle=function(ev){
+  logEv('INFO','App '+(ev==='pause'?'en segundo plano':'al frente'));
+  if(ev==='pause')stopCamera();
+  else setTimeout(()=>{if(!cameraHealthy())startCamera();},300);
+};
+
+// ── visor del registro ──
+function openLog(){
+  document.getElementById('log-text').textContent=LOG.length?LOG.slice().reverse().join('\n'):'(sin eventos)';
+  document.getElementById('log-view').classList.add('open');
+}
+function closeLog(){document.getElementById('log-view').classList.remove('open');}
+function logReport(){
+  updateDiag();
+  return `ObraSnap — registro\n${new Date().toString()}\n${navigator.userAgent}\n\n${document.getElementById('diag').textContent}\n\n--- eventos (más reciente al final) ---\n${LOG.join('\n')}\n`;
+}
+async function shareLog(){
+  const blob=new Blob([logReport()],{type:'text/plain'});
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  await shareOrDownload(blob,`ObraSnap_registro_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.txt`,'Registro ObraSnap');
+}
+
+// ── actualizaciones de la app ──
+function appInfo(){if(!NATIVE)return null;try{return JSON.parse(NATIVE.appInfo());}catch(e){return null;}}
+async function checkUpdate(manual){
+  const info=appInfo();if(!info)return;
+  const st=document.getElementById('app-update');
+  try{
+    const r=await fetch(UPDATE_URL+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const v=await r.json();
+    state.update=v.versionCode>info.versionCode?v:null;
+    renderAppInfo();
+    if(state.update)showToast(`Nueva versión ${v.versionName} disponible — Config → App`);
+    else if(manual)showToast('Ya tienes la última versión');
+  }catch(e){
+    logEv('WARN','Buscar actualización: '+e.message);
+    if(manual)showToast('Sin conexión para buscar actualizaciones');
+  }
+}
+function renderAppInfo(){
+  const info=appInfo(),box=document.getElementById('app-section');
+  if(!info){box.style.display='none';return;}
+  box.style.display='';
+  document.getElementById('app-ver').textContent=`ObraSnap ${info.versionName} (${info.versionCode}) · Android ${info.android} · WebView ${info.webview||'?'}`;
+  const u=state.update,up=document.getElementById('app-update');
+  if(u){
+    up.style.display='';
+    document.getElementById('app-update-txt').textContent=`Versión ${u.versionName} disponible${u.notas?': '+u.notas:''}`;
+  }else up.style.display='none';
+}
+function installUpdate(){if(state.update&&NATIVE)NATIVE.openExternal(state.update.apk);}
 
 // ── GALERÍA ──
 function updateThumb(){
@@ -2153,7 +2286,8 @@ Pista: ${t?t.readyState+(t.muted?' (muted)':''):'—'}
 GPS: ${state.lat!=null?`±${Math.round(state.accuracy)} m`:'sin fix'}
 Ruta: ${state.routeCoords.length?state.routeCoords.length+' pts':'—'}${state.pkDist!=null?` · a ${Math.round(state.pkDist)} m del eje`:''}
 Fotos: ${state.photos.length}${state.storage?` · ${state.storage}`:''}
-Modo offline: ${navigator.serviceWorker&&navigator.serviceWorker.controller?'activo':'no'}
+Plataforma: ${NATIVE?'App Android (archivos incluidos, sin Chrome)':'Navegador'}
+Modo offline: ${NATIVE?'sí (todo va dentro de la app)':navigator.serviceWorker&&navigator.serviceWorker.controller?'activo':'no'}
 Unzip nativo: ${typeof DecompressionStream!=='undefined'?'sí':'no (usa JSZip/internet)'}
 Último error: ${state.lastError||'ninguno'}`;
 }
@@ -2177,6 +2311,8 @@ function saveActivity(){
 // ── TAB NAVIGATION ──
 function switchTab(tab){
   const prev=state.tab;state.tab=tab;
+  // al cambiar de pestaña, cerrar hojas que quedaron abiertas encima
+  if(prev!==tab){closeExport();closeStyle();document.getElementById('modal-bg').classList.remove('open');}
   document.body.classList.toggle('cam-on',tab==='cam');
   if(tab==='config')setTimeout(renderCfgPreview,30);
   if(tab!=='cam'&&prev==='cam')stopCamera();
@@ -2214,7 +2350,9 @@ window.addEventListener('load',()=>{
   setInterval(camWatchdog,2000);
   setInterval(()=>{if(state.tab==='config')updateDiag();},2000);
   if(navigator.storage&&navigator.storage.estimate)setInterval(()=>navigator.storage.estimate().then(e=>{state.storage=`${(e.usage/1048576).toFixed(1)} MB usados`;}).catch(()=>{}),10000);
-  if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
+  renderAppInfo();if(NATIVE)setTimeout(()=>checkUpdate(false),4000);
+  logEv('INFO',`Inicio ${APP_VERSION} · ${NATIVE?'app Android':'navegador'}`);
+  if(!NATIVE&&'serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
 });
 </script>
 </body>
