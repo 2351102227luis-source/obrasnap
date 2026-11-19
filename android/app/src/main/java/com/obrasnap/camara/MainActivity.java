@@ -16,6 +16,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
+import android.database.Cursor;
+import android.widget.Toast;
 import android.util.Base64;
 import android.util.Log;
 import android.view.WindowManager;
@@ -62,6 +65,8 @@ public class MainActivity extends Activity {
     private PermissionRequest pendingWebPerm;
     private GeolocationPermissions.Callback pendingGeoCb;
     private String pendingGeoOrigin;
+    private boolean jsReady = false;
+    private String pendingImport;   // llamada JS lista para entregar cuando la página esté cargada
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -110,6 +115,62 @@ public class MainActivity extends Activity {
 
         askPermissions();
         if (saved != null) web.restoreState(saved); else web.loadUrl(HOME);
+        handleIntent(getIntent());
+    }
+
+    // ── archivos .obrasnap recibidos (Abrir con / Compartir a ObraSnap) ──
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    @SuppressWarnings("deprecation")
+    private void handleIntent(Intent intent) {
+        if (intent == null) return;
+        Uri uri = null;
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) uri = intent.getData();
+        else if (Intent.ACTION_SEND.equals(intent.getAction())) uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (uri == null) return;
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) throw new Exception("no se pudo abrir");
+            java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+            byte[] b = new byte[64 * 1024];
+            int n, total = 0;
+            while ((n = in.read(b)) > 0) {
+                total += n;
+                if (total > 20 * 1024 * 1024) throw new Exception("archivo demasiado grande");
+                buf.write(b, 0, n);
+            }
+            String head = new String(buf.toByteArray(), 0, Math.min(buf.size(), 4096), "UTF-8");
+            if (!head.contains("obrasnap-config")) {
+                Toast.makeText(this, "Ese archivo no es una configuración de ObraSnap", Toast.LENGTH_LONG).show();
+                return;
+            }
+            String b64 = Base64.encodeToString(buf.toByteArray(), Base64.NO_WRAP);
+            String name = displayName(uri).replaceAll("[^\\w .()+-]", "_");
+            pendingImport = "window.obrasnapImportB64&&obrasnapImportB64('" + b64 + "','" + name + "')";
+            deliverImport();
+        } catch (Exception e) {
+            Toast.makeText(this, "No se pudo leer el archivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+        setIntent(new Intent()); // que no se vuelva a importar al girar o reabrir
+    }
+
+    private void deliverImport() {
+        if (!jsReady || pendingImport == null) return;
+        final String js = pendingImport;
+        pendingImport = null;
+        runOnUiThread(() -> web.evaluateJavascript(js, null));
+    }
+
+    private String displayName(Uri uri) {
+        try (Cursor c = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (c != null && c.moveToFirst()) { String n = c.getString(0); if (n != null) return n; }
+        } catch (Exception ignored) { }
+        String p = uri.getLastPathSegment();
+        return p != null ? p : "obra.obrasnap";
     }
 
     // ── permisos de Android ──
@@ -282,6 +343,10 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void openExternal(String url) { runOnUiThread(() -> openExternalUri(Uri.parse(url))); }
+
+        /** La página avisa que ya cargó: entregar el archivo .obrasnap que esté esperando. */
+        @JavascriptInterface
+        public void ready() { jsReady = true; deliverImport(); }
     }
 
     private String saveToMedia(File src, String name, String mime) throws Exception {

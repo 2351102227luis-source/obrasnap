@@ -231,6 +231,11 @@ button:disabled{opacity:.5;}
 .config-row input[type=text]::placeholder{color:#4a7a5a;}
 #btn-load-kmz{background:var(--green-dim);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;width:100%;}
 .btn-primary{background:var(--green-dim);border:none;border-radius:8px;padding:10px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;width:100%;}
+.prof-select{width:100%;margin-top:6px;background:var(--bg2);color:var(--text);border:1px solid var(--surface2);border-radius:8px;padding:8px;font-family:var(--sans);font-size:14px;}
+#act-list{display:flex;flex-wrap:wrap;gap:6px;}
+.act-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--surface2);border-radius:16px;padding:4px 4px 4px 10px;font-size:12px;color:var(--text2);}
+.act-chip button{border:none;background:var(--surface2);color:var(--text);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:13px;line-height:1;padding:0;}
+.act-new{flex:1;background:var(--bg2);border:1px solid var(--surface2);border-radius:8px;padding:7px 10px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;}
 #kmz-status{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:6px;text-align:center;}
 
 
@@ -337,6 +342,33 @@ input[type=file]{display:none;}
       <div id="config-header"><h2>Configuración</h2></div>
 
       <div class="config-section">
+        <div class="config-label">Obras</div>
+        <div class="config-card">
+          <div class="config-row">
+            <div class="config-row-body">
+              <div class="config-row-title">Obra activa</div>
+              <select id="prof-select" class="prof-select" onchange="switchProfile(this.value)"></select>
+              <div class="config-row-sub" id="prof-count"></div>
+            </div>
+          </div>
+          <div class="config-row" style="gap:8px;flex-wrap:wrap;">
+            <button class="cfg-btn2" onclick="newProfile()">+ Nueva obra</button>
+            <button class="cfg-btn2" onclick="document.getElementById('prof-file').click()">Importar configuración</button>
+            <button class="cfg-btn2" style="color:#fca5a5" onclick="deleteProfile()">Eliminar</button>
+          </div>
+          <div class="config-row">
+            <div class="config-row-body">
+              <div class="config-row-title">Incluir el eje en el archivo</div>
+              <div class="config-row-sub">Logo, actividades, formatos y estilo siempre van incluidos</div>
+            </div>
+            <input type="checkbox" id="prof-axis" checked>
+          </div>
+          <div class="config-row"><button class="btn-primary" onclick="exportProfile()">Compartir configuración de esta obra</button></div>
+          <input type="file" id="prof-file" onchange="importProfileFile(this)">
+        </div>
+      </div>
+
+      <div class="config-section">
         <div class="config-label">Vista previa del stamp</div>
         <canvas id="cfg-stamp-preview" style="width:100%;aspect-ratio:16/9;border-radius:8px;display:block;background:#333;"></canvas>
         <button class="cfg-btn2" style="width:100%;margin:8px 0 4px;padding:10px;" onclick="switchTab('cam');openSettings()">Ajustes de cámara y stamp</button>
@@ -362,6 +394,11 @@ input[type=file]{display:none;}
               <div class="config-row-title">Actividad actual</div>
               <input type="text" id="cfg-act" placeholder="Ej: Colado de losa, Trazo..." oninput="updateConfig()">
             </div>
+          </div>
+          <div class="config-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+            <div class="config-row-title">Actividades frecuentes</div>
+            <div id="act-list"></div>
+            <div style="display:flex;gap:8px;"><input type="text" id="act-new" class="act-new" placeholder="Nueva actividad..." maxlength="60"><button class="cfg-btn2" onclick="addActivity(document.getElementById('act-new').value);document.getElementById('act-new').value=''">Agregar</button></div>
           </div>
           <div class="config-row">
             <div class="config-row-body">
@@ -455,16 +492,8 @@ input[type=file]{display:none;}
       <div id="modal-box">
         <div id="modal-title">Actividad en curso</div>
         <input type="text" id="activity-input" placeholder="Describe la actividad..." maxlength="60">
-        <div id="modal-suggestions">
-          <div class="sugg-chip" onclick="setActivity('Colado de losa')">Colado de losa</div>
-          <div class="sugg-chip" onclick="setActivity('Trazo y nivelación')">Trazo y nivelación</div>
-          <div class="sugg-chip" onclick="setActivity('Excavación')">Excavación</div>
-          <div class="sugg-chip" onclick="setActivity('Relleno compactado')">Relleno compactado</div>
-          <div class="sugg-chip" onclick="setActivity('Encofrado')">Encofrado</div>
-          <div class="sugg-chip" onclick="setActivity('Armado de acero')">Armado de acero</div>
-          <div class="sugg-chip" onclick="setActivity('Supervisión')">Supervisión</div>
-          <div class="sugg-chip" onclick="setActivity('Levantamiento topográfico')">Levantamiento topo</div>
-        </div>
+        <div id="modal-suggestions"></div>
+        <button class="cfg-btn2" style="margin-top:10px" onclick="addActivity(document.getElementById('activity-input').value);showToast('Guardada en frecuentes')">★ Guardar en frecuentes</button>
         <button id="modal-btn" onclick="saveActivity()">Guardar</button>
       </div>
     </div>
@@ -472,6 +501,7 @@ input[type=file]{display:none;}
     <div id="export-bg" onclick="if(event.target===this)closeExport()">
       <div id="export-box">
         <div class="modal-title">Exportar fotos</div>
+        <label class="exp-l">Obra<select id="exp-obra" onchange="updateExportCount()"><option value="this">Solo esta obra</option><option value="all">Todas</option></select></label>
         <label class="exp-l">Fotos<select id="exp-range" onchange="updateExportCount()"><option value="today">De hoy</option><option value="week">Últimos 7 días</option><option value="all">Todas</option></select></label>
         <label class="exp-l">Orden<select id="exp-order" onchange="updateExportCount()"><option value="pk">Por PK</option><option value="time">Por hora</option></select></label>
         <div id="exp-count"></div>
@@ -550,7 +580,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-f';
+const APP_VERSION='2026.11.20-g';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -563,6 +593,7 @@ const state = {
   routeCoords: [],   // [{lat,lon,dist}] distancia acumulada en metros
   routeName: null,
   photos: [],        // metadatos; la imagen está en IndexedDB
+  activities: null, profileId: null,
   mapOffset: {x:0,y:0}, mapScale:1,
   mapDragging:false, mapDragStart:null
 };
@@ -1234,8 +1265,11 @@ function onMapTouchMove(e){
 let dbp=null;
 function db(){
   if(!dbp)dbp=new Promise((res,rej)=>{
-    const r=indexedDB.open('obrasnap',1);
-    r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('photos',{keyPath:'id'});d.createObjectStore('blobs');};
+    const r=indexedDB.open('obrasnap',2);
+    r.onupgradeneeded=()=>{const d=r.result,has=n=>d.objectStoreNames.contains(n);
+      if(!has('photos'))d.createObjectStore('photos',{keyPath:'id'});
+      if(!has('blobs'))d.createObjectStore('blobs');
+      if(!has('profiles'))d.createObjectStore('profiles',{keyPath:'id'});};
     r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
   });
   return dbp;
@@ -1321,7 +1355,7 @@ function snapshotMeta(W,H){
   const onRoute=state.routeCoords.length>1&&state.lat!=null&&state.pk!=null;
   return{
     id:'p'+ts+'_'+Math.random().toString(36).slice(2,6),ts,w:W,h:H,
-    obra:state.obra,act:state.activity,route:state.routeName,
+    obra:state.obra,act:state.activity,route:state.routeName,profileId:state.profileId,
     pk:onRoute?state.pk:null,pkLabel:onRoute?state.pkLabel:'--+---',
     dist:onRoute?state.pkDist:null,side:onRoute?state.pkSide:'',
     lat:state.lat,lon:state.lon,acc:state.accuracy,alt:state.alt,dt:nowLabel(new Date(ts))
@@ -1912,6 +1946,214 @@ function shutterPressed(){
   },1000);
 }
 
+// ── OBRAS (perfiles): toda la configuración de una obra en un archivo .obrasnap para compartir ──
+// Un perfil guarda: nombre, actividad y actividades frecuentes, estilo/formatos del stamp, PK inicial/sentido,
+// logo y (opcional) el eje con su calibración. Las fotos NO van en el archivo.
+const DEFAULT_ACTIVITIES=['Colado de losa','Trazo y nivelación','Excavación','Relleno compactado','Encofrado','Armado de acero','Supervisión','Levantamiento topográfico'];
+const PROFILE_FORMAT='obrasnap-config';
+let profiles=[];               // [{id,nombre,data,updated}]
+
+async function dbProfilesAll(){const d=await db();return idbReq(d.transaction('profiles').objectStore('profiles').getAll());}
+async function dbProfilePut(p){const d=await db();return idbReq(d.transaction('profiles','readwrite').objectStore('profiles').put(p));}
+async function dbProfileDel(id){const d=await db();return idbReq(d.transaction('profiles','readwrite').objectStore('profiles').delete(id));}
+function newId(){return 'o'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function activeId(){try{return localStorage.getItem('obrasnap.active');}catch(e){return null;}}
+function setActiveId(id){try{localStorage.setItem('obrasnap.active',id);}catch(e){}state.profileId=id;}
+
+// Foto actual de la configuración → objeto exportable
+function snapshotProfile(includeAxis=true){
+  const logo=(()=>{try{return localStorage.getItem('obrasnap.logo');}catch(e){return null;}})();
+  return{
+    format:PROFILE_FORMAT,version:1,
+    id:state.profileId||newId(),
+    nombre:state.obra||'Obra',
+    creado:new Date().toISOString(),
+    app:APP_VERSION,
+    obra:{nombre:state.obra,actividad:state.activity,actividades:state.activities.slice()},
+    stamp:JSON.parse(JSON.stringify(state.stampStyle)),
+    pk:{pk0:document.getElementById('cfg-pk0').value||'',reverse:!!state.reverse},
+    logo:logo||null,
+    eje:includeAxis&&state.routeCoords.length>1?{
+      nombre:state.routeName,
+      pts:state.routeCoords.map(c=>[+c.lat.toFixed(7),+c.lon.toFixed(7)]),
+      tbl:state.pkTable?state.pkTable.map(([a,l])=>[+a.toFixed(2),+l.toFixed(3)]):null
+    }:null
+  };
+}
+
+// Valida un archivo recibido (puede venir de cualquiera: no confiar en nada)
+function validateProfile(o){
+  if(!o||typeof o!=='object'||o.format!==PROFILE_FORMAT)throw new Error('no es un archivo de configuración de ObraSnap');
+  if(o.version>1)throw new Error('el archivo es de una versión más nueva de la app; actualiza ObraSnap');
+  const str=(v,max=120)=>typeof v==='string'?v.slice(0,max):'';
+  const out={format:PROFILE_FORMAT,version:1,id:/^[\w-]{3,40}$/.test(o.id||'')?o.id:newId(),
+    nombre:str(o.nombre)||str(o.obra&&o.obra.nombre)||'Obra',creado:str(o.creado,40),app:str(o.app,40)};
+  const ob=o.obra||{};
+  out.obra={nombre:str(ob.nombre)||out.nombre,actividad:str(ob.actividad,80),
+    actividades:Array.isArray(ob.actividades)?ob.actividades.filter(a=>typeof a==='string'&&a.trim()).map(a=>a.trim().slice(0,60)).slice(0,60):DEFAULT_ACTIVITIES.slice()};
+  out.stamp=normalizeStyle(o.stamp&&typeof o.stamp==='object'?{...o.stamp}:{});
+  ['note1','note2'].forEach(k=>out.stamp[k]=str(out.stamp[k],80));
+  if(!STAMP_THEMES[out.stamp.bg])out.stamp.bg='negro';
+  out.pk={pk0:str(o.pk&&o.pk.pk0,20),reverse:!!(o.pk&&o.pk.reverse)};
+  out.logo=typeof o.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(o.logo)&&o.logo.length<1.5e6?o.logo:null;
+  out.eje=null;
+  if(o.eje&&Array.isArray(o.eje.pts)){
+    const ok=p=>Array.isArray(p)&&p.length>=2&&isFinite(p[0])&&isFinite(p[1])&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180;
+    const pts=o.eje.pts.filter(ok).slice(0,200000).map(p=>[+p[0],+p[1]]);
+    if(pts.length>=2){
+      const tbl=Array.isArray(o.eje.tbl)?o.eje.tbl.filter(t=>Array.isArray(t)&&isFinite(t[0])&&isFinite(t[1])).map(t=>[+t[0],+t[1]]):null;
+      out.eje={nombre:str(o.eje.nombre)||'Eje',pts,tbl:tbl&&tbl.length>=2?tbl:null};
+    }
+  }
+  return out;
+}
+
+// Aplica un perfil a la app (configuración, logo, eje)
+function applyProfile(p){
+  state.obra=p.obra.nombre;state.activity=p.obra.actividad||'';
+  state.activities=p.obra.actividades.length?p.obra.actividades.slice():DEFAULT_ACTIVITIES.slice();
+  document.getElementById('cfg-obra').value=state.obra;
+  document.getElementById('cfg-act').value=state.activity;
+  state.stampStyle=normalizeStyle({...p.stamp});
+  document.getElementById('cfg-pk0').value=p.pk.pk0||'';
+  document.getElementById('cfg-rev').checked=p.pk.reverse;
+  state.pk0=parsePK(p.pk.pk0);state.reverse=p.pk.reverse;
+  if(p.logo){try{localStorage.setItem('obrasnap.logo',p.logo);}catch(e){}setLogo(p.logo);}
+  else{state.logoImg=null;try{localStorage.removeItem('obrasnap.logo');}catch(e){}}
+  if(p.eje){
+    setRoute(p.eje.pts.map(q=>({lat:q[0],lon:q[1]})),p.eje.nombre);
+    state.pkTable=p.eje.tbl;
+    const total=state.routeCoords[state.routeCoords.length-1].dist;
+    setKmzStatus(`✓ ${p.eje.pts.length} pts · ${(total/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''} (de la obra)`);
+    saveRoute();
+  }else clearRoute();
+  saveSettings();renderActivities();
+  computePK();drawMap();fitVideo();applyGrid();scheduleStamp();
+  logEv('INFO',`Obra activa: ${p.nombre}${p.eje?' · con eje':''}`);
+}
+
+async function initProfiles(){
+  try{profiles=await dbProfilesAll();}catch(e){profiles=[];state.lastError='Obras: '+e.message;}
+  let id=activeId();
+  const first=!profiles.length;
+  if(first){
+    setActiveId(id||newId());
+    const p=snapshotProfile();
+    profiles=[{id:p.id,nombre:p.nombre,data:p,updated:Date.now()}];
+    try{await dbProfilePut(profiles[0]);}catch(e){}
+  }else{
+    if(!profiles.some(p=>p.id===id))id=profiles[0].id;
+    setActiveId(id);
+  }
+  renderProfiles();
+  return first;
+}
+// guarda la configuración actual dentro del perfil activo
+async function storeActiveProfile(){
+  const p=snapshotProfile();
+  const rec={id:p.id,nombre:p.nombre,data:p,updated:Date.now()};
+  const i=profiles.findIndex(x=>x.id===p.id);
+  if(i>=0)profiles[i]=rec;else profiles.push(rec);
+  try{await dbProfilePut(rec);}catch(e){state.lastError='Guardar obra: '+e.message;}
+  return rec;
+}
+async function switchProfile(id){
+  if(id===state.profileId)return;
+  await storeActiveProfile();
+  const rec=profiles.find(p=>p.id===id);if(!rec)return;
+  setActiveId(id);applyProfile(validateProfile(rec.data));
+  renderProfiles();showToast('Obra: '+rec.nombre);
+}
+async function newProfile(){
+  const name=prompt('Nombre de la nueva obra:','');
+  if(name==null||!name.trim())return;
+  await storeActiveProfile();
+  // empieza como copia de la actual (mismo logo y estilo), sin eje
+  const p=snapshotProfile(false);p.id=newId();p.nombre=name.trim();p.obra.nombre=name.trim();p.obra.actividad='';
+  const rec={id:p.id,nombre:p.nombre,data:p,updated:Date.now()};
+  profiles.push(rec);try{await dbProfilePut(rec);}catch(e){}
+  setActiveId(p.id);applyProfile(validateProfile(p));renderProfiles();
+  showToast('Obra creada — carga su KMZ en "Archivo KMZ de ruta"');
+}
+async function deleteProfile(){
+  if(profiles.length<2){showToast('Debe quedar al menos una obra');return;}
+  const cur=profiles.find(p=>p.id===state.profileId);
+  if(!confirm(`¿Eliminar la obra "${cur?cur.nombre:''}" de este teléfono? Las fotos no se borran.`))return;
+  try{await dbProfileDel(state.profileId);}catch(e){}
+  profiles=profiles.filter(p=>p.id!==state.profileId);
+  const next=profiles[0];setActiveId(next.id);applyProfile(validateProfile(next.data));renderProfiles();
+}
+async function exportProfile(){
+  const rec=await storeActiveProfile();
+  const withAxis=document.getElementById('prof-axis').checked;
+  const data=withAxis?rec.data:{...rec.data,eje:null};
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+  const safe=(data.nombre||'Obra').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w-]+/g,'_').slice(0,50);
+  await shareOrDownload(blob,`${safe}.obrasnap`,'Configuración de obra');
+  logEv('INFO',`Configuración exportada: ${data.nombre} (${Math.round(blob.size/1024)} KB${data.eje?', con eje':''}${data.logo?', con logo':''})`);
+}
+function importProfileFile(input){
+  const f=input.files[0];input.value='';if(!f)return;
+  if(f.size>20*1024*1024){showToast('Archivo demasiado grande');return;}
+  f.text().then(t=>importProfileText(t,f.name)).catch(e=>showToast('No se pudo leer: '+e.message));
+}
+async function importProfileText(text,fname){
+  let p;
+  try{p=validateProfile(JSON.parse(text));}
+  catch(e){state.lastError='Importar obra: '+e.message;showToast('Archivo no válido: '+e.message);return;}
+  const detail=[p.eje?'eje':'sin eje',p.logo?'logo':'',`${p.obra.actividades.length} actividades`].filter(Boolean).join(', ');
+  // misma obra = mismo id o mismo nombre (p.ej. la obra de arranque de un teléfono nuevo)
+  const norm=t=>(t||'').trim().toLowerCase();
+  const same=profiles.find(x=>x.id===p.id)||profiles.find(x=>norm(x.id===state.profileId?state.obra:x.nombre)===norm(p.nombre));
+  if(same){
+    if(!confirm(`Ya tienes la obra "${same.nombre}". ¿Reemplazar su configuración con la del archivo (${detail})? Las fotos no se tocan.`))return;
+    p.id=same.id; // conserva el id local para que sus fotos sigan asociadas
+  }else if(!confirm(`¿Agregar la obra "${p.nombre}" (${detail})?`))return;
+  if(p.id!==state.profileId)await storeActiveProfile();
+  const rec={id:p.id,nombre:p.nombre,data:p,updated:Date.now()};
+  const i=profiles.findIndex(x=>x.id===p.id);
+  if(i>=0)profiles[i]=rec;else profiles.push(rec);
+  try{await dbProfilePut(rec);}catch(e){}
+  setActiveId(p.id);applyProfile(p);renderProfiles();
+  logEv('INFO',`Configuración importada: ${p.nombre} (${fname||'archivo'})`);
+  showToast('Obra lista: '+p.nombre);
+}
+// Android entrega aquí un .obrasnap abierto desde WhatsApp, correo o Archivos
+window.obrasnapImportB64=function(b64,name){
+  try{
+    const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    importProfileText(new TextDecoder('utf-8').decode(u),name);
+  }catch(e){showToast('No se pudo abrir el archivo');}
+};
+
+function renderProfiles(){
+  const sel=document.getElementById('prof-select');if(!sel)return;
+  sel.innerHTML='';
+  profiles.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre)).forEach(p=>{
+    const o=document.createElement('option');o.value=p.id;o.textContent=p.id===state.profileId?state.obra:p.nombre;
+    if(p.id===state.profileId)o.selected=true;sel.appendChild(o);
+  });
+  document.getElementById('prof-count').textContent=profiles.length===1?'1 obra en este teléfono':`${profiles.length} obras en este teléfono`;
+}
+
+// ── actividades frecuentes (van en el archivo de la obra) ──
+function renderActivities(){
+  const chips=document.getElementById('modal-suggestions');chips.innerHTML='';
+  state.activities.forEach(a=>{const c=document.createElement('div');c.className='sugg-chip';c.textContent=a;c.onclick=()=>setActivity(a);chips.appendChild(c);});
+  const list=document.getElementById('act-list');if(!list)return;list.innerHTML='';
+  state.activities.forEach((a,i)=>{
+    const c=document.createElement('span');c.className='act-chip';c.textContent=a;
+    const x=document.createElement('button');x.textContent='×';x.title='Quitar';
+    x.onclick=()=>{state.activities.splice(i,1);saveSettings();renderActivities();};
+    c.appendChild(x);list.appendChild(c);
+  });
+}
+function addActivity(v){
+  v=(v||'').trim().slice(0,60);if(!v)return;
+  if(!state.activities.some(a=>a.toLowerCase()===v.toLowerCase()))state.activities.push(v);
+  saveSettings();renderActivities();
+}
+
 // ── DESCARGA / COMPARTIR ──
 function photoFileName(m){
   const d=new Date(m.ts),p=n=>String(n).padStart(2,'0');
@@ -2099,7 +2341,9 @@ function closeExport(){document.getElementById('export-bg').classList.remove('op
 function exportSelection(){
   const range=document.getElementById('exp-range').value,order=document.getElementById('exp-order').value;
   const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const onlyThis=document.getElementById('exp-obra').value==='this';
   let list=state.photos.filter(p=>range==='all'||(range==='today'?p.ts>=start:p.ts>=start-6*864e5));
+  if(onlyThis)list=list.filter(p=>p.profileId?p.profileId===state.profileId:p.obra===state.obra);
   list=list.slice().sort(order==='pk'?(a,b)=>(a.pk??Infinity)-(b.pk??Infinity)||a.ts-b.ts:(a,b)=>a.ts-b.ts);
   return list;
 }
@@ -2257,9 +2501,10 @@ function updateConfig(){
   state.activity=document.getElementById('cfg-act').value||'';
   scheduleStamp();
   saveSettings();
+  renderProfiles();
 }
 function saveSettings(){
-  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse,autoSave:state.autoSave,style:state.stampStyle,facing:state.facing}));}catch(e){}
+  try{localStorage.setItem('obrasnap.cfg',JSON.stringify({obra:state.obra,activity:state.activity,pk0:document.getElementById('cfg-pk0').value,reverse:state.reverse,autoSave:state.autoSave,style:state.stampStyle,facing:state.facing,activities:state.activities}));}catch(e){}
 }
 function restoreSettings(){
   try{
@@ -2271,6 +2516,7 @@ function restoreSettings(){
     state.pk0=parsePK(c.pk0);state.reverse=!!c.reverse;
     if(c.style)state.stampStyle=normalizeStyle({...c.style});
     if(c.facing)state.facing=c.facing;
+    if(Array.isArray(c.activities))state.activities=c.activities;
     if(c.autoSave===false){state.autoSave=false;document.getElementById('cfg-autosave').checked=false;}
     updateConfig();
   }catch(e){}
@@ -2341,8 +2587,14 @@ window.addEventListener('load',()=>{
   restoreLogo();
   applyGrid();
   window.addEventListener('resize',fitVideo);
+  if(!state.activities)state.activities=DEFAULT_ACTIVITIES.slice();
+  renderActivities();
   restoreRoute();
-  if(!state.routeCoords.length)loadProjectAxis(false);
+  // primera vez: se crea la obra con lo que haya y se carga el eje incluido en la app
+  initProfiles().then(first=>{
+    if(first&&!state.routeCoords.length)loadProjectAxis(false);
+    if(NATIVE&&NATIVE.ready)NATIVE.ready(); // ya se pueden recibir archivos .obrasnap
+  });
   loadPhotos();
   startCamera();
   startGPS();

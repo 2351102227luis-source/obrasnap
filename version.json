@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "2.0",
+  "versionCode": 3,
+  "versionName": "2.1",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "App independiente (ya no usa Chrome): fotos en Galería › ObraSnap, registro de errores y aviso de actualizaciones."
+  "notas": "Obras: guarda y comparte la configuración completa (logo, actividades, formatos, estilo y eje) en un archivo .obrasnap."
 }

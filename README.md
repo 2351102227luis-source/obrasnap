@@ -30,6 +30,16 @@ Cámara de obra con stamp de PK, GPS, fecha y actividad. Funciona como página w
 ⚠️ La llave de firma (`obrasnap-release.jks`) **no** está en el repo. Sin ella no se pueden publicar
 actualizaciones que se instalen encima de la app actual.
 
+## Obras (configuración compartible)
+
+Config → **Obras**: cada obra guarda nombre, actividades frecuentes, formatos (PK, fecha, hora, coordenadas),
+estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje con su calibración.
+
+- **Compartir configuración de esta obra** genera un archivo `NombreDeObra.obrasnap` (JSON) para mandar por WhatsApp/correo.
+- En la app Android basta con tocar el archivo y elegir **Abrir con ObraSnap**; en la web, **Importar configuración**.
+- Si ya existe una obra con el mismo nombre, se reemplaza su configuración (las fotos no se tocan).
+- **+ Nueva obra** crea otra a partir del estilo actual (sin eje); se cambia de obra con el selector.
+
 ## Diagnóstico
 
 Config → Diagnóstico muestra versión, cámara, GPS, eje y último error.
