@@ -344,6 +344,19 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openExternal(String url) { runOnUiThread(() -> openExternalUri(Uri.parse(url))); }
 
+        /** Cambia el ícono de la app activando uno de los dos alias del lanzador ("arena" o "senal"). */
+        @JavascriptInterface
+        public void setIcon(String theme) {
+            String pkg = getPackageName();
+            android.content.ComponentName arena = new android.content.ComponentName(pkg, pkg + ".LauncherArena");
+            android.content.ComponentName senal = new android.content.ComponentName(pkg, pkg + ".LauncherSenal");
+            PackageManager pm = getPackageManager();
+            boolean s = "senal".equals(theme);
+            // primero se activa el nuevo y luego se desactiva el otro, para que nunca falte el ícono
+            pm.setComponentEnabledSetting(s ? senal : arena, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+            pm.setComponentEnabledSetting(s ? arena : senal, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+        }
+
         /** La página avisa que ya cargó: entregar el archivo .obrasnap que esté esperando. */
         @JavascriptInterface
         public void ready() { jsReady = true; deliverImport(); }

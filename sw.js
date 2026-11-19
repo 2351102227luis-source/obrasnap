@@ -1,8 +1,8 @@
 // ObraSnap service worker: la app abre sin señal en obra.
 // index.html: red primero (para recibir actualizaciones), caché si no hay red.
 // Fuentes y librerías del CDN: caché primero.
-const CACHE='obrasnap-v4';
-const CORE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./EJE.kmz',
+const CACHE='obrasnap-v5';
+const CORE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-senal-192.png','./EJE.kmz',
   './fonts/barlow-latin-400-normal.woff2','./fonts/barlow-latin-500-normal.woff2','./fonts/barlow-latin-600-normal.woff2','./fonts/barlow-latin-700-normal.woff2',
   './fonts/barlow-condensed-latin-500-normal.woff2','./fonts/barlow-condensed-latin-600-normal.woff2','./fonts/barlow-condensed-latin-700-normal.woff2','./fonts/share-tech-mono-latin-400-normal.woff2'];
 self.addEventListener('install',e=>{

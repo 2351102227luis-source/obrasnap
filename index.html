@@ -9,8 +9,9 @@
 <meta name="theme-color" content="#000000">
 <title>ObraSnap</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" id="fav" href="icon-192.png">
+<link rel="apple-touch-icon" id="fav2" href="icon-192.png">
+<script>try{var t=localStorage.getItem("obrasnap.theme");if(t==="senal")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 /* Fuentes incluidas en la app (funcionan sin internet). Licencia OFL: fonts/OFL.txt */
 @font-face{font-family:'Barlow';font-weight:400;font-display:swap;src:url(fonts/barlow-latin-400-normal.woff2) format('woff2');}
@@ -31,9 +32,19 @@
   --bg:#f3ead8;--bg2:#fbf6ec;--bg3:#e8dcc4;
   --surface:#fbf6ec;--surface2:#e2d5ba;
   --text:#1f2a3a;--text2:#6e6555;--text3:#1f3a5f;--placeholder:#a99f8c;
+  --on-accent:#fff;--danger:#b42318;--switch-off:#d6cbb3;--chip-bg:rgba(251,246,236,.94);
+  --map-bg:#f3ead8;--map-grid:rgba(31,58,95,.07);--map-route:#1f3a5f;--map-mark:#6e6555;--map-text:#1f2a3a;--map-empty:rgba(31,58,95,.45);
   --mono:'Share Tech Mono',monospace;
   --sans:'Barlow',sans-serif;
   --cond:'Barlow Condensed',sans-serif;
+}
+/* Apariencia "Señalética" (Config → Apariencia de la app) */
+html[data-theme="senal"]{
+  --accent:#ffc20e;--accent2:#ffc20e;--accent-soft:#3a3420;--on-accent:#111;
+  --bg:#0e1726;--bg2:#152238;--bg3:#1c2c47;--surface:#1c2c47;--surface2:#2a3d5e;
+  --text:#eef2f8;--text2:#9fb0c9;--text3:#ffc20e;--placeholder:#6f82a0;
+  --danger:#ff8a80;--switch-off:#3a4d6e;--chip-bg:rgba(21,34,56,.94);
+  --map-bg:#0e1726;--map-grid:rgba(255,194,14,.06);--map-route:#ffc20e;--map-mark:#9fb0c9;--map-text:#eef2f8;--map-empty:rgba(255,194,14,.5);
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);}
 
@@ -119,19 +130,19 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 .set-mini:disabled{opacity:.25;}
 .set-seg{display:flex;flex-wrap:wrap;gap:6px;}
 .set-seg button{flex:1 1 auto;border:1px solid var(--surface2);background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12.5px;padding:8px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;}
-.set-seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.set-seg button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600;}
 .set-pos9{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,38px);gap:4px;padding:6px;background:var(--bg3);border-radius:10px;align-self:center;border:1px solid var(--surface2);}
 .set-pos9 button{border:none;border-radius:6px;background:var(--bg2);color:var(--text2);font-size:15px;cursor:pointer;}
-.set-pos9 button.on{background:var(--accent);color:#fff;}
+.set-pos9 button.on{background:var(--accent);color:var(--on-accent);}
 .set-sw{display:flex;flex-wrap:wrap;gap:10px;}
 .set-range{width:100%;accent-color:var(--accent);}
 .set-input{width:100%;background:var(--bg);border:1px solid var(--surface2);border-radius:8px;padding:9px 10px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;}
 .set-btn{background:var(--bg);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;cursor:pointer;}
-.set-btn.danger{color:#b42318;}
+.set-btn.danger{color:var(--danger);}
 .set-reset{width:100%;margin-top:24px;padding:12px;}
 .set-switch{position:relative;width:51px;height:31px;flex-shrink:0;}
 .set-switch input{opacity:0;width:0;height:0;position:absolute;}
-.set-switch span{position:absolute;inset:0;background:#d6cbb3;border-radius:16px;transition:.2s;cursor:pointer;}
+.set-switch span{position:absolute;inset:0;background:var(--switch-off);border-radius:16px;transition:.2s;cursor:pointer;}
 .set-switch span::before{content:'';position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s;}
 .set-switch input:checked+span{background:var(--accent);}
 .set-switch input:checked+span::before{transform:translateX(20px);}
@@ -165,7 +176,7 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 .config-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);}
 
 /* VISOR / EXPORTAR */
-.hdr-btn{background:var(--accent2);border:none;border-radius:8px;padding:6px 12px;color:#fff;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;}
+.hdr-btn{background:var(--accent2);border:none;border-radius:8px;padding:6px 12px;color:var(--on-accent);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;}
 #viewer{position:fixed;inset:0;background:#000;z-index:150;display:none;flex-direction:column;}
 #viewer.open{display:flex;}
 #viewer-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));}
@@ -178,7 +189,7 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 #viewer-info b{font-family:var(--mono);font-weight:400;color:var(--text2);display:inline-block;min-width:74px;font-size:11px;}
 #viewer-actions{display:flex;gap:8px;padding:10px 16px;padding-bottom:max(14px,env(safe-area-inset-bottom));}
 #viewer-actions button{flex:1;padding:12px 0;border-radius:10px;border:1px solid var(--surface2);background:var(--surface);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
-#viewer-actions button:first-child{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+#viewer-actions button:first-child{background:var(--accent2);border-color:var(--accent2);color:var(--on-accent);}
 #viewer-actions .danger{color:#fca5a5;border-color:#7f1d1d;background:transparent;}
 #export-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
 #export-bg.open{display:flex;}
@@ -198,11 +209,11 @@ button:disabled{opacity:.5;}
 #map-kmz-name{font-size:11px;color:var(--text2);font-family:var(--mono);}
 #map-canvas-wrap{flex:1;position:relative;overflow:hidden;}
 #map-canvas{width:100%;height:100%;}
-#map-info-chip{position:absolute;top:10px;left:10px;right:10px;background:rgba(251,246,236,.94);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
+#map-info-chip{position:absolute;top:10px;left:10px;right:10px;background:var(--chip-bg);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
 #map-pk-chip{font-family:var(--mono);font-size:15px;color:var(--accent);font-weight:bold;}
 #map-dist-chip{font-size:11px;color:var(--text2);}
-#btn-load-kmz-map{position:absolute;bottom:16px;right:16px;background:var(--accent2);border:none;border-radius:10px;padding:10px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;}
-#btn-load-kmz-map svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;}
+#btn-load-kmz-map{position:absolute;bottom:16px;right:16px;background:var(--accent2);border:none;border-radius:10px;padding:10px 16px;color:var(--on-accent);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;}
+#btn-load-kmz-map svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
 
 /* ── GALLERY SCREEN ── */
 #gallery-screen{background:var(--bg);}
@@ -239,13 +250,19 @@ button:disabled{opacity:.5;}
 .config-row-sub{font-size:11px;color:var(--text2);margin-top:1px;}
 .config-row input[type=text]{background:transparent;border:none;border-bottom:1px solid var(--surface2);color:var(--text);font-family:var(--sans);font-size:13px;width:100%;padding:2px 0;outline:none;}
 .config-row input[type=text]::placeholder{color:var(--placeholder);}
-#btn-load-kmz{background:var(--accent2);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;width:100%;}
-.btn-primary{background:var(--accent2);border:none;border-radius:8px;padding:10px 16px;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;width:100%;}
+#btn-load-kmz{background:var(--accent2);border:none;border-radius:8px;padding:8px 16px;color:var(--on-accent);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;width:100%;}
+.btn-primary{background:var(--accent2);border:none;border-radius:8px;padding:10px 16px;color:var(--on-accent);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;width:100%;}
 .prof-select{width:100%;margin-top:6px;background:var(--bg2);color:var(--text);border:1px solid var(--surface2);border-radius:8px;padding:8px;font-family:var(--sans);font-size:14px;}
 #act-list{display:flex;flex-wrap:wrap;gap:6px;}
 .act-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--surface2);border-radius:16px;padding:4px 4px 4px 10px;font-size:12px;color:var(--text2);}
 .act-chip button{border:none;background:var(--surface2);color:var(--text);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:13px;line-height:1;padding:0;}
 .act-new{flex:1;background:var(--bg2);border:1px solid var(--surface2);border-radius:8px;padding:7px 10px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;}
+.theme-pick{display:flex;gap:10px;}
+.theme-pick button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:12px;border:2px solid var(--surface2);background:var(--surface);color:var(--text);font-family:var(--sans);cursor:pointer;}
+.theme-pick button.on{border-color:var(--accent);}
+.theme-pick img{width:52px;height:52px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.theme-pick b{font-size:14px;}
+.theme-pick span{font-size:11px;color:var(--text2);}
 #kmz-status{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:6px;text-align:center;}
 
 
@@ -259,7 +276,7 @@ button:disabled{opacity:.5;}
 #modal-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
 .sugg-chip{background:var(--surface);border:1px solid var(--surface2);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;}
 .sugg-chip:active{background:var(--surface2);}
-#modal-btn,.modal-btn{width:100%;margin-top:14px;background:var(--accent2);border:none;border-radius:10px;padding:12px;color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
+#modal-btn,.modal-btn{width:100%;margin-top:14px;background:var(--accent2);border:none;border-radius:10px;padding:12px;color:var(--on-accent);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
 
 /* TOAST */
 #toast{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--surface2);border:1px solid var(--accent2);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--text2);font-family:var(--mono);transition:transform .3s;white-space:nowrap;z-index:200;}
@@ -364,7 +381,7 @@ input[type=file]{display:none;}
           <div class="config-row" style="gap:8px;flex-wrap:wrap;">
             <button class="cfg-btn2" onclick="newProfile()">+ Nueva obra</button>
             <button class="cfg-btn2" onclick="document.getElementById('prof-file').click()">Importar configuración</button>
-            <button class="cfg-btn2" style="color:#b42318" onclick="deleteProfile()">Eliminar</button>
+            <button class="cfg-btn2" style="color:var(--danger)" onclick="deleteProfile()">Eliminar</button>
           </div>
           <div class="config-row">
             <div class="config-row-body">
@@ -376,6 +393,15 @@ input[type=file]{display:none;}
           <div class="config-row"><button class="btn-primary" onclick="exportProfile()">Compartir configuración de esta obra</button></div>
           <input type="file" id="prof-file" onchange="importProfileFile(this)">
         </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-label">Apariencia de la app</div>
+        <div class="theme-pick">
+          <button data-theme="arena" onclick="setAppTheme('arena')"><img src="icon-192.png" alt=""><b>Arena</b><span>Crema y azul marino</span></button>
+          <button data-theme="senal" onclick="setAppTheme('senal')"><img src="icon-senal-192.png" alt=""><b>Señalética</b><span>Azul marino y amarillo</span></button>
+        </div>
+        <div class="config-row-sub" id="theme-note" style="margin:6px 2px 14px"></div>
       </div>
 
       <div class="config-section">
@@ -590,7 +616,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-h';
+const APP_VERSION='2026.11.20-i';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1177,20 +1203,25 @@ function toScreen(lat,lon){
   return{x:lon*state.mapScale+state.mapOffset.x,y:-lat*state.mapScale+state.mapOffset.y};
 }
 
+function mapColors(){
+  const cs=getComputedStyle(document.documentElement),v=n=>cs.getPropertyValue(n).trim();
+  return{bg:v('--map-bg'),grid:v('--map-grid'),route:v('--map-route'),mark:v('--map-mark'),text:v('--map-text'),empty:v('--map-empty')};
+}
 function drawMap(){
   if(!mapCtx)return;
   mapCtx.clearRect(0,0,mapW,mapH);
   // bg
-  mapCtx.fillStyle='#f3ead8';
+  const MC=mapColors();
+  mapCtx.fillStyle=MC.bg;
   mapCtx.fillRect(0,0,mapW,mapH);
   // grid lines subtle
-  mapCtx.strokeStyle='rgba(31,58,95,0.07)';
+  mapCtx.strokeStyle=MC.grid;
   mapCtx.lineWidth=1;
   for(let x=0;x<mapW;x+=40){mapCtx.beginPath();mapCtx.moveTo(x,0);mapCtx.lineTo(x,mapH);mapCtx.stroke();}
   for(let y=0;y<mapH;y+=40){mapCtx.beginPath();mapCtx.moveTo(0,y);mapCtx.lineTo(mapW,y);mapCtx.stroke();}
 
   if(!state.routeCoords.length){
-    mapCtx.fillStyle='rgba(31,58,95,0.45)';
+    mapCtx.fillStyle=MC.empty;
     mapCtx.font='14px Barlow, sans-serif';
     mapCtx.textAlign='center';
     mapCtx.fillText('Carga un KMZ para ver la ruta',mapW/2,mapH/2);
@@ -1204,7 +1235,7 @@ function drawMap(){
     const p=toScreen(c.lat,c.lon);
     if(i===0)mapCtx.moveTo(p.x,p.y);else mapCtx.lineTo(p.x,p.y);
   });
-  mapCtx.strokeStyle='#1f3a5f';
+  mapCtx.strokeStyle=MC.route;
   mapCtx.lineWidth=3;
   mapCtx.setLineDash([]);
   mapCtx.stroke();
@@ -1224,8 +1255,8 @@ function drawMap(){
       const t=(mk-prevPk)/(pk-prevPk);
       const p=toScreen(A.lat+t*(c.lat-A.lat),A.lon+t*(c.lon-A.lon));
       mapCtx.beginPath();mapCtx.arc(p.x,p.y,3,0,Math.PI*2);
-      mapCtx.fillStyle='#6e6555';mapCtx.fill();
-      mapCtx.fillStyle='#6e6555';mapCtx.font='9px Share Tech Mono,monospace';
+      mapCtx.fillStyle=MC.mark;mapCtx.fill();
+      mapCtx.fillStyle=MC.mark;mapCtx.font='9px Share Tech Mono,monospace';
       mapCtx.fillText(fmtPK(mk),p.x+5,p.y-4);
     }
     prevPk=pk;
@@ -1241,7 +1272,7 @@ function drawMap(){
     mapCtx.beginPath();mapCtx.arc(p.x,p.y,2.5,0,Math.PI*2);
     mapCtx.fillStyle='#fff';mapCtx.fill();
     // label
-    mapCtx.fillStyle='#1f2a3a';mapCtx.font='bold 10px Barlow Condensed,sans-serif';
+    mapCtx.fillStyle=MC.text;mapCtx.font='bold 10px Barlow Condensed,sans-serif';
     mapCtx.fillText('Tú · PK '+state.pkLabel,p.x+10,p.y-6);
   }
 }
@@ -2550,6 +2581,26 @@ Unzip nativo: ${typeof DecompressionStream!=='undefined'?'sí':'no (usa JSZip/in
 Último error: ${state.lastError||'ninguno'}`;
 }
 
+// ── APARIENCIA DE LA APP (colores + ícono) ──
+const APP_THEMES={arena:{icon:'icon-192.png',name:'Arena'},senal:{icon:'icon-senal-192.png',name:'Señalética'}};
+function currentTheme(){return document.documentElement.dataset.theme==='senal'?'senal':'arena';}
+function paintTheme(){
+  const t=currentTheme();
+  document.getElementById('fav').href=APP_THEMES[t].icon;document.getElementById('fav2').href=APP_THEMES[t].icon;
+  document.querySelectorAll('.theme-pick button').forEach(b=>b.classList.toggle('on',b.dataset.theme===t));
+  document.getElementById('theme-note').textContent=NATIVE&&NATIVE.setIcon?'El ícono del teléfono cambia junto con los colores (puede tardar unos segundos).':'';
+  drawMap();
+}
+function setAppTheme(t){
+  if(!APP_THEMES[t]||t===currentTheme())return;
+  if(t==='senal')document.documentElement.dataset.theme='senal';else delete document.documentElement.dataset.theme;
+  try{localStorage.setItem('obrasnap.theme',t);}catch(e){}
+  paintTheme();
+  if(NATIVE&&NATIVE.setIcon){try{NATIVE.setIcon(t);}catch(e){state.lastError='Cambiar ícono: '+e.message;}}
+  logEv('INFO','Apariencia: '+APP_THEMES[t].name);
+  showToast('Apariencia: '+APP_THEMES[t].name);
+}
+
 // ── ACTIVITY MODAL ──
 function openActivityModal(){
   document.getElementById('activity-input').value=state.activity;
@@ -2593,6 +2644,7 @@ function showToast(msg){
 // ── INIT ──
 window.addEventListener('load',()=>{
   document.body.classList.add('cam-on');
+  paintTheme();
   initMap();
   state.stampStyle=normalizeStyle(state.stampStyle);
   restoreSettings();

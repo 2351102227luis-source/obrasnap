@@ -3,4 +3,5 @@
     <color name="black">#000000</color>
     <color name="splash_bg">#F3EAD8</color>
     <color name="ic_launcher_background">#F3EAD8</color>
+    <color name="ic_senal_background">#16213A</color>
 </resources>
