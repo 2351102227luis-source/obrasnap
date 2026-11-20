@@ -176,9 +176,11 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 .menu-tx b{font-size:14.5px;font-weight:600;}
 .menu-tx small{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .menu-ch{font-size:20px;color:var(--text2);line-height:1;}
-#set-head #set-back{width:auto;min-width:84px;text-align:left;white-space:nowrap;}
+#set-head #set-back{width:auto;min-width:84px;text-align:left;white-space:nowrap;min-height:44px;padding:0 6px 0 0;font-size:17px;}
 .head-pad{width:84px !important;}
-#cfg-back{display:none;background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;padding:0 10px 0 0;}
+#cfg-back{display:none;background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:17px;font-weight:600;cursor:pointer;padding:0 12px 0 0;min-height:44px;}
+.sheet-back{display:block;background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:17px;font-weight:600;cursor:pointer;padding:0 12px 0 0;min-height:44px;margin:-10px 0 4px;}
+.viewer-back{width:auto !important;height:44px !important;border-radius:22px !important;padding:0 16px !important;font-family:var(--sans);font-size:16px !important;font-weight:600;}
 #config-header{display:flex;align-items:center;}
 #settings .swatch{border-color:var(--surface2);}
 #settings .swatch.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg2) inset;}
@@ -559,6 +561,7 @@ input[type=file]{display:none;}
     <!-- MODAL ACTIVIDAD -->
     <div id="modal-bg" onclick="closeModal(event)">
       <div id="modal-box">
+        <button class="sheet-back" onclick="cancelActivity()">‹ Regresar</button>
         <div id="modal-title">Actividad en curso</div>
         <input type="text" id="activity-input" placeholder="Describe la actividad..." maxlength="60">
         <div id="modal-suggestions"></div>
@@ -569,6 +572,7 @@ input[type=file]{display:none;}
 
     <div id="export-bg" onclick="if(event.target===this)closeExport()">
       <div id="export-box">
+        <button class="sheet-back" onclick="closeExport()">‹ Regresar</button>
         <div class="modal-title">Exportar fotos</div>
         <label class="exp-l">Obra<select id="exp-obra" onchange="updateExportCount()"><option value="this">Solo esta obra</option><option value="all">Todas</option></select></label>
         <label class="exp-l">Fotos<select id="exp-range" onchange="updateExportCount()"><option value="today">De hoy</option><option value="week">Últimos 7 días</option><option value="all">Todas</option></select></label>
@@ -596,6 +600,7 @@ input[type=file]{display:none;}
 
     <div id="qnote-bg" class="sheet-bg" onclick="if(event.target===this)saveQuickNote()">
       <div class="sheet-box">
+        <button class="sheet-back" onclick="cancelQuickNote()">‹ Regresar</button>
         <div class="modal-title">Nota rápida</div>
         <div class="config-row-sub" style="margin:-8px 0 10px">Solo para la siguiente foto. Ej.: "Fisura en losa", "Falta compactación"</div>
         <input type="text" id="qnote-input" class="act-new" style="width:100%;padding:10px 12px;font-size:14px" maxlength="80" placeholder="Escribe la nota..." onkeydown="if(event.key==='Enter')saveQuickNote()">
@@ -629,7 +634,7 @@ input[type=file]{display:none;}
 </div>
 
 <div id="viewer">
-  <div id="viewer-top"><button onclick="closeViewer()" aria-label="Cerrar">✕</button><span id="viewer-idx"></span><span style="width:36px"></span></div>
+  <div id="viewer-top"><button class="viewer-back" onclick="closeViewer()">‹ Galería</button><span id="viewer-idx"></span><span style="width:90px"></span></div>
   <div id="viewer-img-wrap"><button class="vnav" onclick="viewerStep(-1)" style="left:6px">‹</button><img id="viewer-img" alt=""><button class="vnav" onclick="viewerStep(1)" style="right:6px">›</button></div>
   <div id="viewer-info"></div>
   <div id="viewer-actions">
@@ -658,7 +663,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-n';
+const APP_VERSION='2026.11.20-o';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -2775,6 +2780,9 @@ window.obrasnapBack=function(){
   if(open('qnote-bg')){saveQuickNote();return true;}
   if(state.tab==='config'&&state.cfgPage){cfgPage(null);return true;}
   if(state.tab!=='cam'){switchTab('cam');return true;}
+  if(rec){showToast('Detén el video antes de salir');return true;}
+  const now=Date.now();
+  if(now-(state.lastBack||0)>2500){state.lastBack=now;showToast('Desliza o presiona atrás otra vez para salir');return true;}
   return false;
 };
 // Android avisa cuando la app pasa a segundo plano / vuelve (más fiable que visibilitychange en WebView)
@@ -3183,6 +3191,9 @@ function openActivityModal(){
   setTimeout(()=>document.getElementById('activity-input').focus(),100);
 }
 function closeModal(e){if(e.target===document.getElementById('modal-bg'))saveActivity();}
+// "‹ Regresar": cierra sin cambiar nada
+function cancelActivity(){document.getElementById('modal-bg').classList.remove('open');}
+function cancelQuickNote(){document.getElementById('qnote-bg').classList.remove('open');}
 function setActivity(v){document.getElementById('activity-input').value=v;}
 function saveActivity(){
   state.activity=document.getElementById('activity-input').value.trim();

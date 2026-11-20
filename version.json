@@ -1,6 +1,6 @@
 {
-  "versionCode": 10,
-  "versionName": "2.8",
+  "versionCode": 11,
+  "versionName": "2.9",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Los menús tienen botón para regresar en lugar de \"Listo\"; todo se guarda automáticamente."
+  "notas": "Botones \"‹ Regresar\" en todas las ventanas (Exportar, Actividad, Nota, visor) y doble atrás para salir de la app."
 }
