@@ -14,7 +14,7 @@ if (ksFile.exists()) ks.load(new FileInputStream(ksFile))
 def wwwOut = layout.buildDirectory.dir('generated/www-assets')
 def copyWeb = tasks.register('copyWeb', Sync) {
     from(rootProject.file('..')) {
-        include 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-senal-192.png', 'EJE.kmz', 'fonts/**'
+        include 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-senal-192.png', 'fonts/**'
     }
     into wwwOut.map { it.dir('www') }
 }

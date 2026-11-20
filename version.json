@@ -1,6 +1,6 @@
 {
-  "versionCode": 12,
-  "versionName": "2.10",
+  "versionCode": 13,
+  "versionName": "2.11",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Mini mapa siempre visible (lejos del eje indica distancia y dirección); vista previa de Ajustes más grande y en pantalla completa."
+  "notas": "La app arranca en blanco (sin datos de ninguna obra; se importa su configuración) y el mapa tiene botones de zoom, mi ubicación y ver todo."
 }

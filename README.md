@@ -10,7 +10,6 @@ Cámara de obra con stamp de PK, GPS, fecha y actividad. Funciona como página w
 | Archivo | Qué es |
 |---|---|
 | `index.html` | **Toda la app** (pantallas, cámara, stamp, PK, galería, PDF). Es lo que se edita casi siempre. |
-| `EJE.kmz` | Eje del proyecto que se carga solo. Para cambiar de proyecto, reemplázalo. |
 | `fonts/` | Tipografías incluidas (funcionan sin internet). |
 | `sw.js`, `manifest.json` | Solo para la versión web (modo sin señal e instalación desde Chrome). |
 | `version.json` | Versión de la app. La app instalada lo consulta para avisar que hay actualización. |
@@ -29,6 +28,11 @@ Cámara de obra con stamp de PK, GPS, fecha y actividad. Funciona como página w
 
 ⚠️ La llave de firma (`obrasnap-release.jks`) **no** está en el repo. Sin ella no se pueden publicar
 actualizaciones que se instalen encima de la app actual.
+
+## La app arranca en blanco
+
+No trae datos de ninguna obra. Cada obra se configura en Config → Obras, o se importa su archivo `.obrasnap`
+(nombre, eje, actividades, formatos, estilo, logo y nombre de archivos).
 
 ## Obras (configuración compartible)
 
@@ -64,8 +68,8 @@ estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje 
 ## Nombre de los archivos (2.6)
 
 Ajustes → **Nombre de los archivos**. El formato es parte de la obra (viaja en el `.obrasnap`), así todo el equipo nombra igual.
-Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (7+400) `{PKN}` (007400) `{N}` (consecutivo) `{INI}` (iniciales del teléfono)
-`{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_7+400_0915_001`.
+Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (001250) `{N}` (consecutivo) `{INI}` (iniciales del teléfono)
+`{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
 ## Menús (2.7)
@@ -73,6 +77,11 @@ El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre);
 **Ajustes** (⚙ en la cámara) y **Config** son menús: cada renglón muestra el valor actual y abre su propia pantalla
 ("‹ Ajustes" / "‹ Config" o el botón atrás para regresar). Los temas de Ajustes están en `SETTINGS_SCHEMA`
 y los de Config en `CFG_MENU` (index.html).
+
+## Mapa (2.11)
+
+Controles: **+ / −**, **◎ mi ubicación** (centra y sigue al caminar; se suelta al mover el mapa), **⤢ ver todo el eje**,
+pellizco con dos dedos (amplía donde están los dedos), doble toque para acercar y escala en la esquina.
 
 ## Diagnóstico
 
