@@ -1,6 +1,6 @@
 {
-  "versionCode": 6,
-  "versionName": "2.4",
+  "versionCode": 7,
+  "versionName": "2.5",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Fotos horizontales automáticas, brújula (hacia PK ↑/↓), nota rápida, botón de volumen como obturador y mini mapa del eje en la foto."
+  "notas": "Estampar fotos ya tomadas (con su fecha y GPS), código de autenticidad para verificar fotos y video con stamp."
 }

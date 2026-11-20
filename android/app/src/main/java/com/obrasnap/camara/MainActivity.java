@@ -181,6 +181,7 @@ public class MainActivity extends Activity {
         need.add(Manifest.permission.ACCESS_FINE_LOCATION);
         need.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         if (Build.VERSION.SDK_INT <= 28) need.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (Build.VERSION.SDK_INT >= 29) need.add(Manifest.permission.ACCESS_MEDIA_LOCATION);
         List<String> missing = new ArrayList<>();
         for (String p : need) if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) missing.add(p);
         if (!missing.isEmpty()) requestPermissions(missing.toArray(new String[0]), REQ_PERMS);
@@ -191,11 +192,7 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
         if (code != REQ_PERMS) return;
-        if (pendingWebPerm != null) {
-            if (has(Manifest.permission.CAMERA)) pendingWebPerm.grant(pendingWebPerm.getResources());
-            else pendingWebPerm.deny();
-            pendingWebPerm = null;
-        }
+        if (pendingWebPerm != null) { grantAllowed(pendingWebPerm); pendingWebPerm = null; }
         if (pendingGeoCb != null) {
             pendingGeoCb.invoke(pendingGeoOrigin, has(Manifest.permission.ACCESS_FINE_LOCATION) || has(Manifest.permission.ACCESS_COARSE_LOCATION), false);
             pendingGeoCb = null;
@@ -208,8 +205,13 @@ public class MainActivity extends Activity {
         @Override
         public void onPermissionRequest(final PermissionRequest request) {
             runOnUiThread(() -> {
-                if (has(Manifest.permission.CAMERA)) request.grant(request.getResources());
-                else { pendingWebPerm = request; requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_PERMS); }
+                List<String> missing = new ArrayList<>();
+                for (String r : request.getResources()) {
+                    if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r) && !has(Manifest.permission.CAMERA)) missing.add(Manifest.permission.CAMERA);
+                    if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r) && !has(Manifest.permission.RECORD_AUDIO)) missing.add(Manifest.permission.RECORD_AUDIO);
+                }
+                if (missing.isEmpty()) grantAllowed(request);
+                else { pendingWebPerm = request; requestPermissions(missing.toArray(new String[0]), REQ_PERMS); }
             });
         }
         @Override
@@ -228,6 +230,7 @@ public class MainActivity extends Activity {
             i.addCategory(Intent.CATEGORY_OPENABLE);
             String[] types = params.getAcceptTypes();
             i.setType(types.length > 0 && types[0] != null && !types[0].isEmpty() ? types[0] : "*/*");
+            if (params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE) i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
             try { startActivityForResult(Intent.createChooser(i, "Elegir archivo"), REQ_FILE); }
             catch (ActivityNotFoundException e) { fileCallback = null; return false; }
             return true;
@@ -237,10 +240,21 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int code, int result, Intent data) {
         if (code == REQ_FILE && fileCallback != null) {
-            Uri[] r = null;
-            if (result == RESULT_OK && data != null && data.getData() != null) r = new Uri[]{data.getData()};
-            fileCallback.onReceiveValue(r);
+            List<Uri> uris = new ArrayList<>();
+            if (result == RESULT_OK && data != null) {
+                if (data.getClipData() != null)
+                    for (int k = 0; k < data.getClipData().getItemCount(); k++) uris.add(data.getClipData().getItemAt(k).getUri());
+                else if (data.getData() != null) uris.add(data.getData());
+            }
+            final ValueCallback<Uri[]> cb = fileCallback;
             fileCallback = null;
+            if (uris.isEmpty()) { cb.onReceiveValue(null); return; }
+            // copiar en segundo plano las fotos con sus datos GPS originales
+            new Thread(() -> {
+                Uri[] out = new Uri[uris.size()];
+                for (int k = 0; k < uris.size(); k++) out[k] = withOriginalLocation(uris.get(k), k);
+                runOnUiThread(() -> cb.onReceiveValue(out));
+            }).start();
             return;
         }
         super.onActivityResult(code, result, data);
@@ -278,6 +292,43 @@ public class MainActivity extends Activity {
         web.evaluateJavascript("window.obrasnapBack?obrasnapBack():false", v -> {
             if (!"true".equals(v)) MainActivity.super.onBackPressed();
         });
+    }
+
+    private void grantAllowed(PermissionRequest req) {
+        List<String> ok = new ArrayList<>();
+        for (String r : req.getResources()) {
+            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r) && has(Manifest.permission.CAMERA)) ok.add(r);
+            else if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r) && has(Manifest.permission.RECORD_AUDIO)) ok.add(r);
+        }
+        if (ok.isEmpty()) req.deny(); else req.grant(ok.toArray(new String[0]));
+    }
+
+    /**
+     * Android 10+ borra el GPS de las fotos que se entregan a otras apps. Con ACCESS_MEDIA_LOCATION
+     * y setRequireOriginal se obtiene el archivo completo; se copia a caché y se entrega esa copia.
+     */
+    private Uri withOriginalLocation(Uri uri, int idx) {
+        if (Build.VERSION.SDK_INT < 29 || !has(Manifest.permission.ACCESS_MEDIA_LOCATION)) return uri;
+        try {
+            String type = getContentResolver().getType(uri);
+            if (type == null || !type.startsWith("image/")) return uri;
+            Uri media = uri;
+            try { media = MediaStore.getMediaUri(this, uri); } catch (Exception ignored) { }
+            if (media == null) media = uri;
+            Uri orig = MediaStore.setRequireOriginal(media);
+            File dir = new File(getCacheDir(), "share");
+            if (!dir.exists()) dir.mkdirs();
+            String name = displayName(uri).replaceAll("[^\\w.-]", "_");
+            File f = new File(dir, "import_" + idx + "_" + name);
+            try (InputStream in = getContentResolver().openInputStream(orig); OutputStream o = new FileOutputStream(f)) {
+                if (in == null) return uri;
+                copy(in, o);
+            }
+            return FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", f);
+        } catch (Exception e) {
+            Log.w(TAG, "sin ubicación original: " + e.getMessage());
+            return uri;
+        }
     }
 
     private void openExternalUri(Uri u) {
@@ -379,17 +430,18 @@ public class MainActivity extends Activity {
     }
 
     private String saveToMedia(File src, String name, String mime) throws Exception {
-        boolean image = mime.startsWith("image/");
+        boolean image = mime.startsWith("image/"), video = mime.startsWith("video/");
         if (Build.VERSION.SDK_INT >= 29) {
             ContentResolver cr = getContentResolver();
             ContentValues v = new ContentValues();
             v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
             v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-            String rel = (image ? Environment.DIRECTORY_PICTURES : Environment.DIRECTORY_DOWNLOADS) + "/ObraSnap";
+            String rel = (image ? Environment.DIRECTORY_PICTURES : video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_DOWNLOADS) + "/ObraSnap";
             v.put(MediaStore.MediaColumns.RELATIVE_PATH, rel);
             v.put(MediaStore.MediaColumns.IS_PENDING, 1);
             Uri col = image ? MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-                            : MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                    : video ? MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                    : MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
             Uri item = cr.insert(col, v);
             if (item == null) throw new Exception("no se pudo crear el archivo");
             try (OutputStream o = cr.openOutputStream(item); InputStream i = new FileInputStream(src)) { copy(i, o); }
@@ -399,7 +451,7 @@ public class MainActivity extends Activity {
             return rel;
         }
         // Android 9 o anterior
-        File dir = new File(Environment.getExternalStoragePublicDirectory(image ? Environment.DIRECTORY_PICTURES : Environment.DIRECTORY_DOWNLOADS), "ObraSnap");
+        File dir = new File(Environment.getExternalStoragePublicDirectory(image ? Environment.DIRECTORY_PICTURES : video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_DOWNLOADS), "ObraSnap");
         if (!dir.exists() && !dir.mkdirs()) throw new Exception("sin permiso de almacenamiento");
         File out = new File(dir, name);
         try (OutputStream o = new FileOutputStream(out); InputStream i = new FileInputStream(src)) { copy(i, o); }

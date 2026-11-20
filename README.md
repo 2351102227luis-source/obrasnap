@@ -50,6 +50,17 @@ estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje 
 - **Botón de volumen** toma la foto (app Android, solo en la pestaña Cámara).
 - **Mini mapa del eje** en la foto: tramo cercano, marcas de PK, tu posición, hacia dónde mira la cámara, norte y escala.
 
+## Fotos, verificación y video (2.5)
+
+- **Estampar fotos de la galería** (Galería → ＋): toma la fecha y el GPS guardados en la foto, calcula el PK y
+  pone el stamp con la leyenda "Foto importada". Varias a la vez. En Android se pide el permiso
+  "ubicación de fotos" porque el sistema borra el GPS sin él. Si la foto no trae GPS se estampa sin PK.
+- **Código de autenticidad**: cada foto guarda su huella SHA-256 (código corto en el visor y el PDF; huella completa
+  en la última página del reporte). **Verificar foto** dice si un archivo es idéntico al original.
+  WhatsApp recomprime las fotos: para conservar la huella hay que mandarlas como "Documento".
+- **Video con stamp** (modo VIDEO): stamp en vivo con hora, GPS y PK, con audio; MP4 cuando el teléfono lo permite
+  (si no, WebM), 1280 px, máximo 10 min. Se guarda en Películas › ObraSnap.
+
 ## Diagnóstico
 
 Config → Diagnóstico muestra versión, cámara, GPS, eje y último error.
