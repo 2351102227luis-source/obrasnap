@@ -142,7 +142,7 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 #meas-res{display:flex;align-items:center;gap:8px;min-height:6px;margin-top:6px;}
 #meas-out{font-family:var(--cond);font-size:28px;font-weight:700;color:#e11d48;line-height:1.05;}
 #meas-arrow{width:28px;height:28px;fill:#e11d48;transition:transform .3s;flex-shrink:0;}
-#meas-sub{font-size:12.5px;color:var(--text);margin-top:2px;}
+#meas-sub{font-size:12.5px;color:var(--text);margin-top:2px;white-space:pre-line;}
 #meas-hint{font-size:11.5px;color:var(--text2);margin-top:2px;}
 #meas-acts{display:flex;gap:6px;margin-top:8px;}
 #meas-acts button{flex:1;height:32px;border-radius:8px;border:1px solid var(--surface2);background:var(--bg);color:var(--accent);font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;}
@@ -153,6 +153,27 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 .pt-row b{font-size:14px;font-weight:600;}
 .pt-row small{grid-column:1;font-size:11.5px;color:var(--text2);}
 .pt-row .pt-d{grid-column:2;grid-row:1/3;align-self:center;font-family:var(--mono);font-size:13px;color:var(--accent);}
+.layer-mag{width:40px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid var(--surface2);background:var(--bg);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;opacity:.55;}
+.layer-mag.on{color:var(--accent);opacity:1;}
+.layer-mag svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;transform:rotate(180deg);}
+.layer-sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle;flex-shrink:0;}
+.layer-grps{border-bottom:1px solid var(--surface2);padding:0 12px 6px 62px;}
+.layer-grps summary{font-size:12.5px;color:var(--accent);padding:6px 0;cursor:pointer;font-weight:600;}
+.grp-tools{display:flex;gap:6px;margin:2px 0 6px;}
+.grp-tools button{flex:1;padding:6px;border-radius:7px;border:1px solid var(--surface2);background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;cursor:pointer;}
+.grp-row{display:flex;align-items:center;gap:6px;width:100%;padding:7px 2px;border:none;border-top:1px solid var(--surface2);background:none;color:var(--text);font-family:var(--sans);font-size:13px;text-align:left;cursor:pointer;}
+.grp-row.off{opacity:.45;}
+.grp-eye{width:16px;color:var(--accent);}
+.grp-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.grp-row small{color:var(--text2);font-family:var(--mono);font-size:11px;}
+.csv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.csv-grid label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--text2);}
+.csv-grid select{padding:7px;border-radius:7px;border:1px solid var(--surface2);background:var(--bg);color:var(--text);font-size:13px;}
+.csv-grid .csv-chk{flex-direction:row;align-items:center;gap:6px;grid-column:1/-1;font-size:13px;color:var(--text);}
+#csv-table{border-collapse:collapse;font-family:var(--mono);font-size:11px;width:100%;}
+#csv-table th{font-family:var(--sans);font-weight:600;text-align:left;color:var(--accent);padding:4px;border-bottom:1px solid var(--surface2);white-space:nowrap;}
+#csv-table td{padding:3px 4px;border-bottom:1px solid var(--surface2);white-space:nowrap;}
+#csv-msg{font-size:12.5px;margin:10px 0 4px;color:var(--text);}
 .pick-sub{display:block;font-size:11.5px;font-weight:400;opacity:.8;margin-top:2px;}
 .sheet-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;}
 /* iconos de la cámara giran con el teléfono, como en el iPhone */
@@ -478,7 +499,7 @@ input[type=file]{display:none;}
         </div>
         <canvas id="loupe"></canvas><div id="loupe-lbl"></div>
         <div id="meas-bar">
-          <div id="meas-modes"><button data-m="ab" onclick="measMode('ab')">2 puntos</button><button data-m="go" onclick="measMode('go')">Ir a punto</button><button data-m="path" onclick="measMode('path')">Tramo</button><button class="meas-x" onclick="measClose()" aria-label="Cerrar medir">✕</button></div>
+          <div id="meas-modes"><button data-m="ab" onclick="measMode('ab')">2 puntos</button><button data-m="go" onclick="measMode('go')">Ir a</button><button data-m="path" onclick="measMode('path')">Tramo</button><button data-m="area" onclick="measMode('area')">Área</button><button class="meas-x" onclick="measClose()" aria-label="Cerrar medir">✕</button></div>
           <div id="meas-res"><svg id="meas-arrow" viewBox="0 0 24 24"><path d="M12 2l6 18-6-4-6 4z"/></svg><b id="meas-out"></b></div>
           <div id="meas-sub"></div>
           <div id="meas-hint"></div>
@@ -486,7 +507,7 @@ input[type=file]{display:none;}
         </div>
         <button id="btn-load-kmz-map" onclick="document.getElementById('kmzpick-bg').classList.add('open')">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Cargar KMZ
+          Cargar capa
         </button>
         <input type="file" id="kmz-file-map" onchange="loadKMZ(this)">
         <input type="file" id="aux-file-map" onchange="loadAux(this)">
@@ -586,7 +607,7 @@ input[type=file]{display:none;}
         </div>
       </div>
 
-      <div class="config-section cfg-page" data-page="eje" data-title="KMZ / KML" style="display:none;padding-bottom:24px">
+      <div class="config-section cfg-page" data-page="eje" data-title="Capas y planos" style="display:none;padding-bottom:24px">
         <div class="config-label">Eje principal (da el PK)</div>
         <div class="config-card">
           <div class="config-row">
@@ -621,12 +642,23 @@ input[type=file]{display:none;}
             <input type="checkbox" id="cfg-rev" onchange="updateRouteOpts()">
           </div>
         </div>
-        <div class="config-label" style="margin-top:14px">Capas auxiliares (solo dibujo · no cambian el PK)</div>
-        <div class="config-card">
-          <div id="layers-list"></div>
-          <div class="config-row"><button class="btn-primary" onclick="document.getElementById('aux-file').click()">＋ Agregar capa (KMZ / KML)</button>
-            <input type="file" id="aux-file" onchange="loadAux(this)"></div>
+        <div class="config-card" style="margin-top:12px">
+          <div class="config-row">
+            <div class="config-row-body"><div class="config-row-title">Zona UTM de planos y puntos</div><div class="config-row-sub">Se usa al cargar DXF y CSV en metros (Laguna Verde: 14 Norte)</div></div>
+            <select id="cfg-utm" class="set-input" style="width:auto" onchange="setUtmZone(this.value)"><option value="11">11 N</option><option value="12">12 N</option><option value="13">13 N</option><option value="14">14 N</option><option value="15">15 N</option><option value="16">16 N</option></select>
+          </div>
         </div>
+        <div class="config-label" style="margin-top:14px">KMZ / KML</div>
+        <div class="config-card"><div id="layers-kml"></div>
+          <div class="config-row"><button class="btn-primary" onclick="document.getElementById('aux-file').click()">＋ Agregar KMZ / KML</button></div></div>
+        <div class="config-label" style="margin-top:14px">CAD (DXF)</div>
+        <div class="config-card"><div id="layers-dxf"></div>
+          <div class="config-row"><button class="btn-primary" onclick="document.getElementById('aux-file').click()">＋ Agregar plano DXF</button></div></div>
+        <div class="config-label" style="margin-top:14px">Puntos (CSV)</div>
+        <div class="config-card"><div id="layers-csv"></div>
+          <div class="config-row"><button class="btn-primary" onclick="document.getElementById('aux-file').click()">＋ Agregar puntos CSV</button></div></div>
+        <input type="file" id="aux-file" onchange="loadAux(this)">
+        <div class="config-row-sub" style="margin:8px 2px 0">Las capas solo dibujan: el PK lo da siempre el eje principal. 👁 prende o apaga · imán: si se engancha al medir · ⋮ ver, renombrar o eliminar.</div>
       </div>
 
       <div class="config-section cfg-page" data-page="apariencia" data-title="Apariencia" style="display:none;padding-bottom:24px">
@@ -720,7 +752,7 @@ input[type=file]{display:none;}
         <button class="sheet-back" onclick="document.getElementById('kmzpick-bg').classList.remove('open')">‹ Regresar</button>
         <div class="modal-title">¿Qué archivo vas a cargar?</div>
         <button class="modal-btn" onclick="kmzPick('main')">Eje principal<small class="pick-sub">El que da el PK · reemplaza al actual</small></button>
-        <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="kmzPick('aux')">Capa auxiliar<small class="pick-sub">Bordes, estructuras, drenaje… solo dibujo</small></button>
+        <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="kmzPick('aux')">Capa: KMZ, plano DXF o puntos CSV<small class="pick-sub">Bordes, derecho de vía, bases… solo dibujo</small></button>
       </div>
     </div>
 
@@ -731,6 +763,25 @@ input[type=file]{display:none;}
         <input type="search" id="pts-q" class="act-new" style="width:100%;padding:10px 12px;font-size:14px" placeholder="Buscar: BN-12, mojonera…" oninput="paintPoints()">
         <div id="pts-count"></div>
         <div id="pts-list"></div>
+      </div>
+    </div>
+
+    <div id="csv-bg" class="sheet-bg" onclick="if(event.target===this)closeCsv()">
+      <div class="sheet-box" style="max-height:88%;overflow-y:auto">
+        <button class="sheet-back" onclick="closeCsv()">‹ Cancelar</button>
+        <div class="modal-title">Puntos: <span id="csv-name"></span></div>
+        <div class="config-row-sub" style="margin:-8px 0 10px">Revisa que cada columna sea la correcta</div>
+        <div class="csv-grid">
+          <label>Punto<select id="csv-p" onchange="csvPreviewPaint()"></select></label>
+          <label>Norte / Y / Lat<select id="csv-n" onchange="csvPreviewPaint()"></select></label>
+          <label>Este / X / Lon<select id="csv-e" onchange="csvPreviewPaint()"></select></label>
+          <label>Cota (Z)<select id="csv-z" onchange="csvPreviewPaint()"></select></label>
+          <label>Descripción<select id="csv-d" onchange="csvPreviewPaint()"></select></label>
+          <label class="csv-chk"><input type="checkbox" id="csv-hdr" onchange="csvPreviewPaint()"> 1er renglón es encabezado</label>
+        </div>
+        <div style="overflow-x:auto"><table id="csv-table"></table></div>
+        <div id="csv-msg"></div>
+        <button class="modal-btn" id="csv-ok" onclick="csvImport()">Agregar puntos</button>
       </div>
     </div>
 
@@ -793,7 +844,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-2.13';
+const APP_VERSION='2026.11.20-2.14';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -2477,6 +2528,7 @@ function snapshotProfile(includeAxis=true,includeAux=true){
     pk:{pk0:document.getElementById('cfg-pk0').value||'',reverse:!!state.reverse},
     logo:logo||null,
     layers:includeAux?layersForSave():[],
+    utm:{zona:state.utmZone},
     eje:includeAxis&&state.routeCoords.length>1?{
       nombre:state.routeName,
       pts:state.routeCoords.map(c=>[+c.lat.toFixed(7),+c.lon.toFixed(7)]),
@@ -2506,6 +2558,7 @@ function validateProfile(o){
   out.pk={pk0:str(o.pk&&o.pk.pk0,20),reverse:!!(o.pk&&o.pk.reverse)};
   out.logo=typeof o.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(o.logo)&&o.logo.length<1.5e6?o.logo:null;
   out.layers=validateLayers(o);
+  out.utm={zona:o.utm&&Number.isInteger(o.utm.zona)&&o.utm.zona>=1&&o.utm.zona<=60?o.utm.zona:14};
   out.eje=null;
   if(o.eje&&Array.isArray(o.eje.pts)){
     const ok=p=>Array.isArray(p)&&p.length>=2&&isFinite(p[0])&&isFinite(p[1])&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180;
@@ -2537,7 +2590,7 @@ function applyProfile(p){
     setKmzStatus(`✓ ${p.eje.pts.length} pts · ${(total/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''} (de la obra)`);
     saveRoute();
   }else clearRoute();
-  state.layers=p.layers||[];paintLayers();loadGoTarget();
+  state.layers=p.layers||[];state.utmZone=p.utm?p.utm.zona:14;paintLayers();loadGoTarget();
   saveSettings();renderActivities();
   computePK();drawMap();fitVideo();applyGrid();scheduleStamp();
   logEv('INFO',`Obra activa: ${p.nombre}${p.eje?' · con eje':''}`);
@@ -2556,7 +2609,7 @@ async function initProfiles(){
     if(!profiles.some(p=>p.id===id))id=profiles[0].id;
     setActiveId(id);
     const rec=profiles.find(p=>p.id===id);
-    state.layers=rec&&rec.data?validateLayers(rec.data):[];
+    state.layers=rec&&rec.data?validateLayers(rec.data):[];state.utmZone=rec&&rec.data&&rec.data.utm&&rec.data.utm.zona||14;
   }
   paintLayers();loadGoTarget();renderProfiles();
   if(state.layers.length){state.mapFitted=false;if(mapCtx)resizeMap();}
@@ -3145,78 +3198,404 @@ function parseAuxKML(text){
     stats:{lines:out.length,vertices:total,points:points.length,tol:Math.round(tol*100)/100}
   };
 }
-// ── capas: lista con ojo (visible), renombrar y quitar ──
+// ── COORDENADAS UTM (WGS84 / ITRF, que en campo es lo mismo) ──
+// Los planos y los puntos de topografía vienen en UTM; la zona es de la obra (Laguna Verde: 14 Norte).
+state.utmZone=14;
+const UTM_A=6378137,UTM_E2=0.00669437999014,UTM_K0=0.9996;
+function utmToLatLon(E,N,zone){
+  const a=UTM_A,e2=UTM_E2,k0=UTM_K0,ep2=e2/(1-e2),x=E-500000,M=N/k0;
+  const mu=M/(a*(1-e2/4-3*e2*e2/64-5*e2*e2*e2/256)),e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
+  const p=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1*e1/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu)+(1097*e1**4/512)*Math.sin(8*mu);
+  const sp=Math.sin(p),cp=Math.cos(p),C=ep2*cp*cp,T=Math.tan(p)**2,Nn=a/Math.sqrt(1-e2*sp*sp),R=a*(1-e2)/Math.pow(1-e2*sp*sp,1.5),D=x/(Nn*k0);
+  const lat=p-(Nn*Math.tan(p)/R)*(D*D/2-(5+3*T+10*C-4*C*C-9*ep2)*D**4/24+(61+90*T+298*C+45*T*T-252*ep2-3*C*C)*D**6/720);
+  const lon=(D-(1+2*T+C)*D**3/6+(5-2*C+28*T-3*C*C+8*ep2+24*T*T)*D**5/120)/cp;
+  return{lat:lat*180/Math.PI,lon:(zone-1)*6-180+3+lon*180/Math.PI};
+}
+function latLonToUtm(lat,lon,zone){
+  const a=UTM_A,e2=UTM_E2,k0=UTM_K0,ep2=e2/(1-e2),r=Math.PI/180,f=lat*r,l=(lon-((zone-1)*6-180+3))*r;
+  const s=Math.sin(f),c=Math.cos(f),N=a/Math.sqrt(1-e2*s*s),T=Math.tan(f)**2,C=ep2*c*c,A=c*l;
+  const M=a*((1-e2/4-3*e2*e2/64-5*e2**3/256)*f-(3*e2/8+3*e2*e2/32+45*e2**3/1024)*Math.sin(2*f)+(15*e2*e2/256+45*e2**3/1024)*Math.sin(4*f)-(35*e2**3/3072)*Math.sin(6*f));
+  return{E:k0*N*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*ep2)*A**5/120)+500000,
+    N:k0*(M+N*Math.tan(f)*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*ep2)*A**6/720))};
+}
+const fmtNum=(v,d=3)=>v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+function utmText(p){const u=latLonToUtm(p.lat,p.lon,state.utmZone);return `N ${fmtNum(u.N)} · E ${fmtNum(u.E)}${p.z!=null?` · Z ${p.z.toFixed(3)}`:''}`;}
+// "¿Las coordenadas son UTM, geográficas o locales?"
+function coordKind(xs,ys){
+  const mn=a=>Math.min(...a),mx=a=>Math.max(...a);
+  if(mn(xs)>=100000&&mx(xs)<=900000&&mn(ys)>=0&&mx(ys)<=10000000)return 'utm';
+  if(mn(xs)>=-180&&mx(xs)<=180&&mn(ys)>=-90&&mx(ys)<=90)return 'geo';
+  return 'local';
+}
+
+// ── DXF (AutoCAD / Civil 3D: "Guardar como DXF") ──
+// Lee líneas, polilíneas (con curvas), arcos, círculos, puntos, textos y bloques insertados, con sus capas y colores.
+const ACI_BASE=['#000000','#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#1f2a3a','#808080','#c0c0c0'];
+function aciColor(n){
+  n=Math.abs(n|0);
+  if(n<10)return ACI_BASE[n]||'#1f2a3a';
+  if(n>=250){const g=Math.round(51+(n-250)*40.8);return '#'+[g,g,g].map(v=>v.toString(16).padStart(2,'0')).join('');}
+  const h=Math.floor((n-10)/10)*15,v=n%10,sat=v%2?0.5:1,val=[1,1,.8,.8,.65,.65,.5,.5,.3,.3][v];
+  const C=val*sat,X=C*(1-Math.abs((h/60)%2-1)),m=val-C;
+  const[r,g,b]=h<60?[C,X,0]:h<120?[X,C,0]:h<180?[0,C,X]:h<240?[0,X,C]:h<300?[X,0,C]:[C,0,X];
+  return '#'+[r,g,b].map(q=>Math.round((q+m)*255).toString(16).padStart(2,'0')).join('');
+}
+// colores muy claros (amarillo, cian, blanco) no se ven sobre el fondo claro del mapa: se oscurecen un poco
+function mapReadable(hex){
+  const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,L=(0.299*r+0.587*g+0.114*b)/255;
+  if(L<=0.5)return hex;const k=0.5/L;
+  return '#'+[r,g,b].map(v=>Math.round(v*k).toString(16).padStart(2,'0')).join('');
+}
+function dxfDecode(buf){
+  const head=new TextDecoder('latin1').decode(buf.subarray(0,4000));
+  const ver=(/\$ACADVER\s*\r?\n\s*1\s*\r?\n\s*AC(\d+)/.exec(head)||[])[1];
+  if(ver&&+ver>=1021)return new TextDecoder('utf-8').decode(buf);
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch(e){return new TextDecoder('windows-1252').decode(buf);}
+}
+function dxfText(s){ // \U+00F1 → ñ; quita formatos de MTEXT
+  return s.replace(/\\U\+([0-9a-f]{4})/gi,(_,h)=>String.fromCharCode(parseInt(h,16))).replace(/\\P/g,' ').replace(/\\[A-Za-z][^;\\]*;/g,'').replace(/\\[LlOoKk]/g,'').replace(/[{}]/g,'').replace(/%%[cC]/g,'Ø').replace(/%%[dD]/g,'°').replace(/%%[pP]/g,'±').replace(/\s+/g,' ').trim();
+}
+function parseDXF(text){
+  const raw=text.split(/\r?\n/),P=[];
+  for(let i=0;i+1<raw.length;i+=2)P.push([parseInt(raw[i],10),raw[i+1]]);
+  if(!P.some(p=>p[0]===0&&p[1].trim()==='SECTION'))throw new Error('no es un DXF de texto (si es DXF binario o DWG, guárdalo como DXF ASCII)');
+  // separar entidades
+  const layers={},blocks={},ents=[];let sec=null,cur=null,blk=null,inTable=null;
+  const flush=()=>{if(!cur)return;if(sec==='ENTITIES')ents.push(cur);else if(sec==='BLOCKS'&&blk&&cur.t!=='BLOCK'&&cur.t!=='ENDBLK')blk.ents.push(cur);cur=null;};
+  for(let i=0;i<P.length;i++){
+    const[c,v0]=P[i],v=v0.trim();
+    if(c===0){
+      flush();
+      if(v==='SECTION'){sec=P[i+1]&&P[i+1][1].trim();continue;}
+      if(v==='ENDSEC'){sec=null;continue;}
+      if(sec==='TABLES'){if(v==='LAYER'){const d={};let k=i+1;for(;k<P.length&&P[k][0]!==0;k++)if(!(P[k][0] in d))d[P[k][0]]=P[k][1].trim();if(d[2])layers[d[2]]={c:+d[62]||7,off:(+d[62]||7)<0,frozen:!!(+d[70]&1),tc:d[420]?+d[420]:null};}continue;}
+      if(sec==='BLOCKS'&&v==='BLOCK'){blk={name:'',bx:0,by:0,ents:[]};let k=i+1;for(;k<P.length&&P[k][0]!==0;k++){if(P[k][0]===2)blk.name=P[k][1].trim();if(P[k][0]===10)blk.bx=+P[k][1];if(P[k][0]===20)blk.by=+P[k][1];}blocks[blk.name]=blk;continue;}
+      if(sec==='BLOCKS'&&v==='ENDBLK'){blk=null;continue;}
+      if(sec==='ENTITIES'||sec==='BLOCKS')cur={t:v,g:[]};
+      continue;
+    }
+    if(cur)cur.g.push([c,v0]);
+  }
+  flush();
+  // POLYLINE + VERTEX + SEQEND → una sola entidad
+  const joinPoly=list=>{const out=[];for(let i=0;i<list.length;i++){const e=list[i];if(e.t==='POLYLINE'){const vs=[];while(list[i+1]&&list[i+1].t==='VERTEX'){vs.push(list[++i]);}if(list[i+1]&&list[i+1].t==='SEQEND')i++;e.vs=vs;}out.push(e);}return out;};
+  const ENTS=joinPoly(ents);Object.values(blocks).forEach(b=>b.ents=joinPoly(b.ents));
+  // geometría en coordenadas del dibujo
+  const geo=[],txt=[],pts=[];
+  const get=(e,c)=>{const x=e.g.find(p=>p[0]===c);return x?x[1]:undefined;};
+  const num=(e,c,d=0)=>{const x=get(e,c);return x===undefined?d:+x;};
+  const arcPts=(cx,cy,r,a0,a1)=>{if(a1<=a0)a1+=360;const n=Math.max(8,Math.ceil((a1-a0)/4)),o=[];for(let i=0;i<=n;i++){const a=(a0+(a1-a0)*i/n)*Math.PI/180;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;};
+  const bulgeSeg=(p1,p2,b,out)=>{ // curva entre dos vértices de polilínea
+    if(!b){out.push(p2);return;}
+    const th=4*Math.atan(b),dx=p2[0]-p1[0],dy=p2[1]-p1[1],d=Math.hypot(dx,dy);if(!d){out.push(p2);return;}
+    const h=d*(1-b*b)/(4*b),cx=(p1[0]+p2[0])/2-dy/d*h,cy=(p1[1]+p2[1])/2+dx/d*h;
+    const a0=Math.atan2(p1[1]-cy,p1[0]-cx),r=Math.hypot(p1[0]-cx,p1[1]-cy),n=Math.max(2,Math.ceil(Math.abs(th)/(4*Math.PI/180)));
+    for(let i=1;i<=n;i++){const a=a0+th*i/n;out.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}
+    out[out.length-1]=p2;
+  };
+  const walk=(list,T,lay0,col0,depth)=>{
+    for(const e of list){
+      if(num(e,67)===1)continue;   // espacio papel
+      let lay=get(e,8);lay=lay!==undefined?lay.trim():'0';if(lay==='0'&&lay0)lay=lay0;
+      let col=get(e,62);col=col===undefined?256:+col;
+      const tc=get(e,420);
+      const color=tc!==undefined?'#'+(+tc).toString(16).padStart(6,'0'):col===0?col0:col===256||col===undefined?null:aciColor(col);
+      const add=(arr,closed)=>{if(arr.length>=2)geo.push({lay,color,pts:arr.map(T),closed});};
+      switch(e.t){
+        case 'LINE':add([[num(e,10),num(e,20)],[num(e,11),num(e,21)]]);break;
+        case 'LWPOLYLINE':{
+          const v=[];let last=null;
+          for(const[c,s] of e.g){if(c===10){last=[+s,0,0];v.push(last);}else if(c===20&&last)last[1]=+s;else if(c===42&&last)last[2]=+s;}
+          const closed=!!(num(e,70)&1);if(!v.length)break;
+          const out=[[v[0][0],v[0][1]]];
+          for(let i=1;i<v.length;i++)bulgeSeg([v[i-1][0],v[i-1][1]],[v[i][0],v[i][1]],v[i-1][2],out);
+          if(closed&&v.length>2)bulgeSeg([v[v.length-1][0],v[v.length-1][1]],[v[0][0],v[0][1]],v[v.length-1][2],out);
+          add(out,closed);break;}
+        case 'POLYLINE':{
+          const fl=num(e,70);if(fl&(16|64))break; // mallas: no
+          const v=(e.vs||[]).filter(x=>!(num(x,70)&16)).map(x=>[num(x,10),num(x,20),num(x,42)]);if(!v.length)break;
+          const closed=!!(fl&1),out=[[v[0][0],v[0][1]]];
+          for(let i=1;i<v.length;i++)bulgeSeg([v[i-1][0],v[i-1][1]],[v[i][0],v[i][1]],v[i-1][2],out);
+          if(closed&&v.length>2)bulgeSeg([v[v.length-1][0],v[v.length-1][1]],[v[0][0],v[0][1]],v[v.length-1][2],out);
+          add(out,closed);break;}
+        case 'ARC':add(arcPts(num(e,10),num(e,20),num(e,40),num(e,50),num(e,51)));break;
+        case 'CIRCLE':add(arcPts(num(e,10),num(e,20),num(e,40),0,360),true);break;
+        case 'ELLIPSE':{const cx=num(e,10),cy=num(e,20),mx=num(e,11),my=num(e,21),ra=num(e,40,1),a0=num(e,41),a1=num(e,42,2*Math.PI);
+          const R=Math.hypot(mx,my),ang=Math.atan2(my,mx),o=[];let A1=a1<=a0?a1+2*Math.PI:a1;const n=48;
+          for(let i=0;i<=n;i++){const t=a0+(A1-a0)*i/n,x=R*Math.cos(t),y=R*ra*Math.sin(t);o.push([cx+x*Math.cos(ang)-y*Math.sin(ang),cy+x*Math.sin(ang)+y*Math.cos(ang)]);}
+          add(o);break;}
+        case 'SPLINE':{const fit=[],ctl=[];let lf=null,lc=null;
+          for(const[c,s] of e.g){if(c===11){lf=[+s,0];fit.push(lf);}else if(c===21&&lf)lf[1]=+s;else if(c===10){lc=[+s,0];ctl.push(lc);}else if(c===20&&lc)lc[1]=+s;}
+          add(fit.length>=2?fit:ctl);break;}
+        case 'POINT':pts.push({lay,p:T([num(e,10),num(e,20)]),z:get(e,30)!==undefined?num(e,30):null});break;
+        case 'TEXT':case 'MTEXT':{
+          let s=e.t==='MTEXT'?e.g.filter(p=>p[0]===3||p[0]===1).map(p=>p[1]).join(''):get(e,1)||'';s=dxfText(s);if(!s)break;
+          const al=e.t==='TEXT'&&(num(e,72)||num(e,73))&&get(e,11)!==undefined;
+          const x=al?num(e,11):num(e,10),y=al?num(e,21):num(e,20);
+          let rot=num(e,50);if(e.t==='MTEXT'&&get(e,11)!==undefined&&get(e,50)===undefined)rot=Math.atan2(num(e,21),num(e,11))*180/Math.PI;
+          txt.push({lay,p:T([x,y]),s:s.slice(0,80),h:num(e,40,1)*(T.sc||1),r:rot+(T.rot||0),color});break;}
+        case 'INSERT':{
+          if(depth>4)break;const b=blocks[(get(e,2)||'').trim()];if(!b||/^\*[DUTX]/i.test(b.name))break;
+          const ix=num(e,10),iy=num(e,20),sx=num(e,41,1),sy=num(e,42,1),ro=num(e,50)*Math.PI/180,cr=Math.cos(ro),sr=Math.sin(ro);
+          const T2=q=>{const x=(q[0]-b.bx)*sx,y=(q[1]-b.by)*sy;return T([ix+x*cr-y*sr,iy+x*sr+y*cr]);};
+          T2.sc=(T.sc||1)*Math.abs(sx);T2.rot=(T.rot||0)+num(e,50);
+          walk(b.ents,T2,lay,color||aciColor((layers[lay]||{}).c||7),depth+1);break;}
+      }
+    }
+  };
+  const I=q=>q;I.sc=1;I.rot=0;
+  walk(ENTS,I,null,null,0);
+  if(!geo.length&&!txt.length&&!pts.length)throw new Error('el DXF no tiene dibujo en el espacio modelo');
+  // ¿dónde está? UTM (lo normal), geográficas o locales
+  const xs=[],ys=[];geo.forEach(g=>g.pts.forEach(q=>{xs.push(q[0]);ys.push(q[1]);}));pts.forEach(q=>{xs.push(q.p[0]);ys.push(q.p[1]);});txt.forEach(q=>{xs.push(q.p[0]);ys.push(q.p[1]);});
+  const sample=(a)=>a.length>20000?a.filter((_,i)=>i%Math.ceil(a.length/20000)===0):a;
+  const kind=coordKind(sample(xs),sample(ys));
+  if(kind==='local')throw new Error('el plano está en coordenadas locales (no UTM); por ahora solo se pueden ubicar planos en UTM o geográficas');
+  const toLL=kind==='utm'?q=>utmToLatLon(q[0],q[1],state.utmZone):q=>({lat:q[1],lon:q[0]});
+  // capas del dibujo (grupos) con su color
+  const names=[...new Set([...geo.map(g=>g.lay),...txt.map(t=>t.lay),...pts.map(p=>p.lay)])].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const groups=names.map(n=>{const L=layers[n]||{c:7};return{n:n.slice(0,60),c:mapReadable(L.tc!=null?'#'+L.tc.toString(16).padStart(6,'0'):aciColor(L.c)),v:!L.off&&!L.frozen};});
+  const gi=Object.fromEntries(names.map((n,i)=>[n,i]));
+  // muestra de color de cada capa interna: el color que más se usa en su dibujo
+  names.forEach((n,i)=>{const cnt={};geo.forEach(g=>{if(g.lay===n&&g.color)cnt[g.color]=(cnt[g.color]||0)+1;});const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];if(top&&cnt[top]>=geo.filter(g=>g.lay===n).length/2)groups[i].c=mapReadable(top);});
+  let tol=0.02,lines;
+  for(let k=0;k<7;k++){
+    lines=geo.map(g=>{const ll=simplifyLatLon(g.pts.map(toLL),tol);return{g:gi[g.lay],c:g.color?mapReadable(g.color):null,p:g.closed,pts:ll};});
+    if(lines.reduce((s,l)=>s+l.pts.length,0)<=AUX_MAX_PTS)break;tol*=3;
+  }
+  const total=lines.reduce((s,l)=>s+l.pts.length,0);
+  if(total>AUX_MAX_PTS)throw new Error('el plano es demasiado grande; apaga o borra capas en AutoCAD (curvas de nivel, sombreados) y vuelve a exportar');
+  const outPts=pts.slice(0,20000).map(q=>{const ll=toLL(q.p);return{lat:+ll.lat.toFixed(8),lon:+ll.lon.toFixed(8),n:'',g:gi[q.lay],z:q.z};});
+  txt.slice(0,8000).forEach(q=>{const ll=toLL(q.p);outPts.push({lat:+ll.lat.toFixed(8),lon:+ll.lon.toFixed(8),n:q.s,g:gi[q.lay],t:1,sz:+(kind==='utm'?q.h:q.h*111320).toFixed(2),r:+(q.r||0).toFixed(1),c:q.color?mapReadable(q.color):null});});
+  return{
+    lines:lines.map(l=>{const f=[];l.pts.forEach(p=>f.push(+p.lat.toFixed(8),+p.lon.toFixed(8)));const g=groups[l.g];return{c:l.c||g.c,a:0.95,w:1.4,p:l.p,fc:null,fa:0,f,g:l.g};}).filter(l=>l.f.length>=4),
+    points:outPts,groups,
+    stats:{lines:lines.length,vertices:total,points:pts.length,texts:Math.min(txt.length,8000),tol:Math.round(tol*1000)/1000,coords:kind}
+  };
+}
+
+// ── PUNTOS CSV (estación total / GPS): P,N,E,Z,D en cualquier orden; se confirma con vista previa ──
+function csvDecode(buf){try{return new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch(e){return new TextDecoder('windows-1252').decode(buf);}}
+function csvSplit(text){
+  const lines=text.replace(/^﻿/,'').split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!/^(#|\/\/)/.test(l));
+  const cand=[';','\t',',',' '];
+  let best=',',bs=-1;
+  for(const d of cand){
+    const cnt=lines.slice(0,30).map(l=>d===' '?l.split(/\s+/).length:l.split(d).length);
+    const ok=cnt.filter(c=>c===cnt[0]&&c>=3).length;if(ok>bs){bs=ok;best=d;}
+  }
+  const rows=lines.map(l=>(best===' '?l.split(/\s+/):l.split(best)).map(c=>c.trim().replace(/^"(.*)"$/,'$1')));
+  return{rows,delim:best};
+}
+const csvNum=s=>{if(s==null)return NaN;s=String(s).trim();if(/^-?\d+,\d+$/.test(s))s=s.replace(',','.');return /^-?\d*\.?\d+(e-?\d+)?$/i.test(s)?+s:NaN;};
+function csvGuess(rows){
+  const hdr=rows[0].some(c=>c&&isNaN(csvNum(c)))&&rows[0].filter(c=>!isNaN(csvNum(c))).length<2;
+  const data=hdr?rows.slice(1):rows,nc=Math.max(...rows.slice(0,50).map(r=>r.length));
+  const H=hdr?rows[0].map(h=>h.toLowerCase()):[];
+  const col={p:-1,n:-1,e:-1,z:-1,d:-1};
+  const byName=(re)=>H.findIndex(h=>re.test(h));
+  if(hdr){col.p=byName(/^(p|pt|punto|id|no\.?|num|name|nombre|est)/);col.n=byName(/^(n|norte|y|northing|lat)/);col.e=byName(/^(e|este|x|easting|lon|long)/);col.z=byName(/^(z|elev|cota|h|alt)/);col.d=byName(/^(d|desc|descrip|cod|code|obs)/);}
+  const stats=[...Array(nc)].map((_,j)=>{const v=data.slice(0,200).map(r=>csvNum(r[j]));const nums=v.filter(isFinite);return{num:nums.length/Math.max(1,v.length),mn:Math.min(...nums),mx:Math.max(...nums)};});
+  const isN=s=>s.num>.9&&s.mn>=1e6&&s.mx<=1e7,isE=s=>s.num>.9&&s.mn>=1e5&&s.mx<1e6;
+  if(col.n<0)col.n=stats.findIndex(isN);
+  if(col.e<0)col.e=stats.findIndex(isE);
+  if(col.n<0||col.e<0){ // geográficas
+    const la=stats.findIndex(s=>s.num>.9&&s.mn>=-90&&s.mx<=90&&Math.abs(s.mx-s.mn)<5&&!(Number.isInteger(s.mn)&&Number.isInteger(s.mx)));
+    const lo=stats.findIndex((s,j)=>j!==la&&s.num>.9&&s.mn>=-180&&s.mx<=180&&Math.abs(s.mx-s.mn)<5&&Math.abs(s.mn)>Math.abs(stats[la]?stats[la].mn:0));
+    if(col.n<0&&la>=0)col.n=la;if(col.e<0&&lo>=0)col.e=lo;
+  }
+  if(col.p<0)col.p=stats.findIndex((s,j)=>j!==col.n&&j!==col.e)>=0?0:-1;
+  if(col.p===col.n||col.p===col.e)col.p=-1;
+  if(col.z<0)col.z=stats.findIndex((s,j)=>![col.p,col.n,col.e].includes(j)&&s.num>.9&&s.mx<9000);
+  if(col.d<0)col.d=stats.findIndex((s,j)=>![col.p,col.n,col.e,col.z].includes(j)&&s.num<.5);
+  return{hdr,col,nc,H};
+}
+function csvBuild(rows,hdr,col){
+  const data=hdr?rows.slice(1):rows,pts=[],bad=[];
+  const N=data.map(r=>csvNum(r[col.n])),E=data.map(r=>csvNum(r[col.e]));
+  const ok=N.map((v,i)=>isFinite(v)&&isFinite(E[i]));
+  const kind=coordKind(E.filter((_,i)=>ok[i]),N.filter((_,i)=>ok[i]));
+  if(kind==='local')throw new Error('las coordenadas no parecen UTM ni geográficas (¿columnas N y E intercambiadas?)');
+  data.forEach((r,i)=>{
+    if(!ok[i]){bad.push(i+1);return;}
+    const ll=kind==='utm'?utmToLatLon(E[i],N[i],state.utmZone):{lat:N[i],lon:E[i]};
+    const z=col.z>=0?csvNum(r[col.z]):NaN;
+    pts.push({lat:+ll.lat.toFixed(8),lon:+ll.lon.toFixed(8),n:col.p>=0?(r[col.p]||'').slice(0,40):'',d:col.d>=0?(r[col.d]||'').slice(0,60):'',z:isFinite(z)?z:null});
+  });
+  if(!pts.length)throw new Error('no se encontraron puntos con coordenadas');
+  return{pts:pts.slice(0,20000),bad,kind};
+}
+
+// ── GESTOR DE CAPAS: KMZ/KML · CAD (DXF, con sus capas internas) · Puntos (CSV) ──
+// Cada capa: {id,name,type:'kml'|'dxf'|'csv',visible,snap,lines,points,groups?,pc?}
+// líneas {c,a,w,p,fc,fa,f:[lat,lon,…],g?}; puntos {lat,lon,n,g?,z?,d?,t?(texto),sz?,r?,c?}
+const LAYER_TYPES={kml:'KMZ / KML',dxf:'CAD (DXF)',csv:'Puntos (CSV)'};
+const PT_COLORS=['#7c3aed','#0f766e','#b45309','#be123c','#1d4ed8','#4d7c0f'];
 function newLayerId(){return 'L'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 function visLayers(){return state.layers.filter(l=>l.visible);}
+const grpOn=(L,g)=>!L.groups||g==null||!L.groups[g]||L.groups[g].v;
+function snapLayers(){return visLayers().filter(L=>L.snap!==false);}
+function totalVerts(){return state.layers.reduce((s,l)=>s+l.lines.reduce((t,x)=>t+x.f.length/2,0),0);}
+function layerType(name){const e=(name.split('.').pop()||'').toLowerCase();return e==='dxf'?'dxf':e==='csv'||e==='txt'?'csv':'kml';}
+let csvPending=null;
 async function loadAux(input){
   const file=input.files[0];input.value='';if(!file)return;
   if(file.size>AUX_MAX_FILE){showToast('Archivo demasiado grande (máx. 30 MB)');return;}
+  const type=layerType(file.name),name=file.name.replace(/\.[^.]+$/,'').slice(0,80);
   showToast('Leyendo '+file.name+'…');
   try{
     const buf=new Uint8Array(await file.arrayBuffer());
-    const text=buf[0]===0x50&&buf[1]===0x4B?await kmlFromZip(buf):new TextDecoder('utf-8').decode(buf);
-    const r=parseAuxKML(text);
-    const total=state.layers.reduce((s,l)=>s+l.lines.reduce((t,x)=>t+x.f.length/2,0),0);
-    if(total+r.stats.vertices>AUX_MAX_PTS*2)throw new Error('demasiado dibujo entre todas las capas; quita alguna');
-    const L={id:newLayerId(),name:file.name.replace(/\.[^.]+$/,'').slice(0,80),visible:true,lines:r.lines,points:r.points,stats:r.stats};
-    state.layers.push(L);
-    paintLayers();drawMap();scheduleStamp();
-    await storeActiveProfile();
-    logEv('INFO',`Capa auxiliar: ${L.name} · ${r.stats.lines} líneas, ${r.stats.points} puntos, ${r.stats.vertices} vértices (simplificado a ${r.stats.tol} m)`);
-    showToast('Capa agregada: '+L.name);
-    if(!state.routeCoords.length){state.mapFitted=false;if(mapW)resetMapView();}
-  }catch(e){state.lastError='Capa auxiliar: '+e.message;showToast('Error: '+e.message);}
+    if(type==='csv'){openCsvPreview(name,csvDecode(buf));return;}
+    let r;
+    if(type==='dxf'){await new Promise(res=>setTimeout(res,30));r=parseDXF(dxfDecode(buf));}
+    else r=parseAuxKML(buf[0]===0x50&&buf[1]===0x4B?await kmlFromZip(buf):new TextDecoder('utf-8').decode(buf));
+    if(totalVerts()+r.stats.vertices>AUX_MAX_PTS*2)throw new Error('demasiado dibujo entre todas las capas; quita alguna');
+    await addLayer({id:newLayerId(),name,type,visible:true,snap:true,lines:r.lines,points:r.points,groups:r.groups,stats:r.stats});
+    logEv('INFO',`Capa ${LAYER_TYPES[type]}: ${name} · ${r.stats.lines} líneas, ${r.stats.vertices} vértices${r.groups?`, ${r.groups.length} capas internas`:''}${r.stats.texts?`, ${r.stats.texts} textos`:''}${r.stats.coords?' · coordenadas '+(r.stats.coords==='utm'?'UTM zona '+state.utmZone+'N':'geográficas'):''}`);
+  }catch(e){state.lastError='Capa '+file.name+': '+e.message;showToast('Error: '+e.message);logEv('WARN','Capa '+file.name+': '+e.message);}
 }
-async function layerToggle(id){const L=state.layers.find(l=>l.id===id);if(!L)return;L.visible=!L.visible;paintLayers();drawMap();scheduleStamp();await storeActiveProfile();}
+async function addLayer(L){
+  if(L.type==='csv'&&!L.pc)L.pc=PT_COLORS[state.layers.filter(x=>x.type==='csv').length%PT_COLORS.length];
+  state.layers.push(L);
+  paintLayers();drawMap();scheduleStamp();
+  await storeActiveProfile();
+  showToast('Capa agregada: '+L.name);
+  if(!state.routeCoords.length&&state.layers.length===1){state.mapFitted=false;if(mapW)resetMapView();}
+}
+// vista previa del CSV: confirmar qué columna es qué
+function openCsvPreview(name,text){
+  const {rows}=csvSplit(text);if(rows.length<1)throw new Error('el archivo está vacío');
+  const g=csvGuess(rows);csvPending={name,rows,hdr:g.hdr};
+  const sel=(id,v)=>{const s=document.getElementById(id);s.innerHTML='';s.appendChild(new Option('—',-1));
+    for(let j=0;j<g.nc;j++)s.appendChild(new Option(`Col. ${j+1}${g.H[j]?' · '+g.H[j]:''}${rows[g.hdr?1:0]&&rows[g.hdr?1:0][j]!=null?' ('+String(rows[g.hdr?1:0][j]).slice(0,14)+')':''}`,j));s.value=v;};
+  [['csv-p',g.col.p],['csv-n',g.col.n],['csv-e',g.col.e],['csv-z',g.col.z],['csv-d',g.col.d]].forEach(([i,v])=>sel(i,v));
+  document.getElementById('csv-hdr').checked=g.hdr;
+  document.getElementById('csv-name').textContent=name;
+  csvPreviewPaint();
+  document.getElementById('csv-bg').classList.add('open');
+}
+function csvCols(){const v=id=>+document.getElementById(id).value;return{p:v('csv-p'),n:v('csv-n'),e:v('csv-e'),z:v('csv-z'),d:v('csv-d')};}
+function csvPreviewPaint(){
+  if(!csvPending)return;
+  csvPending.hdr=document.getElementById('csv-hdr').checked;
+  const c=csvCols(),data=csvPending.hdr?csvPending.rows.slice(1):csvPending.rows,t=document.getElementById('csv-table');
+  t.innerHTML='';
+  const tr=el('tr');['Punto','Norte / Y','Este / X','Cota','Descripción'].forEach(h=>tr.appendChild(el('th','',h)));t.appendChild(tr);
+  data.slice(0,6).forEach(r=>{const x=el('tr');[c.p,c.n,c.e,c.z,c.d].forEach(j=>x.appendChild(el('td','',j>=0?r[j]||'':'')));t.appendChild(x);});
+  let msg='';
+  try{const b=csvBuild(csvPending.rows,csvPending.hdr,c);msg=`✓ ${b.pts.length} puntos · ${b.kind==='utm'?'UTM zona '+state.utmZone+' Norte':'geográficas (lat/lon)'}${b.bad.length?` · ${b.bad.length} renglón(es) sin coordenadas se omiten`:''}`;
+    const p=b.pts[0];if(p&&state.routeCoords.length>1){const k=pkOfPt(p);if(k&&k.off>5000)msg+=` · ⚠ quedan a ${fmtM(k.off,0)} del eje: revisa la zona UTM o las columnas`;}}
+  catch(e){msg='✗ '+e.message;}
+  document.getElementById('csv-msg').textContent=msg;
+  document.getElementById('csv-ok').disabled=msg.startsWith('✗');
+}
+function closeCsv(){document.getElementById('csv-bg').classList.remove('open');csvPending=null;}
+async function csvImport(){
+  if(!csvPending)return;
+  try{
+    const b=csvBuild(csvPending.rows,csvPending.hdr,csvCols()),name=csvPending.name;closeCsv();
+    await addLayer({id:newLayerId(),name,type:'csv',visible:true,snap:true,lines:[],points:b.pts,stats:{lines:0,vertices:0,points:b.pts.length}});
+    logEv('INFO',`Puntos CSV: ${name} · ${b.pts.length} puntos (${b.kind==='utm'?'UTM '+state.utmZone+'N':'geográficas'})`);
+  }catch(e){showToast('Error: '+e.message);}
+}
+const findLayer=id=>state.layers.find(l=>l.id===id);
+async function layerSet(id,fn){const L=findLayer(id);if(!L)return;fn(L);paintLayers();drawMap();scheduleStamp();await storeActiveProfile();}
+const layerToggle=id=>layerSet(id,L=>L.visible=!L.visible);
+const layerSnap=id=>layerSet(id,L=>{L.snap=L.snap===false;showToast(L.snap?'Imán activado: al medir se engancha a esta capa':'Imán apagado: al medir no se engancha a esta capa');});
+const groupToggle=(id,g)=>layerSet(id,L=>{L.groups[g].v=!L.groups[g].v;});
+const groupsAll=(id,v)=>layerSet(id,L=>L.groups.forEach(g=>g.v=v));
 async function layerRename(id){
-  const L=state.layers.find(l=>l.id===id);if(!L)return;
+  const L=findLayer(id);if(!L)return;
   const n=prompt('Nombre de la capa:',L.name);if(n==null||!n.trim())return;
   L.name=n.trim().slice(0,80);paintLayers();await storeActiveProfile();
 }
 async function layerRemove(id){
-  const L=state.layers.find(l=>l.id===id);if(!L)return;
-  if(!confirm(`¿Quitar la capa "${L.name}" de esta obra?`))return;
+  const L=findLayer(id);if(!L)return;
+  if(!confirm(`¿Eliminar la capa "${L.name}" de esta obra?`))return;
   state.layers=state.layers.filter(l=>l!==L);paintLayers();drawMap();scheduleStamp();await storeActiveProfile();
 }
+function layerShow(id){
+  const L=findLayer(id);if(!L)return;
+  const b=layerBounds([L]);if(!b)return;
+  if(!L.visible){L.visible=true;paintLayers();storeActiveProfile();}
+  switchTab('map');setFollow(false);
+  setTimeout(()=>{fitBounds(b);drawMap();},60);
+}
+const ICON_EYE='<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICON_EYE_OFF='<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.4 5.2A10.8 10.8 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10 10 0 005.4-1.6"/></svg>';
+const ICON_MAG='<svg viewBox="0 0 24 24"><path d="M6 3v8a6 6 0 0012 0V3h-4v8a2 2 0 01-4 0V3z"/><path d="M6 7h4M14 7h4"/></svg>';
+function layerStats(L){
+  const nl=L.lines.length,pl=L.lines.filter(x=>x.p).length,np=L.points.filter(p=>!p.t).length,nt=L.points.length-np;
+  if(L.type==='csv')return `${np} punto${np!==1?'s':''}`;
+  return [nl-pl?`${nl-pl} línea${nl-pl>1?'s':''}`:'',pl?`${pl} polígono${pl>1?'s':''}`:'',np?`${np} punto${np>1?'s':''}`:'',nt?`${nt} texto${nt>1?'s':''}`:'',L.groups?`${L.groups.length} capa${L.groups.length>1?'s':''} internas`:''].filter(Boolean).join(' · ');
+}
 function paintLayers(){
-  const box=document.getElementById('layers-list');if(!box)return;
-  box.innerHTML='';
-  if(!state.layers.length){box.appendChild(el('div','layer-empty','Sin capas auxiliares. Agrega bordes, estructuras, drenaje… (no cambian el PK)'));return;}
-  state.layers.forEach(L=>{
-    const row=el('div','layer-row'+(L.visible?'':' off'));
-    const eye=el('button','layer-eye');eye.setAttribute('aria-label',L.visible?'Ocultar capa':'Mostrar capa');
-    eye.innerHTML=L.visible?'<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
-                           :'<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.4 5.2A10.8 10.8 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10 10 0 005.4-1.6"/></svg>';
-    eye.onclick=()=>layerToggle(L.id);
-    const nl=L.lines.length,np=L.points.length,pl=L.lines.filter(x=>x.p).length;
-    const tx=el('div','layer-tx');tx.append(el('b','',L.name),el('small','',[nl-pl?`${nl-pl} línea${nl-pl>1?'s':''}`:'',pl?`${pl} polígono${pl>1?'s':''}`:'',np?`${np} punto${np>1?'s':''}`:''].filter(Boolean).join(' · ')+(L.visible?'':' · oculta')));
-    const more=el('button','layer-more','⋮');more.setAttribute('aria-label','Opciones de la capa');
-    const menu=el('div','layer-menu');
-    const b1=el('button','','Renombrar'),b2=el('button','danger','Quitar');b1.onclick=()=>layerRename(L.id);b2.onclick=()=>layerRemove(L.id);menu.append(b1,b2);
-    more.onclick=()=>menu.classList.toggle('open');
-    row.append(eye,tx,more);box.append(row,menu);
+  ['kml','dxf','csv'].forEach(type=>{
+    const box=document.getElementById('layers-'+type);if(!box)return;
+    box.innerHTML='';
+    const list=state.layers.filter(L=>(L.type||'kml')===type);
+    if(!list.length){box.appendChild(el('div','layer-empty',{kml:'Sin capas KMZ/KML. Bordes, estructuras, drenaje… (no cambian el PK)',dxf:'Sin planos. En AutoCAD/Civil 3D: Guardar como → DXF (en UTM).',csv:'Sin puntos. Archivo de la estación total o GPS: punto, norte, este, cota, descripción.'}[type]));return;}
+    list.forEach(L=>{
+      const row=el('div','layer-row'+(L.visible?'':' off'));
+      const eye=el('button','layer-eye');eye.setAttribute('aria-label',L.visible?'Ocultar capa':'Mostrar capa');eye.innerHTML=L.visible?ICON_EYE:ICON_EYE_OFF;eye.onclick=()=>layerToggle(L.id);
+      const tx=el('div','layer-tx');tx.append(el('b','',L.name),el('small','',layerStats(L)+(L.visible?'':' · oculta')));
+      if(L.type==='csv'){const sw=el('i','layer-sw');sw.style.background=L.pc;tx.firstChild.prepend(sw);}
+      const mag=el('button','layer-mag'+(L.snap===false?'':' on'));mag.innerHTML=ICON_MAG;mag.setAttribute('aria-label','Imán al medir');mag.title='Imán: al medir se engancha a esta capa';mag.onclick=()=>layerSnap(L.id);
+      const more=el('button','layer-more','⋮');more.setAttribute('aria-label','Opciones de la capa');
+      const menu=el('div','layer-menu');
+      [['Ver en el mapa','',()=>layerShow(L.id)],['Renombrar','',()=>layerRename(L.id)],['Eliminar','danger',()=>layerRemove(L.id)]].forEach(([t,c,f])=>{const b=el('button',c,t);b.onclick=f;menu.appendChild(b);});
+      more.onclick=()=>menu.classList.toggle('open');
+      row.append(eye,tx,mag,more);box.append(row,menu);
+      if(L.groups&&L.groups.length){
+        const det=el('details','layer-grps');const sm=el('summary','',`Capas del plano (${L.groups.filter(g=>g.v).length} de ${L.groups.length} visibles)`);det.appendChild(sm);
+        const tools=el('div','grp-tools');const a=el('button','','Prender todas'),z=el('button','','Apagar todas');a.onclick=()=>groupsAll(L.id,true);z.onclick=()=>groupsAll(L.id,false);tools.append(a,z);det.appendChild(tools);
+        L.groups.forEach((g,i)=>{
+          const cnt=L.lines.filter(l=>l.g===i).length+L.points.filter(p=>p.g===i).length;
+          const r=el('button','grp-row'+(g.v?'':' off'));const sw=el('i','layer-sw');sw.style.background=g.c;
+          r.append(el('span','grp-eye',g.v?'●':'○'),sw,el('span','grp-n',g.n),el('small','',String(cnt)));r.onclick=()=>groupToggle(L.id,i);det.appendChild(r);
+        });
+        if(L._open)det.open=true;det.ontoggle=()=>{Object.defineProperty(L,'_open',{value:det.open,writable:true,configurable:true,enumerable:false});};
+        box.appendChild(det);
+      }
+    });
   });
+  const zs=document.getElementById('cfg-utm');if(zs)zs.value=String(state.utmZone);
+}
+async function setUtmZone(z){
+  z=parseInt(z);if(!(z>=1&&z<=60))return;
+  if(state.layers.some(L=>L.type!=='kml')&&!confirm('La zona UTM se usa al importar planos y puntos. Las capas ya cargadas no se mueven; si quedaron mal ubicadas, quítalas y vuelve a cargarlas.\n\n¿Cambiar a la zona '+z+'?')){paintLayers();return;}
+  state.utmZone=z;await storeActiveProfile();showToast('Zona UTM '+z+' Norte');
 }
 // valida una capa que llega en un archivo de obra (no confiar en nada)
 function validateAux(a){
   if(!a||typeof a!=='object'||!Array.isArray(a.lines))return null;
-  const col=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c:'#c2410c',num=(v,lo,hi,d)=>isFinite(v)?Math.min(hi,Math.max(lo,+v)):d;
+  const col=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c:'#c2410c',num=(v,lo,hi,d)=>isFinite(v)&&v!==null?Math.min(hi,Math.max(lo,+v)):d;
+  const type=['kml','dxf','csv'].includes(a.type)?a.type:'kml';
+  const groups=type==='dxf'&&Array.isArray(a.groups)?a.groups.slice(0,500).map(g=>({n:typeof g.n==='string'?g.n.slice(0,60):'?',c:col(g.c),v:g.v!==false})):null;
+  const gi=g=>groups&&Number.isInteger(g)&&g>=0&&g<groups.length?g:undefined;
   let n=0;
-  const lines=a.lines.slice(0,50000).map(l=>{
+  const lines=a.lines.slice(0,60000).map(l=>{
     const f=Array.isArray(l.f)?l.f.filter(isFinite).map(Number):[];if(f.length%2)f.pop();
     for(let i=0;i<f.length;i+=2)if(Math.abs(f[i])>90||Math.abs(f[i+1])>180)return null;
-    n+=f.length/2;return f.length>=4?{c:col(l.c),a:num(l.a,0.1,1,0.9),w:num(l.w,0.5,6,1.5),p:!!l.p,fc:l.fc?col(l.fc):null,fa:num(l.fa,0,0.35,0),f}:null;
+    n+=f.length/2;if(f.length<4)return null;
+    const o={c:col(l.c),a:num(l.a,0.1,1,0.9),w:num(l.w,0.5,6,1.5),p:!!l.p,fc:l.fc?col(l.fc):null,fa:num(l.fa,0,0.35,0),f};const g=gi(l.g);if(g!==undefined)o.g=g;return o;
   }).filter(Boolean);
   if(n>AUX_MAX_PTS*1.2)return null;
-  const points=Array.isArray(a.points)?a.points.slice(0,5000).filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180).map(p=>({lat:+p.lat,lon:+p.lon,n:typeof p.n==='string'?p.n.slice(0,60):''})):[];
+  const points=Array.isArray(a.points)?a.points.slice(0,30000).filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180).map(p=>{
+    const o={lat:+p.lat,lon:+p.lon,n:typeof p.n==='string'?p.n.slice(0,80):''};
+    const g=gi(p.g);if(g!==undefined)o.g=g;
+    if(isFinite(p.z)&&p.z!==null)o.z=+p.z;if(typeof p.d==='string'&&p.d)o.d=p.d.slice(0,60);
+    if(p.t){o.t=1;o.sz=num(p.sz,0.01,500,1);o.r=num(p.r,-720,720,0);if(p.c)o.c=col(p.c);}
+    return o;}):[];
   if(!lines.length&&!points.length)return null;
-  return{id:typeof a.id==='string'&&/^[\w-]{2,30}$/.test(a.id)?a.id:newLayerId(),name:typeof a.name==='string'?a.name.slice(0,80):'Capa auxiliar',visible:a.visible!==false,lines,points};
+  return{id:typeof a.id==='string'&&/^[\w-]{2,30}$/.test(a.id)?a.id:newLayerId(),name:typeof a.name==='string'?a.name.slice(0,80):'Capa',type,visible:a.visible!==false,snap:a.snap!==false,
+    pc:typeof a.pc==='string'&&/^#[0-9a-f]{6}$/i.test(a.pc)?a.pc:undefined,groups,lines,points};
 }
 function validateLayers(o){
   const arr=Array.isArray(o.layers)?o.layers:o.aux?[o.aux]:[]; // o.aux: archivos de la versión 2.12 (una sola capa)
-  return arr.slice(0,30).map(validateAux).filter(Boolean);
+  return arr.slice(0,40).map(validateAux).filter(Boolean);
 }
-function layersForSave(){return state.layers.map(L=>({id:L.id,name:L.name,visible:L.visible,lines:L.lines,points:L.points}));}
+function layersForSave(){return state.layers.map(L=>{const o={id:L.id,name:L.name,type:L.type||'kml',visible:L.visible,snap:L.snap!==false,lines:L.lines,points:L.points};if(L.groups)o.groups=L.groups;if(L.pc)o.pc=L.pc;return o;});}
 
 // Dibujo en el mapa: trazos precalculados en metros alrededor de un origen (precisos aun con mucho zoom)
 function buildLayerCache(L){
@@ -3238,35 +3617,61 @@ function layerCache(L){if(!L._cache||Math.abs(L._cache.c-mapCos())>1e-9)Object.d
 function drawAuxOnMap(){
   const ls=visLayers();if(!ls.length)return;
   const k=state.mapScale/111320,MC=mapColors();
+  // vista: solo lo que cae en pantalla
+  const tl=fromScreen(-50,-50),br=fromScreen(mapW+50,mapH+50);
+  const inView=bb=>!(bb[1]<br.lat||bb[0]>tl.lat||bb[3]<tl.lon||bb[2]>br.lon);
   ls.forEach(L=>{
     const C=layerCache(L),o=toScreen(C.lat0,C.lon0);
     mapCtx.save();
     mapCtx.setTransform(mapDpr*k,0,0,mapDpr*k,mapDpr*o.x,mapDpr*o.y);
     mapCtx.lineJoin='round';mapCtx.lineCap='round';
-    C.paths.forEach(({P,l})=>{
+    C.paths.forEach(({P,l,bb})=>{
+      if(!grpOn(L,l.g)||!inView(bb))return;
       if(l.p&&l.fc&&l.fa>0){mapCtx.globalAlpha=l.fa;mapCtx.fillStyle=l.fc;mapCtx.fill(P);}
       mapCtx.globalAlpha=l.a;mapCtx.strokeStyle=l.c;mapCtx.lineWidth=Math.max(1,l.w*0.9)/k;mapCtx.stroke(P);
     });
     mapCtx.restore();
   });
-  // puntos con nombre (los nombres solo de cerca)
-  mapCtx.save();mapCtx.font='600 10px Barlow, sans-serif';
-  let shown=0;
+  // puntos y textos (los nombres solo de cerca)
+  mapCtx.save();
+  let shown=0,texts=0;
   ls.forEach(L=>{for(const p of L.points){
-    const q=toScreen(p.lat,p.lon);if(q.x<-20||q.y<-20||q.x>mapW+20||q.y>mapH+20)continue;
-    mapCtx.fillStyle='#c2410c';mapCtx.beginPath();mapCtx.arc(q.x,q.y,3,0,7);mapCtx.fill();
-    if(k>0.6&&p.n&&shown<150){mapCtx.fillStyle=MC.text;mapCtx.fillText(p.n,q.x+5,q.y+3);shown++;}
+    if(!grpOn(L,p.g))continue;
+    const q=toScreen(p.lat,p.lon);if(q.x<-200||q.y<-50||q.x>mapW+200||q.y>mapH+50)continue;
+    if(p.t){ // texto del plano a su escala
+      const px=p.sz*k;if(px<6||texts>600)continue;texts++;
+      mapCtx.save();mapCtx.translate(q.x,q.y);mapCtx.rotate(-(p.r||0)*Math.PI/180);
+      mapCtx.font=`500 ${Math.min(px,80).toFixed(1)}px Barlow, sans-serif`;mapCtx.fillStyle=p.c||(L.groups&&L.groups[p.g]?L.groups[p.g].c:MC.text);mapCtx.fillText(p.n,0,0);mapCtx.restore();
+      continue;
+    }
+    if(q.x<-20||q.y<-20||q.x>mapW+20||q.y>mapH+20)continue;
+    const csv=L.type==='csv',c=csv?L.pc:L.groups&&L.groups[p.g]?L.groups[p.g].c:'#c2410c';
+    mapCtx.fillStyle=c;
+    if(csv){mapCtx.beginPath();mapCtx.moveTo(q.x,q.y-4.5);mapCtx.lineTo(q.x+4,q.y+3);mapCtx.lineTo(q.x-4,q.y+3);mapCtx.closePath();mapCtx.fill();}
+    else{mapCtx.beginPath();mapCtx.arc(q.x,q.y,3,0,7);mapCtx.fill();}
+    if(shown<250&&p.n&&(k>(csv?0.35:0.6))){
+      mapCtx.font='600 10px Barlow, sans-serif';mapCtx.fillStyle=MC.text;mapCtx.fillText(p.n,q.x+6,q.y+3);
+      if(csv&&k>1.6&&(p.d||p.z!=null)){mapCtx.font='9px Barlow, sans-serif';mapCtx.fillStyle=c;mapCtx.fillText([p.d,p.z!=null?'Z '+p.z.toFixed(2):''].filter(Boolean).join(' · '),q.x+6,q.y+14);}
+      shown++;
+    }
   }});
   mapCtx.restore();
 }
-function auxBounds(){
-  const ls=visLayers().length?visLayers():state.layers;if(!ls.length)return null;
+function layerBounds(ls){
+  if(!ls.length)return null;
   let mnLa=90,mxLa=-90,mnLo=180,mxLo=-180;
   ls.forEach(L=>{
-    L.lines.forEach(l=>{for(let i=0;i<l.f.length;i+=2){mnLa=Math.min(mnLa,l.f[i]);mxLa=Math.max(mxLa,l.f[i]);mnLo=Math.min(mnLo,l.f[i+1]);mxLo=Math.max(mxLo,l.f[i+1]);}});
-    L.points.forEach(p=>{mnLa=Math.min(mnLa,p.lat);mxLa=Math.max(mxLa,p.lat);mnLo=Math.min(mnLo,p.lon);mxLo=Math.max(mxLo,p.lon);});
+    L.lines.forEach(l=>{if(!grpOn(L,l.g))return;for(let i=0;i<l.f.length;i+=2){mnLa=Math.min(mnLa,l.f[i]);mxLa=Math.max(mxLa,l.f[i]);mnLo=Math.min(mnLo,l.f[i+1]);mxLo=Math.max(mxLo,l.f[i+1]);}});
+    L.points.forEach(p=>{if(!grpOn(L,p.g))return;mnLa=Math.min(mnLa,p.lat);mxLa=Math.max(mxLa,p.lat);mnLo=Math.min(mnLo,p.lon);mxLo=Math.max(mxLo,p.lon);});
   });
-  return{minLat:mnLa,maxLat:mxLa,minLon:mnLo,maxLon:mxLo};
+  return mnLa>mxLa?null:{minLat:mnLa,maxLat:mxLa,minLon:mnLo,maxLon:mxLo};
+}
+function auxBounds(){return layerBounds(visLayers().length?visLayers():state.layers);}
+function fitBounds(b){
+  const c=mapCos(),top=58,bottom=20;
+  state.mapScale=Math.min(MAP_MAX,(mapW*0.82)/(((b.maxLon-b.minLon)||0.0005)*c),((mapH-top-bottom)*0.85)/((b.maxLat-b.minLat)||0.0005));
+  const cLat=(b.minLat+b.maxLat)/2,cLon=(b.minLon+b.maxLon)/2;
+  state.mapOffset={x:mapW/2-cLon*c*state.mapScale,y:top+(mapH-top-bottom)/2+cLat*state.mapScale};
 }
 // en el mini mapa de la foto: tenue, debajo del eje
 function drawAuxOnMini(ctx,m,X,Y,lim,s){
@@ -3274,6 +3679,7 @@ function drawAuxOnMini(ctx,m,X,Y,lim,s){
   const dLat=lim/110540*1.2,dLon=lim/(111320*Math.cos(m.lat*Math.PI/180))*1.2,la=m.lat,lo=m.lon;
   ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
   ls.forEach(L=>layerCache(L).paths.forEach(({l,bb})=>{
+    if(!grpOn(L,l.g))return;
     if(bb[1]<la-dLat||bb[0]>la+dLat||bb[3]<lo-dLon||bb[2]>lo+dLon)return;
     ctx.beginPath();
     for(let i=0;i<l.f.length;i+=2){const q=toXY(l.f[i],l.f[i+1]);i?ctx.lineTo(X(q),Y(q)):ctx.moveTo(X(q),Y(q));}
@@ -3305,13 +3711,13 @@ function fromScreen(x,y){return{lat:-(y-state.mapOffset.y)/state.mapScale,lon:(x
 function snapAt(x,y){
   const TP=24,TV=16,TL=20;
   let best=null,bd=TP;
-  const pts=[];visLayers().forEach(L=>L.points.forEach(p=>pts.push({p,L})));
-  for(const {p,L} of pts){const q=toScreen(p.lat,p.lon),d=Math.hypot(q.x-x,q.y-y);if(d<bd){bd=d;best={lat:p.lat,lon:p.lon,name:p.n||'Punto de '+L.name,kind:'punto'};}}
+  const pts=[];snapLayers().forEach(L=>L.points.forEach(p=>{if(!p.t&&grpOn(L,p.g))pts.push({p,L});}));
+  for(const {p,L} of pts){const q=toScreen(p.lat,p.lon),d=Math.hypot(q.x-x,q.y-y);if(d<bd){bd=d;best={lat:p.lat,lon:p.lon,name:p.n||'Punto de '+L.name,kind:'punto',z:p.z??null,d:p.d||''};}}
   if(best)return best;
   // líneas: capas visibles y eje principal (filtrando por recuadro para que sea rápido con dibujos grandes)
   const tol=TL/state.mapScale,c0=fromScreen(x,y),win=[c0.lat-tol,c0.lat+tol,c0.lon-tol/mapCos(),c0.lon+tol/mapCos()];
   const lines=[];
-  visLayers().forEach(L=>layerCache(L).paths.forEach(({l,bb})=>{if(bb[1]<win[0]||bb[0]>win[1]||bb[3]<win[2]||bb[2]>win[3])return;lines.push({f:l.f,p:l.p,name:L.name});}));
+  snapLayers().forEach(L=>layerCache(L).paths.forEach(({l,bb})=>{if(!grpOn(L,l.g))return;if(bb[1]<win[0]||bb[0]>win[1]||bb[3]<win[2]||bb[2]>win[3])return;lines.push({f:l.f,p:l.p,name:L.groups&&L.groups[l.g]?L.groups[l.g].n:L.name});}));
   if(state.routeCoords.length>1){const f=[];state.routeCoords.forEach(c=>f.push(c.lat,c.lon));lines.push({f,name:'Eje',axis:true});}
   let bv=TV,bl=TL,vert=null,onl=null;
   for(const ln of lines){
@@ -3382,7 +3788,7 @@ function measMode(m){
 function measTap(x,y){
   const p=snapAt(x,y);
   if(MEAS.mode==='ab'){if(MEAS.pts.length>=2)MEAS.pts=[];MEAS.pts.push(p);}
-  else if(MEAS.mode==='path')MEAS.pts.push(p);
+  else if(MEAS.mode==='path'||MEAS.mode==='area')MEAS.pts.push(p);
   else if(MEAS.mode==='go')setGoTarget(p);
   if(navigator.vibrate)navigator.vibrate(p.kind==='libre'?8:20);
   drawMap();measPaint();
@@ -3391,7 +3797,7 @@ function measUndo(){if(MEAS.mode==='go'){setGoTarget(null);}else MEAS.pts.pop();
 function measClear(){if(MEAS.mode==='go')setGoTarget(null);MEAS.pts=[];drawMap();measPaint();}
 function goKey(){return 'obrasnap.goto.'+(state.profileId||'x');}
 function setGoTarget(p){
-  state.goTarget=p?{lat:p.lat,lon:p.lon,name:p.name,kind:p.kind}:null;
+  state.goTarget=p?{lat:p.lat,lon:p.lon,name:p.name,kind:p.kind,z:p.z??null,d:p.d||''}:null;
   try{p?localStorage.setItem(goKey(),JSON.stringify(state.goTarget)):localStorage.removeItem(goKey());}catch(e){}
   scheduleStamp();
 }
@@ -3402,26 +3808,37 @@ function goRefText(m){
   const r=geoDist({lat:m.lat,lon:m.lon},g);
   return `a ${fmtM(r.d,0)} de ${g.kind==='libre'?'punto marcado':g.name}${m.acc!=null?` (GPS ±${Math.round(m.acc)} m)`:''}`;
 }
-function ptLine(p){const k=pkOfPt(p);return `${p.name}${k&&k.off<500?` · PK ${fmtPK(k.pk)}${k.off>=1?` a ${Math.round(k.off)} m del eje`:''}`:''}`;}
+function ptLine(p){const k=pkOfPt(p);return `${p.name}${p.d?' ('+p.d+')':''}${k&&k.off<500?` · PK ${fmtPK(k.pk)}${k.off>=1?` a ${Math.round(k.off)} m del eje`:''}`:''}`;}
+// rumbo topográfico: N 45°30'12" E
+function rumbo(b){const q=b<=90?['N',b,'E']:b<=180?['S',180-b,'E']:b<=270?['S',b-180,'O']:['N',360-b,'O'];const d=Math.floor(q[1]),m=Math.floor((q[1]-d)*60),s=Math.round(((q[1]-d)*60-m)*60);return `${q[0]} ${d}°${String(m).padStart(2,'0')}'${String(s===60?59:s).padStart(2,'0')}" ${q[2]}`;}
+function polyArea(P){ // área en m² sobre el plano local (exacta para obra)
+  const lat0=P.reduce((s,p)=>s+p.lat,0)/P.length,u=P.map(p=>({x:geoDist({lat:lat0,lon:P[0].lon},{lat:lat0,lon:p.lon}).d*Math.sign(p.lon-P[0].lon),y:geoDist({lat:P[0].lat,lon:p.lon},{lat:p.lat,lon:p.lon}).d*Math.sign(p.lat-P[0].lat)}));
+  let a=0;for(let i=0;i<u.length;i++){const j=(i+1)%u.length;a+=u[i].x*u[j].y-u[j].x*u[i].y;}return Math.abs(a)/2;
+}
 function measPaint(){
   const out=document.getElementById('meas-out'),hint=document.getElementById('meas-hint');if(!out)return;
   const P=MEAS.pts;let main='',sub='',h='';
   if(MEAS.mode==='ab'){
     if(P.length<2){h=P.length?'Toca el segundo punto':'Toca el primer punto · deja el dedo para ver la lupa';sub=P[0]?'A: '+ptLine(P[0]):'';}
-    else{const r=geoDist(P[0],P[1]);main=fmtM(r.d);
-      const ka=pkOfPt(P[0]),kb=pkOfPt(P[1]);
-      sub=`Rumbo ${Math.round(r.brg)}° ${cardinal(r.brg)}`+(ka&&kb&&ka.off<500&&kb.off<500?` · PK ${fmtPK(ka.pk)} → ${fmtPK(kb.pk)} (Δ ${fmtM(Math.abs(kb.pk-ka.pk),1)})`:'');
-      h=`A: ${P[0].name} · B: ${P[1].name} · toca otra vez para medir de nuevo`;}
+    else{const r=geoDist(P[0],P[1]);main=fmtM(r.d,3);
+      const ka=pkOfPt(P[0]),kb=pkOfPt(P[1]),dz=P[0].z!=null&&P[1].z!=null?P[1].z-P[0].z:null;
+      sub=`Rumbo ${rumbo(r.brg)} · Az ${r.brg.toFixed(4)}°`+(dz!=null?` · ΔZ ${dz>=0?'+':''}${dz.toFixed(3)} m · pendiente ${(dz/r.d*100).toFixed(2)} %`:'')+(ka&&kb&&ka.off<500&&kb.off<500?` · PK ${fmtPK(ka.pk)} → ${fmtPK(kb.pk)}`:'');
+      h=`A: ${P[0].name} · B: ${P[1].name}`;}
+    if(P.length===1)sub+='\n'+utmText(P[0]);
   }else if(MEAS.mode==='path'){
     let t=0;for(let i=1;i<P.length;i++)t+=geoDist(P[i-1],P[i]).d;
     main=P.length>1?fmtM(t):'';sub=P.length>1?`${P.length-1} tramo${P.length>2?'s':''} · último ${fmtM(geoDist(P[P.length-2],P[P.length-1]).d)}`:'';
     h=P.length?'Sigue tocando para agregar puntos · Deshacer quita el último':'Toca los puntos del tramo a medir';
+  }else if(MEAS.mode==='area'){
+    if(P.length>=3){const A=polyArea(P);let per=0;for(let i=0;i<P.length;i++)per+=geoDist(P[i],P[(i+1)%P.length]).d;
+      main=A>=10000?`${(A/10000).toFixed(4)} ha`:`${A.toFixed(2)} m²`;sub=`${A>=10000?fmtNum(A,2)+' m² · ':''}Perímetro ${fmtM(per)} · ${P.length} vértices`;}
+    h=P.length<3?`Toca los vértices del área (${P.length} de 3 mínimo)`:'Sigue tocando para agregar vértices · se cierra solo';
   }else if(MEAS.mode==='go'){
     const g=state.goTarget;
     if(!g)h='Toca una mojonera o punto del plano, o elige uno de la lista';
     else if(state.lat==null){main='—';sub=ptLine(g);h='Esperando señal GPS…';}
     else{const r=geoDist({lat:state.lat,lon:state.lon},g);main=fmtM(r.d,r.d<10?1:0);
-      sub=`${ptLine(g)} · hacia el ${cardinal(r.brg)} (${Math.round(r.brg)}°)`;
+      sub=`${ptLine(g)} · hacia el ${cardinal(r.brg)} (${Math.round(r.brg)}°)\n${utmText(g)}`;
       h=`Tu GPS: ±${Math.round(state.accuracy)} m — la distancia puede variar eso`;
       const ar=document.getElementById('meas-arrow');ar.style.display='';
       ar.style.transform=`rotate(${state.heading!=null?r.brg-state.heading:r.brg}deg)`;ar.title=state.heading!=null?'Hacia donde apunta el teléfono':'Norte arriba';}
@@ -3438,10 +3855,12 @@ function drawMeasure(){
     if(lbl)tag(q.x+9,q.y-9,lbl);return q;};
   const tag=(x,y,t)=>{mapCtx.font='700 11px Barlow, sans-serif';const w=mapCtx.measureText(t).width+8;mapCtx.fillStyle='rgba(255,255,255,.92)';mapCtx.fillRect(x-2,y-11,w,15);mapCtx.fillStyle=C;mapCtx.fillText(t,x+2,y);};
   mapCtx.save();
-  if((MEAS.mode==='ab'||MEAS.mode==='path')&&MEAS.pts.length){
+  if((MEAS.mode==='ab'||MEAS.mode==='path'||MEAS.mode==='area')&&MEAS.pts.length){
     const P=MEAS.pts;
     mapCtx.strokeStyle=C;mapCtx.lineWidth=2.5;mapCtx.setLineDash([]);mapCtx.beginPath();
-    P.forEach((p,i)=>{const q=toScreen(p.lat,p.lon);i?mapCtx.lineTo(q.x,q.y):mapCtx.moveTo(q.x,q.y);});mapCtx.stroke();
+    P.forEach((p,i)=>{const q=toScreen(p.lat,p.lon);i?mapCtx.lineTo(q.x,q.y):mapCtx.moveTo(q.x,q.y);});
+    if(MEAS.mode==='area'&&P.length>2){mapCtx.closePath();mapCtx.fillStyle='rgba(225,29,72,.14)';mapCtx.fill();}
+    mapCtx.stroke();
     for(let i=1;i<P.length;i++){const a=toScreen(P[i-1].lat,P[i-1].lon),b=toScreen(P[i].lat,P[i].lon);if(Math.hypot(a.x-b.x,a.y-b.y)>60)tag((a.x+b.x)/2+4,(a.y+b.y)/2-4,fmtM(geoDist(P[i-1],P[i]).d,1));}
     P.forEach((p,i)=>dot(p,false,MEAS.mode==='ab'?(i?'B':'A'):null));
   }
@@ -3458,17 +3877,17 @@ function openPoints(){document.getElementById('pts-q').value='';paintPoints();do
 function closePoints(){document.getElementById('pts-bg').classList.remove('open');}
 function paintPoints(){
   const q=document.getElementById('pts-q').value.trim().toLowerCase(),box=document.getElementById('pts-list');box.innerHTML='';
-  const all=[];state.layers.forEach(L=>L.points.forEach(p=>all.push({...p,layer:L.name,vis:L.visible})));
+  const all=[];state.layers.forEach(L=>L.points.forEach(p=>{if(!p.t)all.push({...p,layer:L.name,vis:L.visible});}));
   const me=state.lat!=null?{lat:state.lat,lon:state.lon}:null;
-  let list=all.filter(p=>!q||(p.n||'').toLowerCase().includes(q)||p.layer.toLowerCase().includes(q));
+  let list=all.filter(p=>!q||(p.n||'').toLowerCase().includes(q)||(p.d||'').toLowerCase().includes(q)||p.layer.toLowerCase().includes(q));
   list.forEach(p=>p.d=me?geoDist(me,p).d:null);
   list.sort((a,b)=>me?a.d-b.d:(a.n||'').localeCompare(b.n||'',undefined,{numeric:true}));
   document.getElementById('pts-count').textContent=all.length?`${list.length} de ${all.length} puntos${me?' · ordenados por cercanía':''}`:'';
-  if(!all.length){box.appendChild(el('div','layer-empty','Las capas no traen puntos. Las mojoneras deben venir como puntos (marcadores) en el KMZ, de preferencia con su nombre.'));return;}
+  if(!all.length){box.appendChild(el('div','layer-empty','Las capas no traen puntos. Carga las bases como CSV (punto, norte, este, cota, descripción) o como puntos con nombre en el KMZ.'));return;}
   list.slice(0,300).forEach(p=>{
     const b=el('button','pt-row');const k=pkOfPt(p);
-    b.append(el('b','',p.n||'(sin nombre)'),el('small','',[p.layer+(p.vis?'':' (oculta)'),k&&k.off<500?'PK '+fmtPK(k.pk):''].filter(Boolean).join(' · ')),el('span','pt-d',p.d!=null?fmtM(p.d,0):''));
-    b.onclick=()=>{closePoints();if(!MEAS.mode||MEAS.mode!=='go'){measOpen();measMode('go');}setGoTarget({lat:p.lat,lon:p.lon,name:p.n||'Punto de '+p.layer,kind:'punto'});setFollow(false);mapCenterOn(p.lat,p.lon);measPaint();};
+    b.append(el('b','',(p.n||'(sin nombre)')+(p.d?' · '+p.d:'')),el('small','',[p.layer+(p.vis?'':' (oculta)'),k&&k.off<500?'PK '+fmtPK(k.pk):'',p.z!=null?'Z '+p.z.toFixed(2):''].filter(Boolean).join(' · ')),el('span','pt-d',p.d!=null?fmtM(p.d,0):''));
+    b.onclick=()=>{closePoints();if(!MEAS.mode||MEAS.mode!=='go'){measOpen();measMode('go');}setGoTarget({lat:p.lat,lon:p.lon,name:p.n||'Punto de '+p.layer,kind:'punto',z:p.z??null,d:p.d||''});setFollow(false);mapCenterOn(p.lat,p.lon);measPaint();};
     box.appendChild(b);
   });
 }
@@ -3528,6 +3947,7 @@ window.obrasnapBack=function(){
   if(open('export-bg')){closeExport();return true;}
   if(open('modal-bg')){saveActivity();return true;}
   if(open('qnote-bg')){saveQuickNote();return true;}
+  if(open('csv-bg')){closeCsv();return true;}
   if(open('pts-bg')){closePoints();return true;}
   if(state.tab==='map'&&MEAS.mode){measClose();return true;}
   if(open('kmzpick-bg')){document.getElementById('kmzpick-bg').classList.remove('open');return true;}
@@ -4076,7 +4496,7 @@ const CFG_MENU=[
   ]},
   {group:'Obra',items:[
     {page:'actividades',icon:'✎',title:'Actividades',sum:()=>state.activity?'Actual: '+state.activity:`${(state.activities||[]).length} actividades frecuentes`},
-    {page:'eje',icon:'⌇',title:'KMZ / KML',sum:()=>(state.routeCoords.length?`${state.routeName} · ${(state.routeCoords[state.routeCoords.length-1].dist/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''}`:'Sin eje cargado')+(state.layers.length?` · ${state.layers.length} capa${state.layers.length>1?'s':''} auxiliar${state.layers.length>1?'es':''}`:'')},
+    {page:'eje',icon:'⌇',title:'Capas y planos',sum:()=>{const c=t=>state.layers.filter(L=>(L.type||'kml')===t).length,parts=[c('kml')?c('kml')+' KMZ':'',c('dxf')?c('dxf')+' DXF':'',c('csv')?c('csv')+' CSV':''].filter(Boolean);return (state.routeCoords.length?`Eje ${state.routeName}${state.pkTable?' (PK calibrado)':''}`:'Sin eje cargado')+(parts.length?' · '+parts.join(' · '):'');}},
     {page:'obras',icon:'▦',title:'Obras',sum:()=>state.obra?`${state.obra} · ${profiles.length} en este teléfono`:'Sin obra configurada · toca para importar o crear'},
   ]},
   {group:'Sistema',items:[

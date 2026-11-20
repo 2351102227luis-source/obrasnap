@@ -1,6 +1,6 @@
 {
-  "versionCode": 15,
-  "versionName": "2.13",
+  "versionCode": 16,
+  "versionName": "2.14",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Redondeo del PK, capas KMZ/KML con ojo, herramienta Medir con lupa, galería nueva (gestos, por día, selección), videos en la galería, zoom con pellizco y enfoque al tocar."
+  "notas": "Capas y planos: DXF de AutoCAD con sus capas, puntos CSV de topografía, imán por capa, zona UTM; medir área, inversa con rumbo, azimut y pendiente, y coordenadas UTM."
 }

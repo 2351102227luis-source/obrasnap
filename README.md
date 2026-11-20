@@ -72,6 +72,15 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.14
+
+- **Capas y planos** (Config › Obra): eje principal + tres grupos con 👁, imán (si se engancha al medir) y ⋮ (ver, renombrar, eliminar):
+  - **KMZ / KML**.
+  - **CAD (DXF)**: líneas, polilíneas con curvas, arcos, círculos, puntos, textos y bloques; cada capa del plano se prende o apaga. DWG no (guardar como DXF). Coordenadas UTM o geográficas; las locales todavía no.
+  - **Puntos (CSV)**: P, N, E, Z, D en cualquier orden, con vista previa para confirmar columnas.
+- **Zona UTM** de la obra (14 N por defecto), viaja en el archivo `.obrasnap`.
+- **Medir**: modo **Área** (m² / ha y perímetro); 2 puntos con **rumbo topográfico, azimut, ΔZ y pendiente**; coordenadas UTM del punto.
+
 ## Versión 2.13
 
 - **Config** en tres grupos: **App** (Datos en la foto, Cámara) · **Obra** (Actividades, KMZ / KML, Obras) · **Sistema** (Apariencia, Versiones, Diagnóstico). El estado del GPS está en Diagnóstico.
