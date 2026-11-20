@@ -1,6 +1,6 @@
 {
-  "versionCode": 16,
-  "versionName": "2.14",
+  "versionCode": 17,
+  "versionName": "2.15",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Capas y planos: DXF de AutoCAD con sus capas, puntos CSV de topografía, imán por capa, zona UTM; medir área, inversa con rumbo, azimut y pendiente, y coordenadas UTM."
+  "notas": "Capas desde el mapa, tocar un punto o línea para ver coordenadas, PK y distancia, y mucho más zoom (hasta 1 cm por píxel)."
 }

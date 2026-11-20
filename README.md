@@ -72,6 +72,12 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.15
+
+- **Capas desde el mapa**: botón de capas en los controles; prende/apaga capas y capas internas del plano sin salir.
+- **Tocar el mapa** (fuera de Medir): tarjeta con nombre, N/E/Z, PK y lado, lat/lon y distancia desde ti; botones Ir a, Medir desde aquí y Copiar. El doble toque sigue acercando.
+- **Más zoom**: hasta 100 px por metro (1 cm por píxel); escala en cm y marcas de PK cada 10/20 m de cerca.
+
 ## Versión 2.14
 
 - **Capas y planos** (Config › Obra): eje principal + tres grupos con 👁, imán (si se engancha al medir) y ⋮ (ver, renombrar, eliminar):

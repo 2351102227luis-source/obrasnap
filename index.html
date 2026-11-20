@@ -133,6 +133,27 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 .sheet-bg.open{display:flex;}
 #loupe{display:none;position:absolute;width:124px;height:124px;border-radius:50%;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:5;}
 #loupe-lbl{display:none;position:absolute;transform:translateX(-50%);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 8px;border-radius:10px;background:#e11d48;color:#fff;font-family:var(--sans);font-size:12px;font-weight:600;pointer-events:none;z-index:5;}
+#map-layers{display:none;position:absolute;left:10px;right:68px;top:62px;max-height:calc(100% - 140px);overflow-y:auto;background:var(--chip-bg);border:1px solid var(--surface2);border-radius:14px;padding:6px 10px 8px;box-shadow:0 2px 10px rgba(0,0,0,.2);z-index:4;}
+#map-layers.open{display:block;}
+.ml-head{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 6px;}
+.ml-head b{font-family:var(--cond);font-size:15px;color:var(--accent);}
+.ml-head button,.mi-top button{width:30px;height:30px;border-radius:8px;border:1px solid var(--surface2);background:var(--bg);color:var(--text);cursor:pointer;}
+.ml-row{display:flex;align-items:center;gap:8px;width:100%;min-height:42px;padding:4px 2px;border:none;border-top:1px solid var(--surface2);background:none;color:var(--text);font-family:var(--sans);text-align:left;cursor:pointer;}
+.ml-row b{flex:1;min-width:0;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ml-row small{font-size:10.5px;color:var(--text2);font-family:var(--mono);}
+.ml-row.off{opacity:.45;}
+.ml-eye{width:26px;display:flex;justify-content:center;color:var(--accent);}
+.ml-eye svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.ml-sub{padding-left:26px;min-height:36px;font-size:12.5px;}
+.ml-dot{font-size:13px;}
+.ml-axis{cursor:default;}
+#map-info{display:none;position:absolute;left:10px;right:68px;bottom:12px;background:var(--chip-bg);border:1px solid var(--surface2);border-radius:14px;padding:8px 10px 10px;box-shadow:0 2px 10px rgba(0,0,0,.2);}
+#map-info.open{display:block;}
+.mi-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.mi-top b{font-size:14.5px;font-weight:700;color:var(--accent);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#mi-rows{font-family:var(--mono);font-size:11.5px;color:var(--text);white-space:pre-line;margin-top:4px;line-height:1.5;}
+#mi-acts{display:flex;gap:6px;margin-top:8px;}
+#mi-acts button{flex:1;height:32px;border-radius:8px;border:1px solid var(--surface2);background:var(--bg);color:var(--accent);font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;}
 #meas-bar{display:none;position:absolute;left:10px;right:68px;bottom:12px;background:var(--chip-bg);border:1px solid var(--surface2);border-radius:14px;padding:8px 10px 10px;box-shadow:0 2px 10px rgba(0,0,0,.2);}
 #meas-bar.open{display:block;}
 #meas-modes{display:flex;gap:4px;}
@@ -495,8 +516,12 @@ input[type=file]{display:none;}
           <button onclick="mapZoom(1/1.6)" aria-label="Alejar">−</button>
           <button id="map-locate" onclick="mapLocate()" aria-label="Mi ubicación"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg></button>
           <button onclick="mapFitAll()" aria-label="Ver todo el eje"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+          <button id="map-layers-btn" onclick="toggleMapLayers()" aria-label="Capas"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
           <button id="map-measure" onclick="MEAS.mode?measClose():measOpen()" aria-label="Medir"><svg viewBox="0 0 24 24"><path d="M3 17.5L17.5 3l3.5 3.5L6.5 21z"/><path d="M7 13.5l1.8 1.8M10 10.5l2.5 2.5M13 7.5l1.8 1.8"/></svg></button>
         </div>
+        <div id="map-layers"><div class="ml-head"><b>Capas</b><button onclick="toggleMapLayers()" aria-label="Cerrar">✕</button></div><div id="ml-list"></div></div>
+        <div id="map-info"><div class="mi-top"><b id="mi-name"></b><button onclick="closeInfo()" aria-label="Cerrar">✕</button></div><div id="mi-rows"></div>
+          <div id="mi-acts"><button onclick="infoGo()">Ir a</button><button onclick="infoMeasure()">Medir desde aquí</button><button onclick="infoCopy()">Copiar</button></div></div>
         <canvas id="loupe"></canvas><div id="loupe-lbl"></div>
         <div id="meas-bar">
           <div id="meas-modes"><button data-m="ab" onclick="measMode('ab')">2 puntos</button><button data-m="go" onclick="measMode('go')">Ir a</button><button data-m="path" onclick="measMode('path')">Tramo</button><button data-m="area" onclick="measMode('area')">Área</button><button class="meas-x" onclick="measClose()" aria-label="Cerrar medir">✕</button></div>
@@ -844,7 +869,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-2.14';
+const APP_VERSION='2026.11.20-2.15';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1380,7 +1405,7 @@ window.addEventListener('focus',()=>{if(!cameraHealthy())startCamera();});
 // ── MAP ──
 let mapCanvas,mapCtx,mapW,mapH;
 // ── MAPA: zoom con dos dedos alrededor de los dedos, botones +/−, mi ubicación y ver todo ──
-const MAP_MIN=40,MAP_MAX=5*111320;                // px por grado: de ~1 px/2.8 km a 5 px/m
+const MAP_MIN=40,MAP_MAX=100*111320;              // px por grado: de ~1 px/2.8 km a 100 px/m (1 cm por píxel)
 const mapCos=()=>{const L=state.layers[0];return Math.cos(((state.routeCoords.length?projLat0:(L&&L.lines[0]?L.lines[0].f[0]:L&&L.points[0]?L.points[0].lat:state.lat))||0)*Math.PI/180);};
 let mapDpr=1;
 function initMap(){
@@ -1396,7 +1421,7 @@ function initMap(){
   mapCanvas.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,e.deltaY<0?1.25:0.8);},{passive:false});
   let md=null;
   mapCanvas.addEventListener('mousedown',e=>{md={x:e.clientX,y:e.clientY,ox:state.mapOffset.x,oy:state.mapOffset.y};});
-  mapCanvas.addEventListener('mouseup',e=>{if(md&&MEAS.mode&&Math.hypot(e.clientX-md.x,e.clientY-md.y)<5)measTap(e.offsetX,e.offsetY);});
+  mapCanvas.addEventListener('mouseup',e=>{if(md&&Math.hypot(e.clientX-md.x,e.clientY-md.y)<5){if(MEAS.mode)measTap(e.offsetX,e.offsetY);else showInfo(e.offsetX,e.offsetY);}});
   window.addEventListener('mousemove',e=>{if(!md||Math.hypot(e.clientX-md.x,e.clientY-md.y)<5)return;setFollow(false);state.mapOffset={x:md.ox+e.clientX-md.x,y:md.oy+e.clientY-md.y};drawMap();});
   window.addEventListener('mouseup',()=>{md=null;});
   mapCanvas.addEventListener('dblclick',e=>zoomAt(e.offsetX,e.offsetY,2));
@@ -1464,7 +1489,7 @@ function onMapTouchStart(e){
   const p=touchPts(e);
   if(p.length===1){
     // doble toque = acercar (solo si antes hubo un toque corto, sin mover, en el mismo lugar)
-    if(!MEAS.mode&&Date.now()-lastTap.t<300&&Math.hypot(p[0].x-lastTap.x,p[0].y-lastTap.y)<30){zoomAt(p[0].x,p[0].y,2);lastTap.t=0;mapTouch=null;return;}
+    if(!MEAS.mode&&Date.now()-lastTap.t<300&&Math.hypot(p[0].x-lastTap.x,p[0].y-lastTap.y)<30){clearTimeout(infoTimer);zoomAt(p[0].x,p[0].y,2);lastTap.t=0;mapTouch=null;return;}
     mapTouch={mode:'pan',x:p[0].x,y:p[0].y,ox:state.mapOffset.x,oy:state.mapOffset.y,t0:Date.now(),moved:false};
     if(MEAS.mode){const mt=mapTouch;mt.lt=setTimeout(()=>{if(mapTouch===mt&&!mt.moved){mt.mode='loupe';mt.fx=mt.x;mt.fy=mt.y;if(navigator.vibrate)navigator.vibrate(15);loupeShow(mt.fx,mt.fy);}},250);}
   }else if(p.length>=2){
@@ -1499,7 +1524,7 @@ function onMapTouchEnd(e){
   // ¿fue un toque corto con un dedo y sin mover? → candidato a doble toque
   if(!p.length&&mapTouch&&mapTouch.mode==='pan'&&!mapTouch.moved&&Date.now()-mapTouch.t0<(MEAS.mode?400:250)){
     if(MEAS.mode)measTap(mapTouch.x,mapTouch.y);   // midiendo: el toque marca un punto (el doble toque no acerca)
-    else lastTap={t:Date.now(),x:mapTouch.x,y:mapTouch.y};
+    else{const lt=lastTap={t:Date.now(),x:mapTouch.x,y:mapTouch.y};clearTimeout(infoTimer);infoTimer=setTimeout(()=>{if(lastTap===lt&&lt.t)showInfo(lt.x,lt.y);},310);}
   }
   else if(mapTouch&&mapTouch.mode==='pinch')lastTap.t=0;
   // al levantar un dedo del pellizco, seguir arrastrando con el otro sin saltos
@@ -1514,13 +1539,13 @@ function mapColors(){
 function drawMapScale(MC){
   // barra de escala abajo a la izquierda
   const ppm=state.mapScale/111320;if(!ppm)return;
-  const nice=[5,10,20,50,100,200,500,1000,2000,5000,10000,20000];
+  const nice=[0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000];
   const m=nice.find(v=>v*ppm>=70)||nice[nice.length-1],w=m*ppm,x=14,y=mapH-22;
   mapCtx.save();
   mapCtx.strokeStyle=MC.text;mapCtx.lineWidth=2;mapCtx.beginPath();
   mapCtx.moveTo(x,y-5);mapCtx.lineTo(x,y);mapCtx.lineTo(x+w,y);mapCtx.lineTo(x+w,y-5);mapCtx.stroke();
   mapCtx.fillStyle=MC.text;mapCtx.font='600 11px Barlow, sans-serif';
-  mapCtx.fillText(m>=1000?(m/1000)+' km':m+' m',x+4,y-8);
+  mapCtx.fillText(m>=1000?(m/1000)+' km':m<1?Math.round(m*100)+' cm':m+' m',x+4,y-8);
   mapCtx.restore();
 }
 function drawMap(){
@@ -1560,7 +1585,7 @@ function drawMap(){
 
   // PK markers every ~500m
   const totalDist=state.routeCoords[state.routeCoords.length-1].dist;
-  const ppm=state.mapScale/111320,interval=ppm*100>=45?100:ppm*500>=45?500:1000;
+  const ppm=state.mapScale/111320,interval=ppm*10>=45?10:ppm*20>=45?20:ppm*100>=45?100:ppm*500>=45?500:1000;
   // marcas en PK reales (múltiplos del intervalo), sea cual sea el sentido o la calibración
   let prevPk=pkFromAlong(0,totalDist);
   for(let i=1;i<state.routeCoords.length;i++){
@@ -3560,6 +3585,7 @@ function paintLayers(){
     });
   });
   const zs=document.getElementById('cfg-utm');if(zs)zs.value=String(state.utmZone);
+  paintMapLayers();
 }
 async function setUtmZone(z){
   z=parseInt(z);if(!(z>=1&&z<=60))return;
@@ -3704,7 +3730,47 @@ function cardinal(b){return['N','NE','E','SE','S','SO','O','NO'][Math.round(b/45
 function pkOfPt(p){
   if(state.routeCoords.length<2)return null;
   const pr=projectOnRoute(p.lat,p.lon);if(!pr)return null;
-  return{pk:pkFromAlong(pr.along,state.routeCoords[state.routeCoords.length-1].dist),off:pr.dist};
+  return{pk:pkFromAlong(pr.along,state.routeCoords[state.routeCoords.length-1].dist),off:pr.dist,side:((pr.cross>0)!==state.reverse)?'Izq.':'Der.'};
+}
+// ── tocar el mapa (sin medir): tarjeta con lo que hay ahí ──
+let infoPt=null,infoTimer=null;
+function showInfo(x,y){
+  const p=snapAt(x,y);infoPt=p;
+  const card=document.getElementById('map-info'),k=pkOfPt(p);
+  document.getElementById('mi-name').textContent=p.name+(p.d?' · '+p.d:'');
+  const rows=[utmText(p),
+    k?(k.off<1?`PK ${fmtPK(k.pk)} · sobre el eje`:k.off<500?`PK ${fmtPK(k.pk)} · ${k.off.toFixed(2)} m ${k.side} del eje`:`A ${fmtM(k.off,0)} del eje (fuera de ruta)`):'',
+    `Lat ${p.lat.toFixed(7)} · Lon ${p.lon.toFixed(7)}`,
+    state.lat!=null?(()=>{const r=geoDist({lat:state.lat,lon:state.lon},p);return `A ${fmtM(r.d,r.d<100?1:0)} de ti · hacia el ${cardinal(r.brg)}`;})():''];
+  document.getElementById('mi-rows').textContent=rows.filter(Boolean).join('\n');
+  card.classList.add('open');document.getElementById('btn-load-kmz-map').style.display='none';
+  drawMap();
+}
+function closeInfo(){infoPt=null;document.getElementById('map-info').classList.remove('open');if(!MEAS.mode)document.getElementById('btn-load-kmz-map').style.display='';drawMap();}
+function infoGo(){const p=infoPt;if(!p)return;closeInfo();measOpen();measMode('go');setGoTarget(p);drawMap();measPaint();}
+function infoMeasure(){const p=infoPt;if(!p)return;closeInfo();measOpen();measMode('ab');MEAS.pts=[p];drawMap();measPaint();}
+async function infoCopy(){
+  const p=infoPt;if(!p)return;const u=latLonToUtm(p.lat,p.lon,state.utmZone),t=`${p.name}\tN ${u.N.toFixed(3)}\tE ${u.E.toFixed(3)}${p.z!=null?'\tZ '+p.z.toFixed(3):''}`;
+  try{await navigator.clipboard.writeText(t);showToast('Coordenadas copiadas');}catch(e){prompt('Copia las coordenadas:',t);}
+}
+// ── capas desde el mapa ──
+function toggleMapLayers(){const b=document.getElementById('map-layers');b.classList.toggle('open');document.getElementById('map-layers-btn').classList.toggle('on',b.classList.contains('open'));paintMapLayers();}
+function paintMapLayers(){
+  const box=document.getElementById('ml-list');if(!box||!document.getElementById('map-layers').classList.contains('open'))return;
+  box.innerHTML='';
+  const ax=el('div','ml-row ml-axis');ax.append(el('span','ml-eye','━'),el('b','',state.routeCoords.length?'Eje: '+state.routeName:'Sin eje principal'),el('small','',state.routeCoords.length?'da el PK':''));box.appendChild(ax);
+  if(!state.layers.length)box.appendChild(el('div','layer-empty','Sin capas. Usa "Cargar capa" o Config › Capas y planos.'));
+  state.layers.forEach(L=>{
+    const r=el('button','ml-row'+(L.visible?'':' off'));
+    const ey=el('span','ml-eye');ey.innerHTML=L.visible?ICON_EYE:ICON_EYE_OFF;
+    const sw=el('i','layer-sw');sw.style.background=L.type==='csv'?L.pc:(L.groups&&L.groups[0]?L.groups[0].c:(L.lines[0]||{}).c||'#c2410c');
+    const nm=el('b','',L.name);nm.prepend(sw);
+    r.append(ey,nm,el('small','',{kml:'KMZ',dxf:'DXF',csv:'CSV'}[L.type||'kml']));r.onclick=()=>layerToggle(L.id);box.appendChild(r);
+    if(L.groups&&L.groups.length>1&&L.visible)L.groups.forEach((g,i)=>{
+      const gr=el('button','ml-row ml-sub'+(g.v?'':' off'));const s2=el('i','layer-sw');s2.style.background=g.c;
+      const n2=el('span','grp-n',g.n);n2.prepend(s2);gr.append(el('span','ml-eye ml-dot',g.v?'●':'○'),n2);gr.onclick=()=>groupToggle(L.id,i);box.appendChild(gr);
+    });
+  });
 }
 function fromScreen(x,y){return{lat:-(y-state.mapOffset.y)/state.mapScale,lon:(x-state.mapOffset.x)/(mapCos()*state.mapScale)};}
 // Busca lo más cercano al dedo: 1) punto con nombre, 2) vértice, 3) sobre una línea; si nada está cerca, punto libre
@@ -3769,6 +3835,7 @@ function loupeShow(x,y){
 }
 function loupeHide(){document.getElementById('loupe').style.display='none';document.getElementById('loupe-lbl').style.display='none';}
 function measOpen(){
+  if(infoPt){infoPt=null;document.getElementById('map-info').classList.remove('open');}
   document.getElementById('meas-bar').classList.add('open');
   document.getElementById('map-measure').classList.add('on');
   document.getElementById('btn-load-kmz-map').style.display='none';
@@ -3864,6 +3931,8 @@ function drawMeasure(){
     for(let i=1;i<P.length;i++){const a=toScreen(P[i-1].lat,P[i-1].lon),b=toScreen(P[i].lat,P[i].lon);if(Math.hypot(a.x-b.x,a.y-b.y)>60)tag((a.x+b.x)/2+4,(a.y+b.y)/2-4,fmtM(geoDist(P[i-1],P[i]).d,1));}
     P.forEach((p,i)=>dot(p,false,MEAS.mode==='ab'?(i?'B':'A'):null));
   }
+  if(infoPt&&!MEAS.mode){const q=toScreen(infoPt.lat,infoPt.lon);mapCtx.beginPath();mapCtx.arc(q.x,q.y,8,0,7);mapCtx.fillStyle='rgba(31,58,95,.18)';mapCtx.fill();mapCtx.lineWidth=2.5;mapCtx.strokeStyle='#1f3a5f';mapCtx.stroke();
+    mapCtx.beginPath();mapCtx.moveTo(q.x-13,q.y);mapCtx.lineTo(q.x+13,q.y);mapCtx.moveTo(q.x,q.y-13);mapCtx.lineTo(q.x,q.y+13);mapCtx.lineWidth=1.2;mapCtx.stroke();}
   const g=state.goTarget;
   if(g&&(MEAS.mode==='go'||!MEAS.mode)){
     if(state.lat!=null){const a=toScreen(state.lat,state.lon),b=toScreen(g.lat,g.lon);mapCtx.strokeStyle=C;mapCtx.lineWidth=2;mapCtx.setLineDash([7,6]);mapCtx.beginPath();mapCtx.moveTo(a.x,a.y);mapCtx.lineTo(b.x,b.y);mapCtx.stroke();mapCtx.setLineDash([]);}
@@ -3880,13 +3949,13 @@ function paintPoints(){
   const all=[];state.layers.forEach(L=>L.points.forEach(p=>{if(!p.t)all.push({...p,layer:L.name,vis:L.visible});}));
   const me=state.lat!=null?{lat:state.lat,lon:state.lon}:null;
   let list=all.filter(p=>!q||(p.n||'').toLowerCase().includes(q)||(p.d||'').toLowerCase().includes(q)||p.layer.toLowerCase().includes(q));
-  list.forEach(p=>p.d=me?geoDist(me,p).d:null);
-  list.sort((a,b)=>me?a.d-b.d:(a.n||'').localeCompare(b.n||'',undefined,{numeric:true}));
+  list.forEach(p=>p._dist=me?geoDist(me,p).d:null);
+  list.sort((a,b)=>me?a._dist-b._dist:(a.n||'').localeCompare(b.n||'',undefined,{numeric:true}));
   document.getElementById('pts-count').textContent=all.length?`${list.length} de ${all.length} puntos${me?' · ordenados por cercanía':''}`:'';
   if(!all.length){box.appendChild(el('div','layer-empty','Las capas no traen puntos. Carga las bases como CSV (punto, norte, este, cota, descripción) o como puntos con nombre en el KMZ.'));return;}
   list.slice(0,300).forEach(p=>{
     const b=el('button','pt-row');const k=pkOfPt(p);
-    b.append(el('b','',(p.n||'(sin nombre)')+(p.d?' · '+p.d:'')),el('small','',[p.layer+(p.vis?'':' (oculta)'),k&&k.off<500?'PK '+fmtPK(k.pk):'',p.z!=null?'Z '+p.z.toFixed(2):''].filter(Boolean).join(' · ')),el('span','pt-d',p.d!=null?fmtM(p.d,0):''));
+    b.append(el('b','',(p.n||'(sin nombre)')+(p.d?' · '+p.d:'')),el('small','',[p.layer+(p.vis?'':' (oculta)'),k&&k.off<500?'PK '+fmtPK(k.pk):'',p.z!=null?'Z '+p.z.toFixed(2):''].filter(Boolean).join(' · ')),el('span','pt-d',p._dist!=null?fmtM(p._dist,0):''));
     b.onclick=()=>{closePoints();if(!MEAS.mode||MEAS.mode!=='go'){measOpen();measMode('go');}setGoTarget({lat:p.lat,lon:p.lon,name:p.n||'Punto de '+p.layer,kind:'punto',z:p.z??null,d:p.d||''});setFollow(false);mapCenterOn(p.lat,p.lon);measPaint();};
     box.appendChild(b);
   });
@@ -3950,6 +4019,8 @@ window.obrasnapBack=function(){
   if(open('csv-bg')){closeCsv();return true;}
   if(open('pts-bg')){closePoints();return true;}
   if(state.tab==='map'&&MEAS.mode){measClose();return true;}
+  if(state.tab==='map'&&infoPt){closeInfo();return true;}
+  if(state.tab==='map'&&document.getElementById('map-layers').classList.contains('open')){toggleMapLayers();return true;}
   if(open('kmzpick-bg')){document.getElementById('kmzpick-bg').classList.remove('open');return true;}
   if(state.tab==='config'&&state.cfgPage){cfgPage(null);return true;}
   if(state.tab!=='cam'){switchTab('cam');return true;}
