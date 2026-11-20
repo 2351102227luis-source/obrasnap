@@ -131,7 +131,13 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 #set-head b,.sheet-head b{font-size:16px;font-weight:600;}
 #set-head span,.sheet-head span{width:52px;}
 #set-head button,.sheet-head button{background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:16px;font-weight:600;cursor:pointer;width:52px;text-align:right;}
-#set-prev-wrap{height:30vh;display:flex;align-items:center;justify-content:center;background:var(--bg3);padding:8px;}
+#set-prev-wrap{height:38vh;display:flex;align-items:center;justify-content:center;background:var(--bg3);padding:8px;position:relative;cursor:zoom-in;}
+#set-prev-wrap::after{content:'Toca para ver en grande';position:absolute;bottom:12px;right:14px;background:rgba(0,0,0,.55);color:#fff;font-family:var(--sans);font-size:11px;padding:3px 8px;border-radius:10px;pointer-events:none;}
+#prev-full{position:fixed;inset:0;z-index:175;background:#000;display:none;flex-direction:column;}
+#prev-full.open{display:flex;}
+#prev-full .sheet-head{background:#000;border-bottom:1px solid #222;color:#fff;}
+#prev-full .head-back{color:#f3ead8 !important;}
+#prev-full canvas{flex:1;width:100%;min-height:0;object-fit:contain;}
 #set-preview{max-width:100%;max-height:100%;height:100%;border-radius:8px;background:#333;}
 #set-body{flex:1;overflow-y:auto;padding:4px 16px 32px;}
 .set-sec{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:20px 4px 7px;}
@@ -648,9 +654,13 @@ input[type=file]{display:none;}
   <pre id="log-text"></pre>
   <div style="padding:10px 16px 18px;"><button class="set-btn" style="width:100%;padding:12px" onclick="shareLog()">Compartir registro (para soporte)</button></div>
 </div>
+<div id="prev-full">
+  <div class="sheet-head"><button class="head-back" onclick="closePrevFull()">‹ Ajustes</button><b>Vista previa</b><span class="head-pad"></span></div>
+  <canvas id="prev-full-canvas"></canvas>
+</div>
 <div id="settings">
   <div id="set-head"><button id="set-back" onclick="settingsBack()">‹ Cámara</button><b id="set-title">Ajustes</b><span class="head-pad"></span></div>
-  <div id="set-prev-wrap"><canvas id="set-preview"></canvas></div>
+  <div id="set-prev-wrap" onclick="openPrevFull()"><canvas id="set-preview"></canvas></div>
   <div id="set-body"></div>
   <input type="file" id="logo-file" accept="image/*" onchange="loadLogo(this)">
 </div>
@@ -663,7 +673,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-o';
+const APP_VERSION='2026.11.20-p';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1064,7 +1074,7 @@ function projectOnRoute(lat,lon){
     let t=len2?((P.x-A.x)*dx+(P.y-A.y)*dy)/len2:0;
     t=Math.max(0,Math.min(1,t));
     const d=Math.hypot(P.x-(A.x+t*dx),P.y-(A.y+t*dy));
-    if(d<best){best=d;along=A.dist+t*(B.dist-A.dist);cross=dx*(P.y-A.y)-dy*(P.x-A.x);seg={dx,dy};}
+    if(d<best){best=d;along=A.dist+t*(B.dist-A.dist);cross=dx*(P.y-A.y)-dy*(P.x-A.x);seg={dx,dy,qx:A.x+t*dx,qy:A.y+t*dy,px:P.x,py:P.y};}
   }
   return{along,dist:best,cross,seg};
 }
@@ -1877,7 +1887,7 @@ const SETTINGS_SCHEMA=[
     {type:'pos9',k:'brandPos',label:'Marca / logo',show:st=>st.brand!=='ninguna'},
   ]},
   {title:'Mini mapa del eje',icon:'⌖',sum:st=>st.mapOn?`Activo · ${st.mapRange} m · ${POS_NAMES[st.mapPos]}`:'Apagado',rows:[
-    {type:'toggle',k:'mapOn',label:'Mostrar mini mapa',sub:'Tramo del eje alrededor de la foto, marcas de PK, norte y hacia dónde apunta la cámara'},
+    {type:'toggle',k:'mapOn',label:'Mostrar mini mapa',sub:'Tramo del eje alrededor de la foto, marcas de PK, norte y hacia dónde apunta la cámara. Si estás lejos del eje, indica la distancia y hacia dónde queda.'},
     {type:'pos9',k:'mapPos',label:'Posición del mini mapa',show:st=>st.mapOn},
     {type:'seg',k:'mapRange',label:'Alcance',opts:[[150,'150 m'],[300,'300 m'],[600,'600 m'],[1000,'1 km']],show:st=>st.mapOn},
     {type:'range',k:'mapScale',label:'Tamaño del mini mapa',min:0.6,max:2,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.mapOn},
@@ -1917,6 +1927,16 @@ function openSettings(page=null){
   setTimeout(renderSettingsPreview,30);
 }
 function closeSettings(){document.getElementById('settings').classList.remove('open');}
+// Vista previa en grande (para revisar el stamp con detalle)
+function openPrevFull(){document.getElementById('prev-full').classList.add('open');setTimeout(renderPrevFull,30);}
+function closePrevFull(){document.getElementById('prev-full').classList.remove('open');}
+function renderPrevFull(){
+  const c=document.getElementById('prev-full-canvas'),wrap=c.parentElement;
+  const ar=photoAspect(),aw=wrap.clientWidth,ah=wrap.clientHeight-56;
+  let w=aw,h=aw*ar.h/ar.w;if(h>ah){h=ah;w=ah*ar.w/ar.h;}
+  c.style.width=Math.round(w)+'px';c.style.height=Math.round(h)+'px';c.style.flex='none';c.style.margin='auto';
+  previewOn(c);
+}
 function renderSettingsPreview(){
   const c=document.getElementById('set-preview');
   const ar=photoAspect();
@@ -2431,12 +2451,36 @@ function syncVolumeShutter(){
 window.obrasnapShutter=function(){if(state.tab==='cam')shutterPressed();};
 
 // ── MINI MAPA DEL EJE dentro de la foto ──
+// Recuadro del mini mapa cuando no se puede dibujar el tramo: dice por qué (y hacia dónde está el eje)
+function drawMiniMapMsg(ctx,pos,size,s,th,st,lines,arrowRad){
+  const light=!!th.light,bg=th.bg||[0,0,0],op=th.bg?(st.op!=null?st.op:th.op):0.45,ink=light?'#1f2a3a':'#ffffff';
+  ctx.save();
+  roundRect(ctx,pos.x,pos.y,size,size,16*s);ctx.fillStyle=`rgba(${bg.join(',')},${op})`;ctx.fill();
+  const cx=pos.x+size/2;let y=pos.y+size*(arrowRad!=null?0.2:0.36);
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=ink;
+  lines.forEach((t,i)=>{ctx.font=`${i?500:700} ${(i?22:26)*s}px 'Barlow Condensed',sans-serif`;ctx.fillText(fitText(ctx,t,size-20*s),cx,y);y+=(i?26:32)*s;});
+  if(arrowRad!=null){ // flecha hacia el eje (norte arriba)
+    const ay=pos.y+size*0.72,L=size*0.17;
+    ctx.translate(cx,ay);ctx.rotate(arrowRad);
+    ctx.beginPath();ctx.moveTo(0,-L);ctx.lineTo(L*0.55,L*0.15);ctx.lineTo(L*0.18,L*0.15);ctx.lineTo(L*0.18,L);ctx.lineTo(-L*0.18,L);ctx.lineTo(-L*0.18,L*0.15);ctx.lineTo(-L*0.55,L*0.15);ctx.closePath();
+    ctx.fillStyle=th.bg?th.title:'#ffc20e';ctx.fill();
+  }
+  ctx.restore();
+}
 function drawMiniMap(ctx,W,H,s,mg,st,m,th){
-  if(!st.mapOn||m.lat==null||state.routeCoords.length<2)return;
-  const P=toXY(m.lat,m.lon),pr=projectOnRoute(m.lat,m.lon);
-  if(!pr||pr.dist>Math.max(800,st.mapRange*2))return;
+  if(!st.mapOn)return;
   const size=Math.round(300*s*(st.mapScale||1)),range=st.mapRange||300,k=size/2/range;
   const pos=placeBox(st.mapPos||'br',W,H,size,size,mg),cx=pos.x+size/2,cy=pos.y+size/2;
+  if(state.routeCoords.length<2)return drawMiniMapMsg(ctx,pos,size,s,th,st,['Mini mapa','Sin eje cargado']);
+  if(m.lat==null)return drawMiniMapMsg(ctx,pos,size,s,th,st,['Mini mapa','Esperando GPS…']);
+  const P=toXY(m.lat,m.lon),pr=projectOnRoute(m.lat,m.lon);
+  if(!pr)return;
+  if(pr.dist>Math.max(800,range*2)){
+    const d=pr.dist,txt=d>=1000?(d/1000).toFixed(d>=10000?0:1)+' km':Math.round(d)+' m';
+    const total=state.routeCoords[state.routeCoords.length-1].dist;
+    const ang=Math.atan2(pr.seg.qx-pr.seg.px,pr.seg.qy-pr.seg.py); // rumbo hacia el punto más cercano del eje
+    return drawMiniMapMsg(ctx,pos,size,s,th,st,['Fuera del eje','a '+txt+' del eje','PK más cercano '+fmtPK(pkFromAlong(pr.along,total))],ang);
+  }
   const X=c=>cx+(c.x-P.x)*k,Y=c=>cy-(c.y-P.y)*k;
   const light=!!th.light,bg=th.bg||[0,0,0],op=th.bg?(st.op!=null?st.op:th.op):0.45;
   const ink=light?'#1f2a3a':'#ffffff',route=th.bg?th.title:'#ffc20e',sub=light?'rgba(31,42,58,.6)':'rgba(255,255,255,.7)';
@@ -2772,6 +2816,7 @@ async function nativeTransfer(blob,name,mode){
 window.obrasnapBack=function(){
   const open=id=>document.getElementById(id).classList.contains('open');
   if(open('log-view')){closeLog();return true;}
+  if(open('prev-full')){closePrevFull();return true;}
   if(open('settings')){if(state.setPage!=null)settingsBack();else closeSettings();return true;}
   if(open('viewer')){closeViewer();return true;}
   if(open('style-bg')){closeStyle();return true;}

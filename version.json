@@ -1,6 +1,6 @@
 {
-  "versionCode": 11,
-  "versionName": "2.9",
+  "versionCode": 12,
+  "versionName": "2.10",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Botones \"‹ Regresar\" en todas las ventanas (Exportar, Actividad, Nota, visor) y doble atrás para salir de la app."
+  "notas": "Mini mapa siempre visible (lejos del eje indica distancia y dirección); vista previa de Ajustes más grande y en pantalla completa."
 }
