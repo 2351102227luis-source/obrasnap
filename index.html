@@ -163,6 +163,9 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 .set-switch input:checked+span{background:var(--accent);}
 .set-switch input:checked+span::before{transform:translateX(20px);}
 
+.set-example{font-family:var(--mono);font-size:13px;color:var(--accent);background:var(--bg);border:1px dashed var(--surface2);border-radius:8px;padding:8px 10px;word-break:break-all;}
+.set-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.set-chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--surface2);background:var(--bg3);color:var(--text);border-radius:6px;padding:5px 7px;cursor:pointer;}
 #settings .swatch{border-color:var(--surface2);}
 #settings .swatch.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg2) inset;}
 
@@ -651,7 +654,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-k';
+const APP_VERSION='2026.11.20-l';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1399,6 +1402,7 @@ async function capturePhoto(){
     const f=document.getElementById('flash');
     f.style.opacity=.85;setTimeout(()=>f.style.opacity=0,90);
     const meta=snapshotMeta(W,H);
+    assignFileName(meta);
     if(st.saveOriginal){
       let orig=await new Promise(r=>canvas.toBlob(r,'image/jpeg',st.quality||0.92));
       try{orig=await addExif(orig,meta);}catch(e){}
@@ -1488,7 +1492,8 @@ const DEFAULT_STYLE={
   pkSep:false,pkPos:'tr',
   brand:'texto',brandPos:'tr',brandScale:1,
   aspect:'4:3',quality:0.92,grid:false,timer:0,sound:true,vibrate:true,saveOriginal:false,
-  mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true
+  mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true,
+  fileFmt:'{AAMMDD}_{PK}_{HHMM}_{N}',seqReset:'day',seqDigits:3
 };
 const FIELD_NAMES={obra:'Nombre de obra',pk:'PK',act:'Actividad',datetime:'Fecha y hora',coords:'Coordenadas GPS',note1:'Texto libre 1',note2:'Texto libre 2',heading:'Rumbo (brújula)'};
 function normalizeStyle(st){
@@ -1883,6 +1888,7 @@ const SETTINGS_SCHEMA=[
     {type:'toggle',k:'sound',label:'Sonido del obturador'},
     {type:'toggle',k:'vibrate',label:'Vibrar al tomar la foto'},
   ]},
+  {title:'Nombre de los archivos',rows:[{type:'filename'}]},
   {title:'Guardado',rows:[
     {type:'toggle',k:'_autoSave',label:'Guardar cada foto en Descargas',get:()=>state.autoSave,set:v=>{state.autoSave=v;const c=document.getElementById('cfg-autosave');if(c)c.checked=v;}},
     {type:'toggle',k:'saveOriginal',label:'Guardar también la foto sin datos',sub:'Se descarga una copia limpia junto a la foto con stamp'},
@@ -1917,6 +1923,35 @@ function buildSettings(){
     sec.rows.forEach(row=>{
       if(row.show&&!row.show(st))return;
       const get=row.get||(()=>st[row.k]),set=row.set||(v=>{st[row.k]=v;});
+      if(row.type==='filename'){
+        const ex=()=>{const m=liveMeta();return buildFileName(m,'jpg',peekSeq(m.ts));};
+        const r0=el('div','set-row set-col');
+        r0.appendChild(el('div','set-hint','Va en la configuración de la obra: al compartirla, todo el equipo usa el mismo formato.'));
+        const pre=el('div','set-seg');
+        FILE_PRESETS.forEach(([f,l])=>{const b=el('button',st.fileFmt===f?'on':'',l);b.onclick=()=>{st.fileFmt=f;settingChanged();};pre.appendChild(b);});
+        r0.appendChild(pre);card.appendChild(r0);
+        const r1=el('div','set-row set-col');
+        r1.appendChild(el('div','set-name','Formato (puedes escribir el tuyo)'));
+        const inp=el('input','set-input');inp.type='text';inp.value=st.fileFmt;inp.maxLength=120;inp.spellcheck=false;
+        const exv=el('div','set-example');exv.textContent=ex();
+        inp.oninput=()=>{st.fileFmt=inp.value;saveSettings();exv.textContent=ex();pre.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',FILE_PRESETS[i][0]===st.fileFmt));};
+        r1.append(inp);
+        const chips=el('div','set-chips');
+        FILE_TOKENS.forEach(([t,l])=>{const c=el('button','set-chip',t);c.title=l;c.onclick=()=>{const a=inp.selectionStart??inp.value.length,b2=inp.selectionEnd??a,prev=inp.value.slice(0,a),ins=(prev&&!/[_\-. ]$/.test(prev)?'_':'')+t;inp.value=prev+ins+inp.value.slice(b2);inp.focus();inp.setSelectionRange(a+ins.length,a+ins.length);inp.oninput();};chips.appendChild(c);});
+        r1.append(chips,el('div','set-hint','Ejemplo de la próxima foto:'),exv);
+        card.appendChild(r1);
+        const r2=el('div','set-row set-col');r2.appendChild(el('div','set-name','Consecutivo {N}'));
+        const sg=el('div','set-seg');[['day','Reinicia cada día'],['obra','Sigue siempre (por obra)']].forEach(([v,l])=>{const b=el('button',st.seqReset===v?'on':'',l);b.onclick=()=>{st.seqReset=v;settingChanged();};sg.appendChild(b);});
+        const sd=el('div','set-seg');[[1,'1'],[2,'01'],[3,'001'],[4,'0001']].forEach(([v,l])=>{const b=el('button',st.seqDigits===v?'on':'',l);b.onclick=()=>{st.seqDigits=v;settingChanged();};sd.appendChild(b);});
+        const rs=el('button','set-btn','Reiniciar a 1');rs.onclick=()=>{if(confirm('¿Reiniciar el consecutivo de esta obra en este teléfono?')){resetSeq();settingChanged();}};
+        r2.append(sg,sd,el('div','set-hint',`Siguiente número en este teléfono: ${peekSeq()}`),rs);card.appendChild(r2);
+        const r3=el('div','set-row set-col');
+        r3.append(el('div','set-name','Iniciales de este teléfono {INI}'),el('div','set-hint','Evitan nombres repetidos entre compañeros. No se comparten con la obra.'));
+        const ini=el('input','set-input');ini.type='text';ini.maxLength=4;ini.placeholder='Ej. LH';ini.value=deviceInitials();
+        ini.oninput=()=>{ini.value=setDeviceInitials(ini.value);exv.textContent=ex();};
+        r3.appendChild(ini);card.appendChild(r3);
+        return;
+      }
       if(row.type==='fields'){
         st.fields.forEach((f,i)=>{
           const r=el('div','set-row');
@@ -2095,6 +2130,9 @@ function validateProfile(o){
     actividades:Array.isArray(ob.actividades)?ob.actividades.filter(a=>typeof a==='string'&&a.trim()).map(a=>a.trim().slice(0,60)).slice(0,60):DEFAULT_ACTIVITIES.slice()};
   out.stamp=normalizeStyle(o.stamp&&typeof o.stamp==='object'?{...o.stamp}:{});
   ['note1','note2'].forEach(k=>out.stamp[k]=str(out.stamp[k],80));
+  out.stamp.fileFmt=str(out.stamp.fileFmt,120)||DEFAULT_STYLE.fileFmt;
+  if(!['day','obra'].includes(out.stamp.seqReset))out.stamp.seqReset='day';
+  out.stamp.seqDigits=Math.min(5,Math.max(1,parseInt(out.stamp.seqDigits)||3));
   if(!STAMP_THEMES[out.stamp.bg])out.stamp.bg='negro';
   out.pk={pk0:str(o.pk&&o.pk.pk0,20),reverse:!!(o.pk&&o.pk.reverse)};
   out.logo=typeof o.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(o.logo)&&o.logo.length<1.5e6?o.logo:null;
@@ -2484,6 +2522,7 @@ async function importPhotos(input){
       canvas.width=W;canvas.height=H;ctx.drawImage(bmp,0,0,W,H);if(bmp.close)bmp.close();
       const meta=metaAt(ex.lat,ex.lon,ts,{w:W,h:H,alt:ex.alt??null,imported:true,src:f.name.slice(0,80),dateSrc:ex.dt?'exif':'archivo'});
       if(meta.lat!=null)gps++;
+      assignFileName(meta);
       drawStampOnCanvas(ctx,W,H,meta);
       let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',state.stampStyle.quality||0.92));
       try{blob=await addExif(blob,meta);}catch(e){}
@@ -2564,7 +2603,7 @@ async function toggleRecording(){
     const type=(mr.mimeType||mime||'video/webm').split(';')[0];
     const blob=new Blob(chunks,{type});
     const secs=Math.round((Date.now()-t0)/1000);
-    const name=photoFileName(meta0).replace(/^ObraSnap_/,'ObraSnap_VID_').replace(/\.jpg$/,type.includes('mp4')?'.mp4':'.webm');
+    const name=assignFileName({...meta0,ts:t0},type.includes('mp4')?'mp4':'webm');
     await downloadBlob(blob,name);
     logEv('INFO',`Video ${W}×${H} · ${secs} s · ${Math.round(blob.size/1048576*10)/10} MB · ${type} · PK ${meta0.pkLabel}`);
     showToast(`Video guardado (${secs} s)${NATIVE?' en Películas › ObraSnap':''}`);
@@ -2587,8 +2626,58 @@ async function toggleRecording(){
 }
 function stopRecordingIfAny(){if(rec)try{rec.mr.stop();}catch(e){}}
 
+// ── NOMBRE DE LOS ARCHIVOS (formato de la obra, igual para todo el equipo) ──
+// El formato va en state.stampStyle.fileFmt (viaja en el archivo .obrasnap). Las iniciales son de cada teléfono.
+const FILE_TOKENS=[
+  ['{AAMMDD}','Fecha 261120'],['{AAAAMMDD}','Fecha 20261120'],['{HHMM}','Hora 0915'],['{HHMMSS}','Hora 091530'],
+  ['{PK}','PK 7+400'],['{PKN}','PK 007400 (ordena bien)'],['{N}','Consecutivo 001'],['{INI}','Iniciales del teléfono'],
+  ['{OBRA}','Obra'],['{ACT}','Actividad'],['{LADO}','Izq / Der'],
+  ['{AAAA}','Año'],['{AA}','Año 26'],['{MM}','Mes'],['{DD}','Día'],['{HH}','Hora'],['{mm}','Minutos'],['{ss}','Segundos'],
+];
+const FILE_PRESETS=[
+  ['{AAMMDD}_{PK}_{HHMM}_{N}','Equipo: 261120_7+400_0915_001'],
+  ['{AAMMDD}_{PK}_{HHMM}_{INI}{N}','Con iniciales: 261120_7+400_0915_LH001'],
+  ['{PKN}_{AAAAMMDD}_{HHMMSS}','Por PK: 007400_20261120_091530'],
+  ['{OBRA}_{AAMMDD}_{N}','Por obra: LagunaVerde_261120_001'],
+  ['ObraSnap_PK{PK}_{AAAA}-{MM}-{DD}_{HH}-{mm}-{ss}','Clásico (anterior)'],
+];
+function deviceInitials(){try{return(localStorage.getItem('obrasnap.ini')||'').toUpperCase();}catch(e){return '';}}
+function setDeviceInitials(v){v=(v||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,4);try{localStorage.setItem('obrasnap.ini',v);}catch(e){}return v;}
+const fileSafe=(t,max=24)=>(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w+.-]+/g,' ').trim().split(/\s+/).map(w=>w&&w[0].toUpperCase()+w.slice(1)).join('').slice(0,max);
+
+// Consecutivo por obra (y por día si así se eligió); se guarda en el teléfono
+function seqKey(){return 'obrasnap.seq.'+(state.profileId||'x');}
+function peekSeq(ts){
+  const st=state.stampStyle,day=new Date(ts||Date.now()).toDateString();
+  let c={day:'',n:0};try{c=JSON.parse(localStorage.getItem(seqKey())||'null')||c;}catch(e){}
+  return st.seqReset==='day'&&c.day!==day?1:c.n+1;
+}
+function nextSeq(ts){
+  const n=peekSeq(ts);
+  try{localStorage.setItem(seqKey(),JSON.stringify({day:new Date(ts||Date.now()).toDateString(),n}));}catch(e){}
+  return n;
+}
+function resetSeq(){try{localStorage.removeItem(seqKey());}catch(e){}}
+
+function buildFileName(m,ext='jpg',seqOverride){
+  const st=state.stampStyle,d=new Date(m.ts),p=n=>String(n).padStart(2,'0');
+  const Y=String(d.getFullYear()),M=p(d.getMonth()+1),D=p(d.getDate()),h=p(d.getHours()),mi=p(d.getMinutes()),s=p(d.getSeconds());
+  const seq=seqOverride??m.seq??1;
+  const pkN=m.pk!=null?String(Math.round(m.pk)).padStart(6,'0'):'SINPK';
+  const map={'{AAAAMMDD}':Y+M+D,'{AAMMDD}':Y.slice(2)+M+D,'{HHMMSS}':h+mi+s,'{HHMM}':h+mi,
+    '{PKN}':pkN,'{PK}':m.pk!=null?m.pkLabel:'SIN-PK','{N}':String(seq).padStart(st.seqDigits||3,'0'),
+    '{INI}':deviceInitials(),'{OBRA}':fileSafe(m.obra),'{ACT}':fileSafe(m.act),'{LADO}':m.side||'',
+    '{AAAA}':Y,'{AA}':Y.slice(2),'{MM}':M,'{DD}':D,'{HH}':h,'{mm}':mi,'{ss}':s};
+  let name=(st.fileFmt||FILE_PRESETS[0][0]).replace(/\{[A-Za-z]+\}/g,t=>t in map?map[t]:t);
+  name=name.replace(/[\\/:*?"<>|\s]+/g,'_').replace(/_{2,}/g,'_').replace(/^[_.-]+|[_.-]+$/g,'')||'ObraSnap';
+  return name.slice(0,120)+'.'+ext;
+}
+// Asigna número y nombre en el momento de tomar/importar la foto (así el nombre no cambia después)
+function assignFileName(m,ext){m.seq=nextSeq(m.ts);m.fname=buildFileName(m,ext);return m.fname;}
+
 // ── DESCARGA / COMPARTIR ──
 function photoFileName(m){
+  if(m.fname)return m.fname; // nombre asignado al tomar la foto (formato de la obra)
   const d=new Date(m.ts),p=n=>String(n).padStart(2,'0');
   const stamp=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
   return `ObraSnap_${m.pk!=null?'PK'+m.pkLabel+'_':''}${stamp}.jpg`;

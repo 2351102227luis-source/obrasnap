@@ -61,6 +61,13 @@ estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje 
 - **Video con stamp** (modo VIDEO): stamp en vivo con hora, GPS y PK, con audio; MP4 cuando el teléfono lo permite
   (si no, WebM), 1280 px, máximo 10 min. Se guarda en Películas › ObraSnap.
 
+## Nombre de los archivos (2.6)
+
+Ajustes → **Nombre de los archivos**. El formato es parte de la obra (viaja en el `.obrasnap`), así todo el equipo nombra igual.
+Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (7+400) `{PKN}` (007400) `{N}` (consecutivo) `{INI}` (iniciales del teléfono)
+`{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_7+400_0915_001`.
+El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
+
 ## Diagnóstico
 
 Config → Diagnóstico muestra versión, cámara, GPS, eje y último error.

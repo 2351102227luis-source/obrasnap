@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "2.5",
+  "versionCode": 8,
+  "versionName": "2.6",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Estampar fotos ya tomadas (con su fecha y GPS), código de autenticidad para verificar fotos y video con stamp."
+  "notas": "Nombre de archivos configurable para todo el equipo (ej. 261120_7+400_0915_001), con consecutivo e iniciales."
 }
