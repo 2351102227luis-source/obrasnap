@@ -68,6 +68,12 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (7+400) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_7+400_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Menús (2.7)
+
+**Ajustes** (⚙ en la cámara) y **Config** son menús: cada renglón muestra el valor actual y abre su propia pantalla
+("‹ Ajustes" / "‹ Config" o el botón atrás para regresar). Los temas de Ajustes están en `SETTINGS_SCHEMA`
+y los de Config en `CFG_MENU` (index.html).
+
 ## Diagnóstico
 
 Config → Diagnóstico muestra versión, cámara, GPS, eje y último error.

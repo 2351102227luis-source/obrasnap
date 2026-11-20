@@ -166,6 +166,18 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 .set-example{font-family:var(--mono);font-size:13px;color:var(--accent);background:var(--bg);border:1px dashed var(--surface2);border-radius:8px;padding:8px 10px;word-break:break-all;}
 .set-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .set-chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--surface2);background:var(--bg3);color:var(--text);border-radius:6px;padding:5px 7px;cursor:pointer;}
+.menu-card{background:var(--surface);border:1px solid var(--surface2);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.menu-it{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:none;border-bottom:1px solid var(--surface2);background:none;color:var(--text);font-family:var(--sans);text-align:left;cursor:pointer;}
+.menu-it:last-child{border-bottom:none;}
+.menu-it:active{background:var(--bg3);}
+.menu-ic{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.menu-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.menu-tx b{font-size:14.5px;font-weight:600;}
+.menu-tx small{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.menu-ch{font-size:20px;color:var(--text2);line-height:1;}
+#set-head #set-back{width:auto;min-width:52px;text-align:left;visibility:hidden;white-space:nowrap;}
+#cfg-back{display:none;background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;padding:0 10px 0 0;}
+#config-header{display:flex;align-items:center;}
 #settings .swatch{border-color:var(--surface2);}
 #settings .swatch.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg2) inset;}
 
@@ -395,10 +407,11 @@ input[type=file]{display:none;}
 
     <!-- ── CONFIG ── -->
     <div id="config-screen" class="screen">
-      <div id="config-header"><h2>Configuración</h2></div>
+      <div id="config-header"><button id="cfg-back" onclick="cfgPage(null)">‹ Config</button><h2 id="cfg-title">Configuración</h2></div>
 
-      <div class="config-section">
-        <div class="config-label">Obras</div>
+      <div class="config-section" id="cfg-menu" style="padding-bottom:24px"></div>
+
+      <div class="config-section cfg-page" data-page="obras" data-title="Obras" style="display:none;padding-bottom:24px">
         <div class="config-card">
           <div class="config-row">
             <div class="config-row-body">
@@ -424,23 +437,7 @@ input[type=file]{display:none;}
         </div>
       </div>
 
-      <div class="config-section">
-        <div class="config-label">Apariencia de la app</div>
-        <div class="theme-pick">
-          <button data-theme="arena" onclick="setAppTheme('arena')"><img src="icon-192.png" alt=""><b>Arena</b><span>Crema y azul marino</span></button>
-          <button data-theme="senal" onclick="setAppTheme('senal')"><img src="icon-senal-192.png" alt=""><b>Señalética</b><span>Azul marino y amarillo</span></button>
-        </div>
-        <div class="config-row-sub" id="theme-note" style="margin:6px 2px 14px"></div>
-      </div>
-
-      <div class="config-section">
-        <div class="config-label">Vista previa del stamp</div>
-        <canvas id="cfg-stamp-preview" style="width:100%;aspect-ratio:16/9;border-radius:8px;display:block;background:#333;"></canvas>
-        <button class="cfg-btn2" style="width:100%;margin:8px 0 4px;padding:10px;" onclick="switchTab('cam');openSettings()">Ajustes de cámara y stamp</button>
-      </div>
-
-      <div class="config-section">
-        <div class="config-label">Proyecto</div>
+      <div class="config-section cfg-page" data-page="proyecto" data-title="Proyecto y actividades" style="display:none;padding-bottom:24px">
         <div class="config-card">
           <div class="config-row">
             <div class="config-row-icon">
@@ -465,18 +462,10 @@ input[type=file]{display:none;}
             <div id="act-list"></div>
             <div style="display:flex;gap:8px;"><input type="text" id="act-new" class="act-new" placeholder="Nueva actividad..." maxlength="60"><button class="cfg-btn2" onclick="addActivity(document.getElementById('act-new').value);document.getElementById('act-new').value=''">Agregar</button></div>
           </div>
-          <div class="config-row">
-            <div class="config-row-body">
-              <div class="config-row-title">Guardar cada foto en Descargas</div>
-              <div class="config-row-sub">Copia de respaldo en el teléfono al tomar la foto</div>
-            </div>
-            <input type="checkbox" id="cfg-autosave" checked onchange="state.autoSave=this.checked;saveSettings()">
-          </div>
         </div>
       </div>
 
-      <div class="config-section">
-        <div class="config-label">Archivo KMZ de ruta</div>
+      <div class="config-section cfg-page" data-page="eje" data-title="Eje (KMZ)" style="display:none;padding-bottom:24px">
         <div class="config-card">
           <div class="config-row">
             <div class="config-row-icon">
@@ -512,8 +501,15 @@ input[type=file]{display:none;}
         </div>
       </div>
 
-      <div class="config-section" style="padding-bottom:24px;">
-        <div class="config-label">GPS</div>
+      <div class="config-section cfg-page" data-page="apariencia" data-title="Apariencia" style="display:none;padding-bottom:24px">
+        <div class="theme-pick">
+          <button data-theme="arena" onclick="setAppTheme('arena')"><img src="icon-192.png" alt=""><b>Arena</b><span>Crema y azul marino</span></button>
+          <button data-theme="senal" onclick="setAppTheme('senal')"><img src="icon-senal-192.png" alt=""><b>Señalética</b><span>Azul marino y amarillo</span></button>
+        </div>
+        <div class="config-row-sub" id="theme-note" style="margin:6px 2px 14px"></div>
+      </div>
+
+      <div class="config-section cfg-page" data-page="gps" data-title="GPS" style="display:none;padding-bottom:24px">
         <div class="config-card">
           <div class="config-row">
             <div class="config-row-icon">
@@ -525,8 +521,11 @@ input[type=file]{display:none;}
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="config-section cfg-page" data-page="app" data-title="Versión" style="display:none;padding-bottom:24px">
         <div id="app-section" style="display:none">
-          <div class="config-label">App</div>
+          
           <div class="config-card">
             <div class="config-row"><div class="config-row-body"><div class="config-row-title">Versión instalada</div><div class="config-row-sub" id="app-ver"></div></div></div>
             <div class="config-row" id="app-update" style="display:none;flex-direction:column;align-items:stretch;gap:8px;">
@@ -536,7 +535,9 @@ input[type=file]{display:none;}
             <div class="config-row"><button class="cfg-btn2" onclick="checkUpdate(true)">Buscar actualización</button></div>
           </div>
         </div>
-        <div class="config-label">Diagnóstico</div>
+      </div>
+
+      <div class="config-section cfg-page" data-page="diag" data-title="Diagnóstico" style="display:none;padding-bottom:24px">
         <div class="config-card">
           <div class="config-row"><div class="diag" id="diag"></div></div>
           <div class="config-row" style="gap:8px;">
@@ -550,6 +551,7 @@ input[type=file]{display:none;}
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- MODAL ACTIVIDAD -->
@@ -640,7 +642,7 @@ input[type=file]{display:none;}
   <div style="padding:10px 16px 18px;"><button class="set-btn" style="width:100%;padding:12px" onclick="shareLog()">Compartir registro (para soporte)</button></div>
 </div>
 <div id="settings">
-  <div id="set-head"><span></span><b>Ajustes</b><button onclick="closeSettings()">Listo</button></div>
+  <div id="set-head"><button id="set-back" onclick="settingsBack()">‹ Ajustes</button><b id="set-title">Ajustes</b><button onclick="closeSettings()">Listo</button></div>
   <div id="set-prev-wrap"><canvas id="set-preview"></canvas></div>
   <div id="set-body"></div>
   <input type="file" id="logo-file" accept="image/*" onchange="loadLogo(this)">
@@ -654,7 +656,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-l';
+const APP_VERSION='2026.11.20-m';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1705,7 +1707,7 @@ function previewOn(canvas){
   drawStampOnCanvas(ctx,W,H,liveMeta());
 }
 function renderStylePreview(){previewOn(document.getElementById('style-preview'));}
-function renderCfgPreview(){previewOn(document.getElementById('cfg-stamp-preview'));}
+function renderCfgPreview(){const c=document.getElementById('cfg-stamp-preview');if(c)previewOn(c);}
 
 // ── HOJA DE ESTILO ──
 function openStyle(){
@@ -1839,20 +1841,20 @@ async function addExif(blob,m){
 // ── AJUSTES (pantalla completa, generada desde un esquema) ──
 const POS9=[['tl','↖'],['tc','↑'],['tr','↗'],['ml','←'],['mc','•'],['mr','→'],['bl','↙'],['bc','↓'],['br','↘']];
 const SETTINGS_SCHEMA=[
-  {title:'Información en la foto',rows:[
+  {title:'Información en la foto',icon:'≡',sum:st=>st.fields.filter(f=>f.on).map(f=>FIELD_NAMES[f.k]).join(', ')||'Nada',rows:[
     {type:'fields'},
     {type:'toggle',k:'showSide',label:'Lado y distancia al eje'},
     {type:'toggle',k:'showAcc',label:'Precisión del GPS (±m)'},
     {type:'toggle',k:'showAlt',label:'Altitud'},
   ]},
-  {title:'Formatos',rows:[
+  {title:'Formatos',icon:'Aa',sum:st=>[optLabel('pkFmt',st.pkFmt),optLabel('dateFmt',st.dateFmt),optLabel('timeFmt',st.timeFmt),optLabel('coordFmt',st.coordFmt)].join(' · '),rows:[
     {type:'seg',k:'pkFmt',label:'PK',opts:[['pk','PK 7+399'],['pkdec','7+399.25'],['km','Km 7+399'],['num','7+399']]},
     {type:'seg',k:'sideFmt',label:'Lado',opts:[['izqder','38 m Izq.'],['lild','LI 38 m']]},
     {type:'seg',k:'dateFmt',label:'Fecha',opts:[['txt','19 Nov 2026'],['dmy','19/11/2026'],['iso','2026-11-19'],['dia','Jueves 19 Nov']]},
     {type:'seg',k:'timeFmt',label:'Hora',opts:[['24s','19:08:14'],['24','19:08'],['12s','7:08:14 p.m.'],['12','7:08 p.m.']]},
     {type:'seg',k:'coordFmt',label:'Coordenadas',opts:[['dec','Decimal'],['gms','G° M\' S"'],['utm','UTM']]},
   ]},
-  {title:'Apariencia',rows:[
+  {title:'Estilo del stamp',icon:'◐',sum:st=>`${STAMP_THEMES[st.bg].name}${STAMP_THEMES[st.bg].bg?' '+Math.round((st.op??STAMP_THEMES[st.bg].op)*100)+'%':''} · ${optLabel('font',st.font)} · ${Math.round(st.scale*100)}%`,rows:[
     {type:'swatch',k:'bg',label:'Fondo'},
     {type:'range',k:'op',label:'Opacidad del fondo',min:0.2,max:1,step:0.05,fmt:v=>Math.round(v*100)+'%',show:st=>!!STAMP_THEMES[st.bg].bg},
     {type:'seg',k:'textColor',label:'Color del texto',opts:[['auto','Auto'],['blanco','Blanco'],['negro','Negro'],['amarillo','Amarillo'],['verde','Verde']]},
@@ -1861,24 +1863,24 @@ const SETTINGS_SCHEMA=[
     {type:'seg',k:'align',label:'Alineación del texto',opts:[['auto','Auto'],['left','Izquierda'],['center','Centro'],['right','Derecha']]},
     {type:'range',k:'margin',label:'Separación del borde',min:0,max:3,step:0.25,fmt:v=>Math.round(v*100)+'%'},
   ]},
-  {title:'Posición de los elementos',rows:[
+  {title:'Posición de los elementos',icon:'⊞',sum:st=>`Datos ${POS_NAMES[st.pos]}${st.pkSep?' · PK '+POS_NAMES[st.pkPos]:''}`,rows:[
     {type:'pos9',k:'pos',label:'Bloque de datos'},
     {type:'toggle',k:'pkSep',label:'PK en un recuadro aparte'},
     {type:'pos9',k:'pkPos',label:'Recuadro del PK',show:st=>st.pkSep},
     {type:'pos9',k:'brandPos',label:'Marca / logo',show:st=>st.brand!=='ninguna'},
   ]},
-  {title:'Mini mapa del eje en la foto',rows:[
+  {title:'Mini mapa del eje',icon:'⌖',sum:st=>st.mapOn?`Activo · ${st.mapRange} m · ${POS_NAMES[st.mapPos]}`:'Apagado',rows:[
     {type:'toggle',k:'mapOn',label:'Mostrar mini mapa',sub:'Tramo del eje alrededor de la foto, marcas de PK, norte y hacia dónde apunta la cámara'},
     {type:'pos9',k:'mapPos',label:'Posición del mini mapa',show:st=>st.mapOn},
     {type:'seg',k:'mapRange',label:'Alcance',opts:[[150,'150 m'],[300,'300 m'],[600,'600 m'],[1000,'1 km']],show:st=>st.mapOn},
     {type:'range',k:'mapScale',label:'Tamaño del mini mapa',min:0.6,max:2,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.mapOn},
   ]},
-  {title:'Marca o logo de la empresa',rows:[
+  {title:'Marca o logo',icon:'★',sum:st=>optLabel('brand',st.brand),rows:[
     {type:'seg',k:'brand',label:'Mostrar',opts:[['texto','OBRASNAP'],['logo','Mi logo'],['ninguna','Nada']]},
     {type:'logo',show:st=>st.brand==='logo'},
     {type:'range',k:'brandScale',label:'Tamaño de la marca',min:0.5,max:3,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.brand!=='ninguna'},
   ]},
-  {title:'Cámara',rows:[
+  {title:'Cámara',icon:'◉',sum:st=>[st.aspect,optLabel('quality',st.quality),optLabel('orient',st.orient),st.timer?st.timer+' s':''].filter(Boolean).join(' · '),rows:[
     {type:'seg',k:'aspect',label:'Proporción de la foto',opts:[['4:3','4:3'],['16:9','16:9'],['1:1','1:1']],after:()=>{fitVideo();}},
     {type:'seg',k:'quality',label:'Calidad JPG',opts:[[0.92,'Alta'],[0.8,'Media'],[0.65,'Ligera']]},
     {type:'toggle',k:'grid',label:'Cuadrícula de encuadre',after:()=>applyGrid()},
@@ -1888,14 +1890,20 @@ const SETTINGS_SCHEMA=[
     {type:'toggle',k:'sound',label:'Sonido del obturador'},
     {type:'toggle',k:'vibrate',label:'Vibrar al tomar la foto'},
   ]},
-  {title:'Nombre de los archivos',rows:[{type:'filename'}]},
-  {title:'Guardado',rows:[
-    {type:'toggle',k:'_autoSave',label:'Guardar cada foto en Descargas',get:()=>state.autoSave,set:v=>{state.autoSave=v;const c=document.getElementById('cfg-autosave');if(c)c.checked=v;}},
+  {title:'Nombre de los archivos',icon:'#',sum:st=>{const m=liveMeta();return buildFileName(m,'jpg',peekSeq(m.ts));},rows:[{type:'filename'}]},
+  {title:'Guardado',icon:'↓',sum:st=>`Descargas: ${state.autoSave?'sí':'no'}${st.saveOriginal?' · copia sin datos':''}`,rows:[
+    {type:'toggle',k:'_autoSave',label:'Guardar cada foto en el teléfono',sub:'Galería › ObraSnap (app) o Descargas (navegador)',get:()=>state.autoSave,set:v=>{state.autoSave=v;saveSettings();}},
     {type:'toggle',k:'saveOriginal',label:'Guardar también la foto sin datos',sub:'Se descarga una copia limpia junto a la foto con stamp'},
   ]},
 ];
 
-function openSettings(){
+const POS_NAMES={tl:'arriba izq.',tc:'arriba centro',tr:'arriba der.',ml:'centro izq.',mc:'centro',mr:'centro der.',bl:'abajo izq.',bc:'abajo centro',br:'abajo der.'};
+function optLabel(k,v){for(const sec of SETTINGS_SCHEMA)for(const row of sec.rows)if(row.k===k&&row.opts){const o=row.opts.find(o=>o[0]===v);return o?o[1]:'';}return '';}
+state.setPage=null;
+function settingsPage(i){state.setPage=i;buildSettings();document.getElementById('set-body').scrollTop=0;}
+function settingsBack(){settingsPage(null);}
+function openSettings(page=null){
+  state.setPage=page;
   document.getElementById('settings').classList.add('open');
   buildSettings();
   setTimeout(renderSettingsPreview,30);
@@ -1917,8 +1925,20 @@ function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=
 function buildSettings(){
   const st=state.stampStyle,root=document.getElementById('set-body');
   const scroll=root.scrollTop;root.innerHTML='';
-  SETTINGS_SCHEMA.forEach(sec=>{
-    root.appendChild(el('div','set-sec',sec.title));
+  const page=state.setPage;
+  document.getElementById('set-back').style.visibility=page==null?'hidden':'visible';
+  document.getElementById('set-title').textContent=page==null?'Ajustes':SETTINGS_SCHEMA[page].title;
+  if(page==null){
+    // menú: un renglón por tema con su valor actual
+    const card=el('div','menu-card');
+    SETTINGS_SCHEMA.forEach((sec,i)=>card.appendChild(menuItem(sec.icon,sec.title,sec.sum(st),()=>settingsPage(i))));
+    root.append(el('div','set-sec','Toca un tema para cambiarlo'),card);
+    const reset=el('button','set-btn danger set-reset','Restablecer ajustes de cámara');
+    reset.onclick=()=>{if(!confirm('¿Volver a los valores originales del stamp y la cámara?'))return;state.stampStyle=normalizeStyle({});settingChanged({after:()=>{fitVideo();applyGrid();}});};
+    root.appendChild(reset);root.scrollTop=scroll;return;
+  }
+  [SETTINGS_SCHEMA[page]].forEach(sec=>{
+    root.appendChild(el('div','set-sec',''));
     const card=el('div','set-card');
     sec.rows.forEach(row=>{
       if(row.show&&!row.show(st))return;
@@ -2013,10 +2033,31 @@ function buildSettings(){
     });
     root.appendChild(card);
   });
-  const reset=el('button','set-btn danger set-reset','Restablecer ajustes de cámara');
-  reset.onclick=()=>{if(!confirm('¿Volver a los valores originales del stamp y la cámara?'))return;state.stampStyle=normalizeStyle({});settingChanged({after:()=>{fitVideo();applyGrid();}});};
-  root.appendChild(reset);
   root.scrollTop=scroll;
+}
+// renglón de menú (Ajustes y Config)
+const MENU_ICONS={
+  '≡':'<path d="M5 7h14M5 12h14M5 17h9"/>',
+  '◐':'<circle cx="12" cy="12" r="7.5"/><path d="M12 4.5a7.5 7.5 0 010 15z" fill="currentColor"/>',
+  '⊞':'<rect x="4.5" y="4.5" width="15" height="15" rx="2"/><rect x="6.5" y="13.5" width="6" height="4" fill="currentColor" stroke="none"/>',
+  '⌖':'<path d="M9 5L4 7v12l5-2 6 2 5-2V5l-5 2z"/><path d="M9 5v12M15 7v12"/>',
+  '★':'<path d="M12 4l2.4 5 5.4.6-4 3.7 1.1 5.3L12 16l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z"/>',
+  '◉':'<path d="M4 8.5h3l1.5-2h7l1.5 2h3v10H4z"/><circle cx="12" cy="13" r="3.2"/>',
+  '↓':'<path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/>',
+  '▦':'<path d="M4 20V9l8-5 8 5v11"/><path d="M9.5 20v-6h5v6"/>',
+  '✎':'<path d="M5 19l1-4 9.5-9.5 3 3L9 18z"/><path d="M13.5 7.5l3 3"/>',
+  '⌇':'<path d="M9.5 4L6 20M14.5 4L18 20"/><path d="M12 5v2.5M12 10.5v3M12 16.5v3"/>',
+  '⚙':'<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/>',
+  '⊕':'<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
+  '↻':'<path d="M18.5 9A7 7 0 006 7.5M5.5 15A7 7 0 0018 16.5"/><path d="M18.5 4.5V9H14M5.5 19.5V15H10"/>',
+  '⚑':'<path d="M3 12h4l2.5-6 4 12 2.5-6h5"/>'
+};
+function menuItem(icon,title,sum,onclick){
+  const it=el('button','menu-it');it.onclick=onclick;
+  const ic=el('span','menu-ic',MENU_ICONS[icon]?'':icon),tx=el('span','menu-tx'),ch=el('span','menu-ch','›');
+  if(MENU_ICONS[icon])ic.innerHTML=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${MENU_ICONS[icon]}</svg>`;
+  tx.append(el('b','',title),el('small','',sum||''));
+  it.append(ic,tx,ch);return it;
 }
 function mkSwitch(on,cb){
   const l=el('label','set-switch');const i=el('input');i.type='checkbox';i.checked=on;i.onchange=()=>cb(i.checked);
@@ -2723,12 +2764,13 @@ async function nativeTransfer(blob,name,mode){
 window.obrasnapBack=function(){
   const open=id=>document.getElementById(id).classList.contains('open');
   if(open('log-view')){closeLog();return true;}
-  if(open('settings')){closeSettings();return true;}
+  if(open('settings')){if(state.setPage!=null)settingsBack();else closeSettings();return true;}
   if(open('viewer')){closeViewer();return true;}
   if(open('style-bg')){closeStyle();return true;}
   if(open('export-bg')){closeExport();return true;}
   if(open('modal-bg')){saveActivity();return true;}
   if(open('qnote-bg')){saveQuickNote();return true;}
+  if(state.tab==='config'&&state.cfgPage){cfgPage(null);return true;}
   if(state.tab!=='cam'){switchTab('cam');return true;}
   return false;
 };
@@ -3054,9 +3096,45 @@ function restoreSettings(){
     if(c.style)state.stampStyle=normalizeStyle({...c.style});
     if(c.facing)state.facing=c.facing;
     if(Array.isArray(c.activities))state.activities=c.activities;
-    if(c.autoSave===false){state.autoSave=false;document.getElementById('cfg-autosave').checked=false;}
+    if(c.autoSave===false)state.autoSave=false;
     updateConfig();
   }catch(e){}
+}
+// ── CONFIG: menú y pantallas ──
+state.cfgPage=null;
+const CFG_MENU=[
+  {group:'Obra',items:[
+    {page:'obras',icon:'▦',title:'Obras',sum:()=>`${state.obra} · ${profiles.length} en este teléfono`},
+    {page:'proyecto',icon:'✎',title:'Proyecto y actividades',sum:()=>state.activity?'Actividad: '+state.activity:`${(state.activities||[]).length} actividades frecuentes`},
+    {page:'eje',icon:'⌇',title:'Eje (KMZ)',sum:()=>state.routeCoords.length?`${state.routeName} · ${(state.routeCoords[state.routeCoords.length-1].dist/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''}`:'Sin eje cargado'},
+  ]},
+  {group:'App',items:[
+    {action:()=>{switchTab('cam');openSettings();},icon:'⚙',title:'Cámara y stamp',sum:()=>'Información, formatos, estilo, mini mapa, nombre de archivos…'},
+    {page:'apariencia',icon:'◐',title:'Apariencia',sum:()=>APP_THEMES[currentTheme()].name},
+    {page:'gps',icon:'⊕',title:'GPS',sum:()=>document.getElementById('gps-status-cfg').textContent},
+    {page:'app',icon:'↻',title:'Versión y actualizaciones',show:()=>!!NATIVE,sum:()=>{const i=appInfo();return i?`ObraSnap ${i.versionName}${state.update?' · ¡hay versión nueva!':''}`:'';}},
+    {page:'diag',icon:'⚑',title:'Diagnóstico',sum:()=>state.lastError?'Último error: '+state.lastError:`Versión ${APP_VERSION} · sin errores`},
+  ]},
+];
+function renderCfgMenu(){
+  const box=document.getElementById('cfg-menu');box.innerHTML='';
+  CFG_MENU.forEach(g=>{
+    box.appendChild(el('div','config-label',g.group));
+    const card=el('div','menu-card');
+    g.items.filter(it=>!it.show||it.show()).forEach(it=>card.appendChild(menuItem(it.icon,it.title,it.sum(),it.action||(()=>cfgPage(it.page)))));
+    box.appendChild(card);
+  });
+}
+function cfgPage(p){
+  state.cfgPage=p;
+  document.querySelectorAll('.cfg-page').forEach(d=>d.style.display=d.dataset.page===p?'':'none');
+  document.getElementById('cfg-menu').style.display=p?'none':'';
+  document.getElementById('cfg-back').style.display=p?'inline-block':'none';
+  const pg=p&&document.querySelector(`.cfg-page[data-page="${p}"]`);
+  document.getElementById('cfg-title').textContent=pg?pg.dataset.title:'Configuración';
+  document.getElementById('config-screen').scrollTop=0;
+  if(p==='diag')updateDiag();
+  if(!p)renderCfgMenu();
 }
 function updateDiag(){
   const el=document.getElementById('diag');if(!el)return;
@@ -3118,7 +3196,7 @@ function switchTab(tab){
   // al cambiar de pestaña, cerrar hojas que quedaron abiertas encima
   if(prev!==tab){closeExport();closeStyle();document.getElementById('modal-bg').classList.remove('open');}
   document.body.classList.toggle('cam-on',tab==='cam');
-  if(tab==='config')setTimeout(renderCfgPreview,30);
+  if(tab==='config')cfgPage(null);
   if(tab!=='cam'&&prev==='cam'){stopRecordingIfAny();stopCamera();}
   if(tab==='cam'&&prev!=='cam')setTimeout(()=>startCamera(),50);
   if(tab==='config')updateDiag();
