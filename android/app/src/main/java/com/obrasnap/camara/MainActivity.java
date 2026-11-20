@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
     private GeolocationPermissions.Callback pendingGeoCb;
     private String pendingGeoOrigin;
     private boolean jsReady = false;
+    private volatile boolean volumeShutter = false; // la página lo activa solo en la pestaña Cámara
     private String pendingImport;   // llamada JS lista para entregar cuando la página esté cargada
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -259,6 +260,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
 
+    // Botón de volumen = obturador (útil con guantes). Solo cuando la página lo pidió.
+    @Override
+    public boolean dispatchKeyEvent(android.view.KeyEvent ev) {
+        int k = ev.getKeyCode();
+        if (volumeShutter && (k == android.view.KeyEvent.KEYCODE_VOLUME_DOWN || k == android.view.KeyEvent.KEYCODE_VOLUME_UP)) {
+            if (ev.getAction() == android.view.KeyEvent.ACTION_DOWN && ev.getRepeatCount() == 0)
+                web.evaluateJavascript("window.obrasnapShutter&&obrasnapShutter()", null);
+            return true; // no cambia el volumen
+        }
+        return super.dispatchKeyEvent(ev);
+    }
+
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
@@ -356,6 +369,9 @@ public class MainActivity extends Activity {
             pm.setComponentEnabledSetting(s ? senal : arena, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
             pm.setComponentEnabledSetting(s ? arena : senal, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
         }
+
+        @JavascriptInterface
+        public void setVolumeShutter(boolean on) { volumeShutter = on; }
 
         /** La página avisa que ya cargó: entregar el archivo .obrasnap que esté esperando. */
         @JavascriptInterface

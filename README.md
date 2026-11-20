@@ -40,6 +40,16 @@ estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje 
 - Si ya existe una obra con el mismo nombre, se reemplaza su configuración (las fotos no se tocan).
 - **+ Nueva obra** crea otra a partir del estilo actual (sin eje); se cambia de obra con el selector.
 
+## Cámara (2.4)
+
+- **Fotos horizontales automáticas**: la app queda en vertical y gira la foto según el acelerómetro
+  (Ajustes → Cámara → Orientación: Automática / Siempre vertical / Siempre horizontal).
+- **Rumbo (brújula)**: hacia dónde apunta la cámara, en grados y punto cardinal, y respecto al eje
+  ("hacia PK ↑", "hacia PK ↓", "hacia lado Izq./Der."). Se activa en Información en la foto.
+- **Nota rápida** (botón NOTA): texto solo para la siguiente foto; va en el stamp y en el PDF.
+- **Botón de volumen** toma la foto (app Android, solo en la pestaña Cámara).
+- **Mini mapa del eje** en la foto: tramo cercano, marcas de PK, tu posición, hacia dónde mira la cámara, norte y escala.
+
 ## Diagnóstico
 
 Config → Diagnóstico muestra versión, cámara, GPS, eje y último error.

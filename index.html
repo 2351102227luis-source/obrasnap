@@ -97,6 +97,16 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 #btn-flip{width:50px;height:50px;border-radius:50%;border:none;background:#1c1c1e;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
 #btn-flip svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 
+#qnote-pill{position:absolute;top:10px;left:10px;right:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:10px;padding:7px 36px 7px 10px;font-size:12.5px;font-family:var(--sans);}
+#qnote-pill b{color:#ffd60a;font-weight:600;}
+#qnote-pill button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;}
+.sheet-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:flex-end;}
+.sheet-bg.open{display:flex;}
+.sheet-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;}
+/* iconos de la cámara giran con el teléfono, como en el iPhone */
+#btn-flash svg,#btn-settings svg,#btn-flip svg,#thumb-img{transition:transform .3s;}
+body[data-rot="-90"] #btn-flash svg,body[data-rot="-90"] #btn-settings svg,body[data-rot="-90"] #btn-flip svg,body[data-rot="-90"] #thumb-img{transform:rotate(90deg);}
+body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[data-rot="90"] #btn-flip svg,body[data-rot="90"] #thumb-img{transform:rotate(-90deg);}
 #grid{position:absolute;inset:0;pointer-events:none;display:none;background:
   linear-gradient(90deg,transparent calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% + .5px),transparent calc(66.66% + .5px)),
   linear-gradient(180deg,transparent calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% + .5px),transparent calc(66.66% + .5px));}
@@ -307,6 +317,7 @@ input[type=file]{display:none;}
           <div id="grid"></div>
           <canvas id="stamp-canvas"></canvas>
           <div id="countdown"></div>
+          <div id="qnote-pill" style="display:none" onclick="openQuickNote()"><b>Nota para la próxima foto:</b> <span id="qnote-txt"></span> <button onclick="event.stopPropagation();clearQuickNote()" aria-label="Quitar nota">✕</button></div>
           <div id="flash"></div>
           <div id="cam-msg" onclick="startCamera(true)"><div>&#9888;</div><p id="cam-msg-txt">Toca para activar la cámara</p></div>
         </div>
@@ -314,6 +325,7 @@ input[type=file]{display:none;}
       <div id="cam-bottom">
         <div id="zoom-row"></div>
         <div id="mode-row">
+          <button class="mode" onclick="openQuickNote()">NOTA</button>
           <button class="mode" onclick="openActivityModal()">ACTIVIDAD</button>
           <button class="mode on">FOTO</button>
           <button class="mode" onclick="openStyle()">ESTILO</button>
@@ -561,6 +573,15 @@ input[type=file]{display:none;}
       </div>
     </div>
 
+    <div id="qnote-bg" class="sheet-bg" onclick="if(event.target===this)saveQuickNote()">
+      <div class="sheet-box">
+        <div class="modal-title">Nota rápida</div>
+        <div class="config-row-sub" style="margin:-8px 0 10px">Solo para la siguiente foto. Ej.: "Fisura en losa", "Falta compactación"</div>
+        <input type="text" id="qnote-input" class="act-new" style="width:100%;padding:10px 12px;font-size:14px" maxlength="80" placeholder="Escribe la nota..." onkeydown="if(event.key==='Enter')saveQuickNote()">
+        <button class="modal-btn" onclick="saveQuickNote()">Listo</button>
+      </div>
+    </div>
+
     <div id="toast">Foto guardada</div>
 
   </div>
@@ -616,7 +637,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-i';
+const APP_VERSION='2026.11.20-j';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1010,16 +1031,16 @@ function calibrateFromPoints(points){
 function projectOnRoute(lat,lon){
   const coords=state.routeCoords;if(coords.length<2)return null;
   const P=toXY(lat,lon);
-  let best=Infinity,along=0,cross=0;
+  let best=Infinity,along=0,cross=0,seg=null;
   for(let i=0;i<coords.length-1;i++){
     const A=coords[i],B=coords[i+1];
     const dx=B.x-A.x,dy=B.y-A.y,len2=dx*dx+dy*dy;
     let t=len2?((P.x-A.x)*dx+(P.y-A.y)*dy)/len2:0;
     t=Math.max(0,Math.min(1,t));
     const d=Math.hypot(P.x-(A.x+t*dx),P.y-(A.y+t*dy));
-    if(d<best){best=d;along=A.dist+t*(B.dist-A.dist);cross=dx*(P.y-A.y)-dy*(P.x-A.x);}
+    if(d<best){best=d;along=A.dist+t*(B.dist-A.dist);cross=dx*(P.y-A.y)-dy*(P.x-A.x);seg={dx,dy};}
   }
-  return{along,dist:best,cross};
+  return{along,dist:best,cross,seg};
 }
 
 function setRoute(axis,name){
@@ -1351,11 +1372,13 @@ async function capturePhoto(){
     const useTorch=state.flash&&camCaps.torch;
     if(useTorch){await setTorch(true);await new Promise(r=>setTimeout(r,450));}
     const st=state.stampStyle;
-    const cr=cropRect(video.videoWidth,video.videoHeight),W=cr.sw,H=cr.sh;
+    const cr=cropRect(video.videoWidth,video.videoHeight),rot=photoRotation();
+    const W=rot?cr.sh:cr.sw,H=rot?cr.sw:cr.sh;   // foto horizontal si el teléfono está girado
     const canvas=document.getElementById('capture-canvas');
     canvas.width=W;canvas.height=H;
     const ctx=canvas.getContext('2d');
-    ctx.drawImage(video,cr.sx,cr.sy,cr.sw,cr.sh,0,0,W,H);
+    if(rot){ctx.save();ctx.translate(W/2,H/2);ctx.rotate(rot*Math.PI/180);ctx.drawImage(video,cr.sx,cr.sy,cr.sw,cr.sh,-cr.sw/2,-cr.sh/2,cr.sw,cr.sh);ctx.restore();}
+    else ctx.drawImage(video,cr.sx,cr.sy,cr.sw,cr.sh,0,0,W,H);
     if(useTorch)setTorch(false);
     if(st.sound)shutterSound();
     if(st.vibrate&&navigator.vibrate)navigator.vibrate(30);
@@ -1384,7 +1407,8 @@ async function capturePhoto(){
     state.photos.unshift(meta);
     updateGallery();updateThumb();
     if(state.autoSave)downloadBlob(blob,photoFileName(meta));
-    showToast('Foto guardada · PK '+meta.pkLabel);
+    showToast('Foto guardada · PK '+meta.pkLabel+(rot?' · horizontal':''));
+    if(state.quickNote)clearQuickNote(); // la nota rápida era solo para esta foto
     logEv('INFO',`Foto ${W}×${H} · PK ${meta.pkLabel} · ${Math.round(blob.size/1024)} KB`);
   }catch(e){
     console.error(e);state.lastError='Captura: '+e.message;showToast('Error al capturar: '+e.message);
@@ -1399,7 +1423,9 @@ function snapshotMeta(W,H){
     obra:state.obra,act:state.activity,route:state.routeName,profileId:state.profileId,
     pk:onRoute?state.pk:null,pkLabel:onRoute?state.pkLabel:'--+---',
     dist:onRoute?state.pkDist:null,side:onRoute?state.pkSide:'',
-    lat:state.lat,lon:state.lon,acc:state.accuracy,alt:state.alt,dt:nowLabel(new Date(ts))
+    lat:state.lat,lon:state.lon,acc:state.accuracy,alt:state.alt,dt:nowLabel(new Date(ts)),
+    heading:(state.stampStyle.fields.some(f=>f.k==='heading'&&f.on)||state.stampStyle.mapOn)&&state.heading!=null?Math.round(state.heading):null,
+    headAxis:state.heading!=null?headingVsAxis(state.heading):'',note:state.quickNote||''
   };
 }
 
@@ -1440,15 +1466,16 @@ const STAMP_THEMES={
 // Stamp configurable: campos, formatos, colores y posición según state.stampStyle (ver DEFAULT_STYLE)
 const DEFAULT_STYLE={
   bg:'negro',op:0.6,scale:1,pos:'bl',
-  fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'note1',on:false},{k:'note2',on:false}],
+  fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'heading',on:true},{k:'note1',on:false},{k:'note2',on:false}],
   note1:'',note2:'',showSide:true,showAcc:true,showAlt:false,
   pkFmt:'pk',sideFmt:'izqder',dateFmt:'txt',timeFmt:'24s',coordFmt:'dec',
   textColor:'auto',font:'tec',align:'auto',margin:1,
   pkSep:false,pkPos:'tr',
   brand:'texto',brandPos:'tr',brandScale:1,
-  aspect:'4:3',quality:0.92,grid:false,timer:0,sound:true,vibrate:true,saveOriginal:false
+  aspect:'4:3',quality:0.92,grid:false,timer:0,sound:true,vibrate:true,saveOriginal:false,
+  mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true
 };
-const FIELD_NAMES={obra:'Nombre de obra',pk:'PK',act:'Actividad',datetime:'Fecha y hora',coords:'Coordenadas GPS',note1:'Texto libre 1',note2:'Texto libre 2'};
+const FIELD_NAMES={obra:'Nombre de obra',pk:'PK',act:'Actividad',datetime:'Fecha y hora',coords:'Coordenadas GPS',note1:'Texto libre 1',note2:'Texto libre 2',heading:'Rumbo (brújula)'};
 function normalizeStyle(st){
   const d=JSON.parse(JSON.stringify(DEFAULT_STYLE));
   if(st.size&&st.scale==null)st.scale={S:0.8,M:1,L:1.25}[st.size]||1;
@@ -1544,7 +1571,10 @@ function drawStampOnCanvas(ctx,W,H,m){
     else if(f.k==='datetime')L.push({t:fmtDateStyle(m.ts,st),sz:F.sub,c:th.sub,gap:4*s});
     else if(f.k==='coords')L.push({t:fmtCoordStyle(m,st),sz:F.sub,c:th.sub,gap:4*s});
     else if((f.k==='note1'||f.k==='note2')&&st[f.k])L.push({t:st[f.k],sz:F.main,c:th.main,gap:6*s});
+    else if(f.k==='heading'&&m.heading!=null)L.push({t:headingText(m),sz:F.sub,c:th.sub,gap:4*s});
   });
+  if(m.note)L.push({t:'Nota: '+m.note,sz:F.main,c:th.title,gap:4*s});
+  drawMiniMap(ctx,W,H,s,mg,st,m,th);
   ctx.save();
   if(L.length)drawBlock(ctx,W,H,L,st.pos,s,mg,th,st,darkText);
   const pkOn=st.fields.some(f=>f.k==='pk'&&f.on);
@@ -1619,7 +1649,11 @@ function renderLiveStamp(){
   if(!w||!h)return;
   if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}
   const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
-  drawStampOnCanvas(ctx,c.width,c.height,liveMeta());
+  const rot=photoRotation();
+  if(rot){
+    ctx.save();ctx.translate(c.width/2,c.height/2);ctx.rotate(rot*Math.PI/180);ctx.translate(-c.height/2,-c.width/2);
+    drawStampOnCanvas(ctx,c.height,c.width,liveMeta());ctx.restore();
+  }else drawStampOnCanvas(ctx,c.width,c.height,liveMeta());
 }
 // Ajusta el recuadro de la vista previa a la proporción real de la foto (lo que ves = lo que sale)
 function fitVideo(){
@@ -1812,6 +1846,12 @@ const SETTINGS_SCHEMA=[
     {type:'pos9',k:'pkPos',label:'Recuadro del PK',show:st=>st.pkSep},
     {type:'pos9',k:'brandPos',label:'Marca / logo',show:st=>st.brand!=='ninguna'},
   ]},
+  {title:'Mini mapa del eje en la foto',rows:[
+    {type:'toggle',k:'mapOn',label:'Mostrar mini mapa',sub:'Tramo del eje alrededor de la foto, marcas de PK, norte y hacia dónde apunta la cámara'},
+    {type:'pos9',k:'mapPos',label:'Posición del mini mapa',show:st=>st.mapOn},
+    {type:'seg',k:'mapRange',label:'Alcance',opts:[[150,'150 m'],[300,'300 m'],[600,'600 m'],[1000,'1 km']],show:st=>st.mapOn},
+    {type:'range',k:'mapScale',label:'Tamaño del mini mapa',min:0.6,max:2,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.mapOn},
+  ]},
   {title:'Marca o logo de la empresa',rows:[
     {type:'seg',k:'brand',label:'Mostrar',opts:[['texto','OBRASNAP'],['logo','Mi logo'],['ninguna','Nada']]},
     {type:'logo',show:st=>st.brand==='logo'},
@@ -1821,7 +1861,9 @@ const SETTINGS_SCHEMA=[
     {type:'seg',k:'aspect',label:'Proporción de la foto',opts:[['4:3','4:3'],['16:9','16:9'],['1:1','1:1']],after:()=>{fitVideo();}},
     {type:'seg',k:'quality',label:'Calidad JPG',opts:[[0.92,'Alta'],[0.8,'Media'],[0.65,'Ligera']]},
     {type:'toggle',k:'grid',label:'Cuadrícula de encuadre',after:()=>applyGrid()},
+    {type:'seg',k:'orient',label:'Orientación de la foto',opts:[['auto','Automática'],['portrait','Siempre vertical'],['landscape','Siempre horizontal']]},
     {type:'seg',k:'timer',label:'Temporizador',opts:[[0,'No'],[3,'3 s'],[10,'10 s']]},
+    {type:'toggle',k:'volShutter',label:'Botón de volumen toma la foto',sub:'Solo en la app Android',after:()=>syncVolumeShutter()},
     {type:'toggle',k:'sound',label:'Sonido del obturador'},
     {type:'toggle',k:'vibrate',label:'Vibrar al tomar la foto'},
   ]},
@@ -2197,6 +2239,154 @@ function addActivity(v){
   saveSettings();renderActivities();
 }
 
+// ── ORIENTACIÓN DEL TELÉFONO (fotos horizontales) ──
+// La app queda fija en vertical; con el acelerómetro sabemos si el teléfono está girado y
+// giramos la foto (y el stamp) para que salga derecha, como hace la cámara del iPhone.
+state.devRot=0;           // 0 = vertical · -90 = girado a la izquierda · 90 = girado a la derecha
+let gx=0,gy=9.8;
+window.addEventListener('devicemotion',e=>{
+  const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;
+  gx=gx*0.8+g.x*0.2;gy=gy*0.8+g.y*0.2;
+  let r=state.devRot;
+  // histéresis: cambia solo cuando el giro es claro (evita parpadeo a 45°)
+  if(Math.abs(gx)>Math.abs(gy)+2.5)r=gx>0?-90:90;
+  else if(Math.abs(gy)>Math.abs(gx)+2.5)r=0;
+  if(r!==state.devRot){state.devRot=r;document.body.dataset.rot=r;scheduleStamp();}
+});
+// Giro a aplicar a la foto según el ajuste (Automática / Vertical / Horizontal)
+function photoRotation(){
+  const o=state.stampStyle.orient||'auto';
+  if(o==='portrait')return 0;
+  if(o==='landscape')return state.devRot||-90;
+  // si el navegador ya giró la pantalla (versión web sin bloqueo), la imagen ya viene derecha
+  if(screen.orientation&&String(screen.orientation.type).startsWith('landscape'))return 0;
+  return state.devRot;
+}
+
+// ── BRÚJULA: hacia dónde apunta la cámara (eje -Z del teléfono), con compensación de inclinación ──
+state.heading=null;
+let hx=0,hy=0,lastHead=0;
+function onOrient(e){
+  let a=e.alpha,b=e.beta,g=e.gamma;
+  if(a==null||b==null||g==null)return;
+  if(!e.absolute&&e.type!=='deviceorientationabsolute'&&e.webkitCompassHeading==null)return;
+  const r=Math.PI/180;a*=r;b*=r;g*=r;
+  const cA=Math.cos(a),sA=Math.sin(a),cB=Math.cos(b),sB=Math.sin(b),cG=Math.cos(g),sG=Math.sin(g);
+  const east=-cA*sG-sA*sB*cG,north=-sA*sG+cA*sB*cG;
+  if(Math.hypot(east,north)<0.25)return; // teléfono casi plano: la dirección de la cámara no es confiable
+  const hd=Math.atan2(east,north);
+  hx=hx*0.85+Math.sin(hd)*0.15;hy=hy*0.85+Math.cos(hd)*0.15; // promedio circular (suaviza)
+  state.heading=(Math.atan2(hx,hy)/r+360)%360;
+  const now=Date.now();if(now-lastHead>500){lastHead=now;scheduleStamp();}
+}
+if('ondeviceorientationabsolute' in window)window.addEventListener('deviceorientationabsolute',onOrient);
+else window.addEventListener('deviceorientation',onOrient);
+
+const CARD=['N','NE','E','SE','S','SO','O','NO'];
+function cardinal(d){return CARD[Math.round(d/45)%8];}
+// Dirección respecto al eje: ¿mira hacia donde crece el PK?
+function headingVsAxis(hd){
+  if(hd==null||state.lat==null||state.routeCoords.length<2)return '';
+  const pr=projectOnRoute(state.lat,state.lon);if(!pr||pr.dist>500||!pr.seg)return '';
+  const total=state.routeCoords[state.routeCoords.length-1].dist;
+  const up=pkFromAlong(pr.along+1,total)>=pkFromAlong(pr.along,total);
+  let ax=Math.atan2(pr.seg.dx,pr.seg.dy)*180/Math.PI;if(!up)ax+=180;
+  const d=((hd-ax)%360+540)%360-180; // -180..180
+  if(Math.abs(d)<=50)return 'hacia PK ↑';
+  if(Math.abs(d)>=130)return 'hacia PK ↓';
+  return d>0?'hacia lado Der.':'hacia lado Izq.';
+}
+function headingText(m){
+  if(m.heading==null)return '';
+  return `Rumbo ${Math.round(m.heading)}° ${cardinal(m.heading)}${m.headAxis?' · '+m.headAxis:''}`;
+}
+
+// ── NOTA RÁPIDA (solo para la siguiente foto) ──
+state.quickNote='';
+function openQuickNote(){
+  document.getElementById('qnote-input').value=state.quickNote;
+  document.getElementById('qnote-bg').classList.add('open');
+  setTimeout(()=>document.getElementById('qnote-input').focus(),100);
+}
+function saveQuickNote(){
+  state.quickNote=document.getElementById('qnote-input').value.trim().slice(0,80);
+  document.getElementById('qnote-bg').classList.remove('open');
+  paintQuickNote();scheduleStamp();
+}
+function clearQuickNote(){state.quickNote='';paintQuickNote();scheduleStamp();}
+function paintQuickNote(){
+  const p=document.getElementById('qnote-pill');
+  p.style.display=state.quickNote?'':'none';
+  document.getElementById('qnote-txt').textContent=state.quickNote;
+}
+
+// ── BOTÓN DE VOLUMEN COMO OBTURADOR (app Android) ──
+function syncVolumeShutter(){
+  if(NATIVE&&NATIVE.setVolumeShutter){try{NATIVE.setVolumeShutter(!!(state.stampStyle.volShutter&&state.tab==='cam'));}catch(e){}}
+}
+window.obrasnapShutter=function(){if(state.tab==='cam')shutterPressed();};
+
+// ── MINI MAPA DEL EJE dentro de la foto ──
+function drawMiniMap(ctx,W,H,s,mg,st,m,th){
+  if(!st.mapOn||m.lat==null||state.routeCoords.length<2)return;
+  const P=toXY(m.lat,m.lon),pr=projectOnRoute(m.lat,m.lon);
+  if(!pr||pr.dist>Math.max(800,st.mapRange*2))return;
+  const size=Math.round(300*s*(st.mapScale||1)),range=st.mapRange||300,k=size/2/range;
+  const pos=placeBox(st.mapPos||'br',W,H,size,size,mg),cx=pos.x+size/2,cy=pos.y+size/2;
+  const X=c=>cx+(c.x-P.x)*k,Y=c=>cy-(c.y-P.y)*k;
+  const light=!!th.light,bg=th.bg||[0,0,0],op=th.bg?(st.op!=null?st.op:th.op):0.45;
+  const ink=light?'#1f2a3a':'#ffffff',route=th.bg?th.title:'#ffc20e',sub=light?'rgba(31,42,58,.6)':'rgba(255,255,255,.7)';
+  ctx.save();
+  roundRect(ctx,pos.x,pos.y,size,size,16*s);ctx.fillStyle=`rgba(${bg.join(',')},${op})`;ctx.fill();
+  ctx.clip();
+  // cuadrícula tenue cada 100 m
+  ctx.strokeStyle=light?'rgba(31,42,58,.08)':'rgba(255,255,255,.08)';ctx.lineWidth=Math.max(1,s);
+  const gstep=100*k;
+  for(let x=cx%gstep;x<pos.x+size;x+=gstep){if(x<pos.x)continue;ctx.beginPath();ctx.moveTo(x,pos.y);ctx.lineTo(x,pos.y+size);ctx.stroke();}
+  for(let y=cy%gstep;y<pos.y+size;y+=gstep){if(y<pos.y)continue;ctx.beginPath();ctx.moveTo(pos.x,y);ctx.lineTo(pos.x+size,y);ctx.stroke();}
+  // eje (solo el tramo cercano)
+  const R=state.routeCoords,lim=range*1.6;
+  ctx.beginPath();let pen=false;
+  for(const c of R){
+    const near=Math.abs(c.x-P.x)<lim&&Math.abs(c.y-P.y)<lim;
+    if(near){if(pen)ctx.lineTo(X(c),Y(c));else{ctx.moveTo(X(c),Y(c));pen=true;}}else pen=false;
+  }
+  ctx.strokeStyle=route;ctx.lineWidth=7*s;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+  // marcas de PK (cada 100 m; etiqueta cada 100 o 200 m según la escala)
+  const total=R[R.length-1].dist,tick=range<=200?50:100,lab=range>=600?500:range>=300?200:100;
+  ctx.font=`600 ${20*s}px 'Barlow Condensed',sans-serif`;ctx.textBaseline='middle';
+  let prev=pkFromAlong(0,total);
+  for(let i=1;i<R.length;i++){
+    const A=R[i-1],B=R[i];
+    if(Math.abs(B.x-P.x)>lim||Math.abs(B.y-P.y)>lim){prev=pkFromAlong(B.dist,total);continue;}
+    const pk=pkFromAlong(B.dist,total),lo=Math.min(prev,pk),hi=Math.max(prev,pk);
+    for(let mk=Math.floor(lo/tick)*tick+tick;mk<=hi;mk+=tick){
+      if(mk<=lo||pk===prev)continue;
+      const t=(mk-prev)/(pk-prev),q={x:A.x+t*(B.x-A.x),y:A.y+t*(B.y-A.y)};
+      ctx.beginPath();ctx.arc(X(q),Y(q),(mk%lab===0?5:3)*s,0,7);ctx.fillStyle=ink;ctx.fill();
+      if(mk%lab===0){ctx.fillStyle=ink;ctx.fillText(fmtPK(mk),X(q)+9*s,Y(q)-9*s);}
+    }
+    prev=pk;
+  }
+  // posición y hacia dónde apunta la cámara
+  if(m.heading!=null){
+    const h=m.heading*Math.PI/180,L=size*0.32,sp=0.42;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.sin(h-sp)*L,cy-Math.cos(h-sp)*L);ctx.lineTo(cx+Math.sin(h+sp)*L,cy-Math.cos(h+sp)*L);ctx.closePath();
+    ctx.fillStyle='rgba(47,128,237,.35)';ctx.fill();
+  }
+  ctx.beginPath();ctx.arc(cx,cy,9*s,0,7);ctx.fillStyle='#2f80ed';ctx.fill();
+  ctx.lineWidth=3*s;ctx.strokeStyle='#fff';ctx.stroke();
+  // norte y escala
+  ctx.fillStyle=ink;ctx.font=`700 ${22*s}px 'Barlow Condensed',sans-serif`;ctx.textAlign='center';
+  const nx=pos.x+size-22*s,ny=pos.y+24*s;
+  ctx.beginPath();ctx.moveTo(nx,ny-14*s);ctx.lineTo(nx+7*s,ny+2*s);ctx.lineTo(nx-7*s,ny+2*s);ctx.closePath();ctx.fill();
+  ctx.fillText('N',nx,ny+16*s);
+  ctx.textAlign='left';ctx.font=`500 ${17*s}px 'Barlow Condensed',sans-serif`;ctx.fillStyle=sub;
+  const sb=100*k;ctx.fillRect(pos.x+14*s,pos.y+size-18*s,sb,3*s);ctx.fillText('100 m',pos.x+14*s,pos.y+size-32*s);
+  ctx.restore();
+}
+
 // ── DESCARGA / COMPARTIR ──
 function photoFileName(m){
   const d=new Date(m.ts),p=n=>String(n).padStart(2,'0');
@@ -2249,6 +2439,7 @@ window.obrasnapBack=function(){
   if(open('style-bg')){closeStyle();return true;}
   if(open('export-bg')){closeExport();return true;}
   if(open('modal-bg')){saveActivity();return true;}
+  if(open('qnote-bg')){saveQuickNote();return true;}
   if(state.tab!=='cam'){switchTab('cam');return true;}
   return false;
 };
@@ -2509,7 +2700,7 @@ async function buildReportPDF(list,progress){
       pc+=T(M,cy,11,true,`Foto ${idx+1} de ${list.length}  ·  PK ${p.pkLabel}`,'0.05 0.35 0.15');
       if(p.dist!=null)pc+=TR(PW-M,cy,9,false,sideLabel(p),'0.3 0.3 0.3');
       cy+=13;pc+=T(M,cy,9,false,p.dt+'     '+metaCoords(p),'0.25 0.25 0.25');
-      cy+=12;pc+=T(M,cy,9,false,clip('Actividad: '+(p.act||'—'),9,false,boxW),'0.25 0.25 0.25');
+      cy+=12;pc+=T(M,cy,9,false,clip('Actividad: '+(p.act||'—')+(p.note?'   ·   Nota: '+p.note:'')+(p.heading!=null?'   ·   '+headingText(p):''),9,false,boxW),'0.25 0.25 0.25');
     }
     pages.push({content:pc,x:xo});
   }
@@ -2620,6 +2811,7 @@ function saveActivity(){
 // ── TAB NAVIGATION ──
 function switchTab(tab){
   const prev=state.tab;state.tab=tab;
+  syncVolumeShutter();
   // al cambiar de pestaña, cerrar hojas que quedaron abiertas encima
   if(prev!==tab){closeExport();closeStyle();document.getElementById('modal-bg').classList.remove('open');}
   document.body.classList.toggle('cam-on',tab==='cam');
@@ -2667,6 +2859,7 @@ window.addEventListener('load',()=>{
   setInterval(()=>{if(state.tab==='config')updateDiag();},2000);
   if(navigator.storage&&navigator.storage.estimate)setInterval(()=>navigator.storage.estimate().then(e=>{state.storage=`${(e.usage/1048576).toFixed(1)} MB usados`;}).catch(()=>{}),10000);
   renderAppInfo();if(NATIVE)setTimeout(()=>checkUpdate(false),4000);
+  syncVolumeShutter();
   logEv('INFO',`Inicio ${APP_VERSION} · ${NATIVE?'app Android':'navegador'}`);
   if(!NATIVE&&'serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
 });
