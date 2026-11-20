@@ -72,6 +72,16 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.13
+
+- **Config** en tres grupos: **App** (Datos en la foto, Cámara) · **Obra** (Actividades, KMZ / KML, Obras) · **Sistema** (Apariencia, Versiones, Diagnóstico). El estado del GPS está en Diagnóstico.
+- **Redondeo del PK** (Datos en la foto › Formatos): exacto, 5, 10 o 20 m al más cercano; se guarda también el PK exacto. Opcional para el video.
+- **KMZ / KML**: eje principal (da el PK) + lista de **capas auxiliares** con ojo (mapa y mini mapa), renombrar y quitar. Viajan en el archivo de la obra. En el Mapa, "Cargar KMZ" pregunta si es eje o capa.
+- **Medir** (regla en el Mapa): 2 puntos, tramo e "ir a punto" desde tu posición; se engancha a puntos, vértices y líneas; dejar el dedo muestra una **lupa**. Lista "Puntos del plano" con buscador. Dato opcional en la foto: "a 38 m de BN-12".
+- **Galería**: 3 columnas por día, selección múltiple (toque largo) para compartir, descargar o borrar. Visor con pellizco, doble toque, deslizar y bajar para cerrar. La miniatura de la cámara abre la última foto.
+- **Videos** en la galería (abren el reproductor del teléfono). Borrar en la app también borra la copia del teléfono.
+- **Cámara**: zoom con pellizco (de la cámara o digital), enfoque al tocar y flash si el teléfono lo permite; sus funciones se ven en Diagnóstico. Pantalla negra "Abriendo cámara…".
+
 ## Versión 2.12
 
 - **Config** en tres grupos: **App** (Datos en la foto, Cámara, GPS, Apariencia) · **Obra** (Actividades, Eje, Obras) · **Soporte** (Versiones, Diagnóstico).

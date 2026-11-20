@@ -1,6 +1,6 @@
 {
-  "versionCode": 14,
-  "versionName": "2.12",
+  "versionCode": 15,
+  "versionName": "2.13",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Config en grupos (App · Obra · Soporte), letras para PK e información, capa auxiliar en el mapa, opacidad del logo y cámara más limpia."
+  "notas": "Redondeo del PK, capas KMZ/KML con ojo, herramienta Medir con lupa, galería nueva (gestos, por día, selección), videos en la galería, zoom con pellizco y enfoque al tocar."
 }

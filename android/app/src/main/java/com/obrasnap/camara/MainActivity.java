@@ -9,6 +9,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -114,6 +115,7 @@ public class MainActivity extends Activity {
         web.setWebChromeClient(new Chrome());
         web.addJavascriptInterface(new Bridge(), "ObraSnapAndroid");
 
+        cleanShareCache();
         askPermissions();
         if (saved != null) web.restoreState(saved); else web.loadUrl(HOME);
         handleIntent(getIntent());
@@ -187,6 +189,14 @@ public class MainActivity extends Activity {
         if (!missing.isEmpty()) requestPermissions(missing.toArray(new String[0]), REQ_PERMS);
     }
 
+    private void cleanShareCache() {
+        File dir = new File(getCacheDir(), "share");
+        File[] fs = dir.listFiles();
+        if (fs == null) return;
+        long lim = System.currentTimeMillis() - 24L * 3600 * 1000;
+        for (File f : fs) if (f.lastModified() < lim) f.delete();
+    }
+
     private boolean has(String p) { return checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED; }
 
     @Override
@@ -202,6 +212,12 @@ public class MainActivity extends Activity {
     }
 
     private class Chrome extends WebChromeClient {
+        /** Sin el cartel gris de "video" mientras abre la cámara: imagen transparente (se ve el fondo negro). */
+        @Override public Bitmap getDefaultVideoPoster() {
+            Bitmap b = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+            b.eraseColor(Color.TRANSPARENT);
+            return b;
+        }
         @Override
         public void onPermissionRequest(final PermissionRequest request) {
             runOnUiThread(() -> {
@@ -331,6 +347,15 @@ public class MainActivity extends Activity {
         }
     }
 
+    private Uri mediaUri(String u) {
+        if (u.startsWith("stage:"))
+            return FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", new File(new File(getCacheDir(), "share"), u.substring(6)));
+        Uri uri = Uri.parse(u);
+        if ("file".equals(uri.getScheme())) // Android 9: entregar con FileProvider no aplica fuera de caché; se usa tal cual
+            return uri;
+        return uri;
+    }
+
     private void openExternalUri(Uri u) {
         try { startActivity(new Intent(Intent.ACTION_VIEW, u)); }
         catch (ActivityNotFoundException e) { Log.w(TAG, "sin app para " + u); }
@@ -381,9 +406,10 @@ public class MainActivity extends Activity {
                     runOnUiThread(() -> startActivity(Intent.createChooser(send, "Compartir")));
                     return "ok:compartir";
                 }
+                if ("stage".equals(mode)) return "ok:stage:" + f.getName(); // queda en caché para compartir varios
                 String where = saveToMedia(f, m[0], m[1]);
                 f.delete();
-                return "ok:" + where;
+                return "ok:" + where;   // content://… (o file://… en Android 9): sirve para abrir o borrar después
             } catch (Exception e) {
                 Log.e(TAG, "finish", e);
                 return "err:" + e.getMessage();
@@ -424,6 +450,57 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setVolumeShutter(boolean on) { volumeShutter = on; }
 
+        /** Borra del teléfono un archivo que guardó la app (foto o video). */
+        @JavascriptInterface
+        public String deleteMedia(String u) {
+            try {
+                Uri uri = Uri.parse(u);
+                if ("file".equals(uri.getScheme())) {
+                    File f = new File(uri.getPath());
+                    boolean ok = !f.exists() || f.delete();
+                    MediaScannerConnection.scanFile(MainActivity.this, new String[]{f.getAbsolutePath()}, null, null);
+                    return ok ? "ok" : "err:no se pudo borrar";
+                }
+                int n = getContentResolver().delete(uri, null, null);
+                return n > 0 ? "ok" : "ok:ya no existía";
+            } catch (SecurityException e) {
+                return "err:Android no permite borrarlo (¿se reinstaló la app?)";
+            } catch (Exception e) { return "err:" + e.getMessage(); }
+        }
+
+        /** Abre un archivo del teléfono en su app (videos → reproductor). */
+        @JavascriptInterface
+        public String openMedia(String u, String mime) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setDataAndType(mediaUri(u), mime);
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                runOnUiThread(() -> { try { startActivity(i); } catch (Exception e) { Log.w(TAG, "abrir", e); } });
+                return "ok";
+            } catch (Exception e) { return "err:" + e.getMessage(); }
+        }
+
+        /** Comparte varios archivos: "stage:<nombre>" (preparados en caché) o content://… ya guardados. */
+        @JavascriptInterface
+        public String shareMany(String json, String mime) {
+            try {
+                org.json.JSONArray a = new org.json.JSONArray(json);
+                ArrayList<Uri> uris = new ArrayList<>();
+                for (int k = 0; k < a.length(); k++) uris.add(mediaUri(a.getString(k)));
+                if (uris.isEmpty()) return "err:nada que compartir";
+                Intent send;
+                if (uris.size() == 1) { send = new Intent(Intent.ACTION_SEND); send.putExtra(Intent.EXTRA_STREAM, uris.get(0)); }
+                else { send = new Intent(Intent.ACTION_SEND_MULTIPLE); send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris); }
+                send.setType(mime);
+                android.content.ClipData clip = android.content.ClipData.newRawUri("", uris.get(0));
+                for (int k = 1; k < uris.size(); k++) clip.addItem(new android.content.ClipData.Item(uris.get(k)));
+                send.setClipData(clip);
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                runOnUiThread(() -> startActivity(Intent.createChooser(send, "Compartir")));
+                return "ok";
+            } catch (Exception e) { return "err:" + e.getMessage(); }
+        }
+
         /** La página avisa que ya cargó: entregar el archivo .obrasnap que esté esperando. */
         @JavascriptInterface
         public void ready() { jsReady = true; deliverImport(); }
@@ -448,7 +525,7 @@ public class MainActivity extends Activity {
             v.clear();
             v.put(MediaStore.MediaColumns.IS_PENDING, 0);
             cr.update(item, v, null, null);
-            return rel;
+            return item.toString();
         }
         // Android 9 o anterior
         File dir = new File(Environment.getExternalStoragePublicDirectory(image ? Environment.DIRECTORY_PICTURES : video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_DOWNLOADS), "ObraSnap");
@@ -456,7 +533,7 @@ public class MainActivity extends Activity {
         File out = new File(dir, name);
         try (OutputStream o = new FileOutputStream(out); InputStream i = new FileInputStream(src)) { copy(i, o); }
         MediaScannerConnection.scanFile(this, new String[]{out.getAbsolutePath()}, new String[]{mime}, null);
-        return dir.getAbsolutePath();
+        return Uri.fromFile(out).toString();
     }
 
     private static void copy(InputStream i, OutputStream o) throws Exception {
