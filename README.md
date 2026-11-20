@@ -1,6 +1,6 @@
 # ObraSnap
 
-Cámara de obra con stamp de PK, GPS, fecha y actividad. Funciona como página web (GitHub Pages) y como app de Android independiente.
+Cámara de obra que imprime en cada foto los datos de PK, GPS, fecha y actividad. Funciona como página web (GitHub Pages) y como app de Android independiente.
 
 - Web: https://2351102227luis-source.github.io/obrasnap/
 - APK: https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk
@@ -9,7 +9,7 @@ Cámara de obra con stamp de PK, GPS, fecha y actividad. Funciona como página w
 
 | Archivo | Qué es |
 |---|---|
-| `index.html` | **Toda la app** (pantallas, cámara, stamp, PK, galería, PDF). Es lo que se edita casi siempre. |
+| `index.html` | **Toda la app** (pantallas, cámara, datos impresos en la foto, PK, galería, PDF). Es lo que se edita casi siempre. |
 | `fonts/` | Tipografías incluidas (funcionan sin internet). |
 | `sw.js`, `manifest.json` | Solo para la versión web (modo sin señal e instalación desde Chrome). |
 | `version.json` | Versión de la app. La app instalada lo consulta para avisar que hay actualización. |
@@ -37,7 +37,7 @@ No trae datos de ninguna obra. Cada obra se configura en Config → Obras, o se 
 ## Obras (configuración compartible)
 
 Config → **Obras**: cada obra guarda nombre, actividades frecuentes, formatos (PK, fecha, hora, coordenadas),
-estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje con su calibración.
+estilo y posiciones de los datos en la foto, ajustes de cámara, logo y —opcional— el eje con su calibración.
 
 - **Compartir configuración de esta obra** genera un archivo `NombreDeObra.obrasnap` (JSON) para mandar por WhatsApp/correo.
 - En la app Android basta con tocar el archivo y elegir **Abrir con ObraSnap**; en la web, **Importar configuración**.
@@ -50,19 +50,19 @@ estilo y posiciones del stamp, ajustes de cámara, logo y —opcional— el eje 
   (Ajustes → Cámara → Orientación: Automática / Siempre vertical / Siempre horizontal).
 - **Rumbo (brújula)**: hacia dónde apunta la cámara, en grados y punto cardinal, y respecto al eje
   ("hacia PK ↑", "hacia PK ↓", "hacia lado Izq./Der."). Se activa en Información en la foto.
-- **Nota rápida** (botón NOTA): texto solo para la siguiente foto; va en el stamp y en el PDF.
+- **Nota rápida** (botón NOTA): texto solo para la siguiente foto; va en los datos de la foto y en el PDF.
 - **Botón de volumen** toma la foto (app Android, solo en la pestaña Cámara).
 - **Mini mapa del eje** en la foto: tramo cercano, marcas de PK, tu posición, hacia dónde mira la cámara, norte y escala.
 
 ## Fotos, verificación y video (2.5)
 
-- **Estampar fotos de la galería** (Galería → ＋): toma la fecha y el GPS guardados en la foto, calcula el PK y
-  pone el stamp con la leyenda "Foto importada". Varias a la vez. En Android se pide el permiso
-  "ubicación de fotos" porque el sistema borra el GPS sin él. Si la foto no trae GPS se estampa sin PK.
+- **Poner datos a fotos de la galería** (Galería → ＋): toma la fecha y el GPS guardados en la foto, calcula el PK y
+  le pone los datos con la leyenda "Foto importada". Varias a la vez. En Android se pide el permiso
+  "ubicación de fotos" porque el sistema borra el GPS sin él. Si la foto no trae GPS se le ponen los datos sin PK.
 - **Código de autenticidad**: cada foto guarda su huella SHA-256 (código corto en el visor y el PDF; huella completa
   en la última página del reporte). **Verificar foto** dice si un archivo es idéntico al original.
   WhatsApp recomprime las fotos: para conservar la huella hay que mandarlas como "Documento".
-- **Video con stamp** (modo VIDEO): stamp en vivo con hora, GPS y PK, con audio; MP4 cuando el teléfono lo permite
+- **Video con datos en la foto** (modo VIDEO): datos en la foto en vivo con hora, GPS y PK, con audio; MP4 cuando el teléfono lo permite
   (si no, WebM), 1280 px, máximo 10 min. Se guarda en Películas › ObraSnap.
 
 ## Nombre de los archivos (2.6)
@@ -71,6 +71,13 @@ Ajustes → **Nombre de los archivos**. El formato es parte de la obra (viaja en
 Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (001250) `{N}` (consecutivo) `{INI}` (iniciales del teléfono)
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
+
+## Versión 2.12
+
+- **Config** en tres grupos: **App** (Datos en la foto, Cámara, GPS, Apariencia) · **Obra** (Actividades, Eje, Obras) · **Soporte** (Versiones, Diagnóstico).
+- **Datos en la foto** (antes "stamp"): letras independientes para el PK y la información (8 tipografías incluidas), tamaño del PK y opacidad del logo.
+- **Eje**: eje principal (da el PK) + **capa auxiliar** (proyecto dibujado: líneas, polígonos y puntos con sus colores) que se ve en el mapa y el mini mapa; puede ir en el archivo de la obra.
+- **Cámara**: arriba GPS, actividad y nota; abajo solo FOTO y VIDEO.
 
 ## Menús (2.7)
 

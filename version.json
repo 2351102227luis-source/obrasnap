@@ -1,6 +1,6 @@
 {
-  "versionCode": 13,
-  "versionName": "2.11",
+  "versionCode": 14,
+  "versionName": "2.12",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "La app arranca en blanco (sin datos de ninguna obra; se importa su configuración) y el mapa tiene botones de zoom, mi ubicación y ver todo."
+  "notas": "Config en grupos (App · Obra · Soporte), letras para PK e información, capa auxiliar en el mapa, opacidad del logo y cámara más limpia."
 }

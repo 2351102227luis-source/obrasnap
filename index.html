@@ -21,6 +21,19 @@
 @font-face{font-family:'Barlow Condensed';font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2');}
 @font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');}
 @font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2');}
+/* letras extra para el stamp */
+@font-face{font-family:'Roboto Mono';font-weight:400;font-display:swap;src:url(fonts/roboto-mono-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Roboto Mono';font-weight:500;font-display:swap;src:url(fonts/roboto-mono-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Roboto Mono';font-weight:700;font-display:swap;src:url(fonts/roboto-mono-latin-700-normal.woff2) format('woff2');}
+@font-face{font-family:'Oswald';font-weight:400;font-display:swap;src:url(fonts/oswald-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Oswald';font-weight:500;font-display:swap;src:url(fonts/oswald-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Oswald';font-weight:600;font-display:swap;src:url(fonts/oswald-latin-600-normal.woff2) format('woff2');}
+@font-face{font-family:'Bebas Neue';font-weight:400;font-display:swap;src:url(fonts/bebas-neue-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Roboto Condensed';font-weight:400;font-display:swap;src:url(fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Roboto Condensed';font-weight:500;font-display:swap;src:url(fonts/roboto-condensed-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Roboto Condensed';font-weight:700;font-display:swap;src:url(fonts/roboto-condensed-latin-700-normal.woff2) format('woff2');}
+@font-face{font-family:'Atkinson Hyperlegible';font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Atkinson Hyperlegible';font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-700-normal.woff2) format('woff2');}
 @font-face{font-family:'Share Tech Mono';font-weight:400;font-display:swap;src:url(fonts/share-tech-mono-latin-400-normal.woff2) format('woff2');}
 </style>
 <style>
@@ -66,12 +79,13 @@ body.cam-on #navbar{background:#000;border-top-color:#111;}
 body.cam-on .nav-btn{color:#8e8e93;}
 body.cam-on .nav-btn.active{color:#f3ead8;}
 #cam-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;min-height:52px;}
+.cam-top-side{display:flex;align-items:center;gap:10px;min-width:0;}
+#btn-flash.off{display:none;}
 .cam-icon{width:36px;height:36px;flex-shrink:0;border-radius:50%;border:none;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;padding:0;}
 .cam-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
 .cam-icon.on{color:#000;background:#ffd60a;}
 .cam-icon.off{visibility:hidden;}
 #cam-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:16px;padding:6px 12px;font-family:var(--mono);font-size:12px;color:#fff;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#pk-side{color:#d4d4d4;margin-left:2px;}
 #gps-dot{width:7px;height:7px;flex-shrink:0;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse-dot 2s infinite;}
 #gps-dot.ok{background:#34c759;}#gps-dot.meh{background:#f59e0b;}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
@@ -84,7 +98,7 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 #zoom-row{display:flex;justify-content:center;align-items:center;gap:8px;height:40px;}
 .zoom-btn{width:30px;height:30px;border-radius:50%;border:none;background:rgba(38,38,38,.9);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;padding:0;transition:all .15s;}
 .zoom-btn.on{width:38px;height:38px;color:#ffd60a;font-size:12.5px;}
-#mode-row{display:flex;justify-content:center;gap:18px;padding:6px 0 14px;}
+#mode-row{display:flex;justify-content:center;gap:34px;padding:6px 0 14px;}
 .mode{font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:1.3px;color:rgba(255,255,255,.88);background:none;border:none;cursor:pointer;padding:2px 0;}
 .mode.on{color:#ffd60a;}
 #cam-controls{display:flex;align-items:center;justify-content:space-between;padding:0 32px;}
@@ -110,9 +124,9 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 .sheet-bg.open{display:flex;}
 .sheet-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;}
 /* iconos de la cámara giran con el teléfono, como en el iPhone */
-#btn-flash svg,#btn-settings svg,#btn-flip svg,#thumb-img{transition:transform .3s;}
-body[data-rot="-90"] #btn-flash svg,body[data-rot="-90"] #btn-settings svg,body[data-rot="-90"] #btn-flip svg,body[data-rot="-90"] #thumb-img{transform:rotate(90deg);}
-body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[data-rot="90"] #btn-flip svg,body[data-rot="90"] #thumb-img{transform:rotate(-90deg);}
+#btn-flash svg,#btn-act svg,#btn-note svg,#btn-flip svg,#thumb-img{transition:transform .3s;}
+body[data-rot="-90"] #btn-flash svg,body[data-rot="-90"] #btn-act svg,body[data-rot="-90"] #btn-note svg,body[data-rot="-90"] #btn-flip svg,body[data-rot="-90"] #thumb-img{transform:rotate(90deg);}
+body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-act svg,body[data-rot="90"] #btn-note svg,body[data-rot="90"] #btn-flip svg,body[data-rot="90"] #thumb-img{transform:rotate(-90deg);}
 #grid{position:absolute;inset:0;pointer-events:none;display:none;background:
   linear-gradient(90deg,transparent calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% + .5px),transparent calc(66.66% + .5px)),
   linear-gradient(180deg,transparent calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% - .5px),rgba(255,255,255,.45) calc(33.33% + .5px),transparent calc(33.33% + .5px),transparent calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% - .5px),rgba(255,255,255,.45) calc(66.66% + .5px),transparent calc(66.66% + .5px));}
@@ -128,7 +142,7 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 #settings{position:fixed;inset:0;z-index:160;background:var(--bg);display:none;flex-direction:column;color:var(--text);font-family:var(--sans);}
 #settings.open{display:flex;}
 #set-head,.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--surface2);background:var(--bg2);}
-#set-head b,.sheet-head b{font-size:16px;font-weight:600;}
+#set-head b,.sheet-head b{font-size:16px;font-weight:600;text-align:center;line-height:1.15;flex:1;padding:0 4px;}
 #set-head span,.sheet-head span{width:52px;}
 #set-head button,.sheet-head button{background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:16px;font-weight:600;cursor:pointer;width:52px;text-align:right;}
 #set-prev-wrap{height:38vh;display:flex;align-items:center;justify-content:center;background:var(--bg3);padding:8px;position:relative;cursor:zoom-in;}
@@ -188,25 +202,13 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 .sheet-back{display:block;background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:17px;font-weight:600;cursor:pointer;padding:0 12px 0 0;min-height:44px;margin:-10px 0 4px;}
 .viewer-back{width:auto !important;height:44px !important;border-radius:22px !important;padding:0 16px !important;font-family:var(--sans);font-size:16px !important;font-weight:600;}
 #config-header{display:flex;align-items:center;}
+.font-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;}
+.font-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;overflow:hidden;padding:9px 10px;border:1px solid var(--surface2);border-radius:10px;background:var(--bg);color:var(--text);cursor:pointer;text-align:left;}
+.font-opt.on{border:2px solid var(--accent);padding:8px 9px;}
+.font-smp{font-size:18px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.font-opt small{font-family:var(--sans);font-size:11px;color:var(--text2);}
 #settings .swatch{border-color:var(--surface2);}
 #settings .swatch.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--bg2) inset;}
-
-/* HOJA DE ESTILO DEL STAMP */
-#style-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:flex-end;}
-#style-bg.open{display:flex;}
-#style-box{background:#1c1c1e;border-radius:16px 16px 0 0;padding:16px 16px 24px;width:100%;color:#fff;}
-#style-preview{width:100%;aspect-ratio:16/9;border-radius:10px;display:block;background:#333;}
-.st-label{font-size:11px;color:#a3a3a3;letter-spacing:.8px;text-transform:uppercase;margin:14px 0 8px;font-family:var(--sans);font-weight:600;}
-#st-swatches{display:flex;flex-wrap:wrap;gap:10px;}
-.swatch{width:36px;height:36px;border-radius:50%;border:2px solid #3a3a3c;cursor:pointer;padding:0;}
-.swatch.on{border-color:#ffd60a;box-shadow:0 0 0 2px #1c1c1e inset;}
-.swatch.transp{background:repeating-conic-gradient(#777 0 25%,#ddd 0 50%) 50%/12px 12px;}
-.seg{display:flex;background:#2c2c2e;border-radius:9px;padding:2px;}
-.seg button{flex:1;border:none;background:none;color:#fff;font-family:var(--sans);font-size:12.5px;padding:7px 0;border-radius:7px;cursor:pointer;}
-.seg button.on{background:#636366;}
-#st-op{width:100%;accent-color:#ffd60a;}
-#st-op:disabled{opacity:.35;}
-#st-done{width:100%;margin-top:16px;background:#ffd60a;border:none;border-radius:10px;padding:12px;color:#000;font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;}
 
 /* CAMERA MESSAGE */
 #cam-msg{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.75);color:#f3ead8;font-family:var(--mono);font-size:13px;text-align:center;padding:24px;cursor:pointer;z-index:5;}
@@ -339,13 +341,20 @@ input[type=file]{display:none;}
     <!-- ── CAMERA ── -->
     <div id="cam-screen" class="screen active">
       <div id="cam-top">
-        <button class="cam-icon off" id="btn-flash" onclick="toggleFlash()" aria-label="Flash">
-          <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
-        </button>
-        <div id="cam-pill"><span id="gps-dot"></span>PK&nbsp;<span id="pk-value">--+---</span><span id="pk-side"></span></div>
-        <button class="cam-icon" id="btn-settings" onclick="openSettings()" aria-label="Ajustes">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        </button>
+        <div class="cam-top-side">
+          <button class="cam-icon off" id="btn-flash" onclick="toggleFlash()" aria-label="Flash">
+            <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+          </button>
+          <div id="cam-pill"><span id="gps-dot"></span><span id="gps-txt">Buscando GPS…</span></div>
+        </div>
+        <div class="cam-top-side">
+          <button class="cam-icon" id="btn-act" onclick="openActivityModal()" aria-label="Actividad" title="Actividad">
+            <svg viewBox="0 0 24 24"><path d="M5 19l1-4 9.5-9.5 3 3L9 18z"/><path d="M13.5 7.5l3 3"/></svg>
+          </button>
+          <button class="cam-icon" id="btn-note" onclick="openQuickNote()" aria-label="Nota rápida" title="Nota rápida">
+            <svg viewBox="0 0 24 24"><path d="M5 5h14v10H10l-4 4v-4H5z"/><path d="M8.5 9h7M8.5 12h4.5"/></svg>
+          </button>
+        </div>
       </div>
       <div id="video-area">
         <div id="video-wrap">
@@ -362,11 +371,8 @@ input[type=file]{display:none;}
       <div id="cam-bottom">
         <div id="zoom-row"></div>
         <div id="mode-row">
-          <button class="mode" onclick="openQuickNote()">NOTA</button>
-          <button class="mode" onclick="openActivityModal()">ACTIVIDAD</button>
           <button class="mode on" data-mode="foto" onclick="setMode('foto')">FOTO</button>
           <button class="mode" data-mode="video" onclick="setMode('video')">VIDEO</button>
-          <button class="mode" onclick="openStyle()">ESTILO</button>
         </div>
         <div id="cam-controls">
           <div id="btn-gallery-thumb" onclick="switchTab('gallery')">
@@ -414,7 +420,7 @@ input[type=file]{display:none;}
         <span style="display:flex;align-items:center;gap:10px;"><span id="gallery-count">0 fotos</span><button id="btn-export" class="hdr-btn" onclick="openExport()" style="display:none;">Exportar</button></span>
       </div>
       <div id="gallery-tools">
-        <button class="cfg-btn2" onclick="document.getElementById('import-file').click()">＋ Estampar fotos de la galería</button>
+        <button class="cfg-btn2" onclick="document.getElementById('import-file').click()">＋ Poner datos a fotos de la galería</button>
         <button class="cfg-btn2" onclick="document.getElementById('verify-file').click()">✓ Verificar foto</button>
         <input type="file" id="import-file" accept="image/*" multiple onchange="importPhotos(this)">
         <input type="file" id="verify-file" onchange="verifyPhoto(this)">
@@ -435,6 +441,16 @@ input[type=file]{display:none;}
       <div class="config-section cfg-page" data-page="obras" data-title="Obras" style="display:none;padding-bottom:24px">
         <div class="config-card">
           <div class="config-row">
+            <div class="config-row-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+            </div>
+            <div class="config-row-body">
+              <div class="config-row-title">Nombre de obra</div>
+              <input type="text" id="cfg-obra" value="" placeholder="Nombre de la obra" oninput="updateConfig()">
+            </div>
+          </div>
+
+          <div class="config-row">
             <div class="config-row-body">
               <div class="config-row-title">Obra activa</div>
               <select id="prof-select" class="prof-select" onchange="switchProfile(this.value)"></select>
@@ -449,26 +465,24 @@ input[type=file]{display:none;}
           <div class="config-row">
             <div class="config-row-body">
               <div class="config-row-title">Incluir el eje en el archivo</div>
-              <div class="config-row-sub">Logo, actividades, formatos y estilo siempre van incluidos</div>
+              <div class="config-row-sub">El eje que da el PK. Logo, actividades, formatos y estilo siempre van incluidos</div>
             </div>
             <input type="checkbox" id="prof-axis" checked>
+          </div>
+          <div class="config-row">
+            <div class="config-row-body">
+              <div class="config-row-title">Incluir la capa auxiliar en el archivo</div>
+              <div class="config-row-sub">El proyecto dibujado; si es muy grande, el archivo pesa más</div>
+            </div>
+            <input type="checkbox" id="prof-aux" checked>
           </div>
           <div class="config-row"><button class="btn-primary" onclick="exportProfile()">Compartir configuración de esta obra</button></div>
           <input type="file" id="prof-file" onchange="importProfileFile(this)">
         </div>
       </div>
 
-      <div class="config-section cfg-page" data-page="proyecto" data-title="Proyecto y actividades" style="display:none;padding-bottom:24px">
+      <div class="config-section cfg-page" data-page="actividades" data-title="Actividades" style="display:none;padding-bottom:24px">
         <div class="config-card">
-          <div class="config-row">
-            <div class="config-row-icon">
-              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            </div>
-            <div class="config-row-body">
-              <div class="config-row-title">Nombre de obra</div>
-              <input type="text" id="cfg-obra" value="" placeholder="Nombre de la obra" oninput="updateConfig()">
-            </div>
-          </div>
           <div class="config-row">
             <div class="config-row-icon">
               <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -487,6 +501,7 @@ input[type=file]{display:none;}
       </div>
 
       <div class="config-section cfg-page" data-page="eje" data-title="Eje (KMZ)" style="display:none;padding-bottom:24px">
+        <div class="config-label">Eje principal (da el PK)</div>
         <div class="config-card">
           <div class="config-row">
             <div class="config-row-icon">
@@ -528,6 +543,19 @@ input[type=file]{display:none;}
           <button data-theme="senal" onclick="setAppTheme('senal')"><img src="icon-senal-192.png" alt=""><b>Señalética</b><span>Azul marino y amarillo</span></button>
         </div>
         <div class="config-row-sub" id="theme-note" style="margin:6px 2px 14px"></div>
+        <div class="config-label" style="margin-top:14px">Capa auxiliar (solo dibujo)</div>
+        <div class="config-card">
+          <div class="config-row"><div class="config-row-body">
+            <div class="config-row-title">Proyecto dibujado</div>
+            <div class="config-row-sub" id="aux-status">Sin capa auxiliar</div>
+            <div class="config-row-sub" style="margin-top:4px">Bordes, estructuras, drenaje… Se ve en el mapa y en el mini mapa. <b>No cambia el PK.</b></div>
+          </div></div>
+          <div class="config-row" style="gap:8px;flex-wrap:wrap">
+            <button class="btn-primary" style="flex:1" onclick="document.getElementById('aux-file').click()">Cargar capa auxiliar (KMZ / KML)</button>
+            <button class="cfg-btn2" id="aux-clear" style="display:none;color:var(--danger)" onclick="clearAux()">Quitar</button>
+            <input type="file" id="aux-file" onchange="loadAux(this)">
+          </div>
+        </div>
       </div>
 
       <div class="config-section cfg-page" data-page="gps" data-title="GPS" style="display:none;padding-bottom:24px">
@@ -544,7 +572,7 @@ input[type=file]{display:none;}
         </div>
       </div>
 
-      <div class="config-section cfg-page" data-page="app" data-title="Versión" style="display:none;padding-bottom:24px">
+      <div class="config-section cfg-page" data-page="app" data-title="Versiones" style="display:none;padding-bottom:24px">
         <div id="app-section" style="display:none">
           
           <div class="config-card">
@@ -596,21 +624,6 @@ input[type=file]{display:none;}
         <div id="exp-count"></div>
         <button class="modal-btn" onclick="runExport('pdf')">Reporte PDF</button>
         <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="runExport('zip')">Descargar fotos (.zip)</button>
-      </div>
-    </div>
-
-    <div id="style-bg" onclick="if(event.target===this)closeStyle()">
-      <div id="style-box">
-        <canvas id="style-preview"></canvas>
-        <div class="st-label">Fondo de la información</div>
-        <div id="st-swatches"></div>
-        <div class="st-label">Opacidad del fondo <span id="st-op-val"></span></div>
-        <input type="range" id="st-op" min="20" max="100" step="5" oninput="setStyle('op',this.value/100)">
-        <div class="st-label">Tamaño</div>
-        <div class="seg" id="st-size"><button data-v="S">Chico</button><button data-v="M">Mediano</button><button data-v="L">Grande</button></div>
-        <div class="st-label">Posición</div>
-        <div class="seg" id="st-pos"><button data-v="bl">↙ Abajo izq.</button><button data-v="br">↘ Abajo der.</button><button data-v="tl">↖ Arriba izq.</button><button data-v="tr">↗ Arriba der.</button></div>
-        <button id="st-done" onclick="closeStyle()">‹ Regresar a la cámara</button>
       </div>
     </div>
 
@@ -683,7 +696,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-r';
+const APP_VERSION='2026.11.21-v';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -725,7 +738,8 @@ function startGPS(){
     state.alt=pos.coords.altitude;
     if(state.mapFollow&&state.tab==='map'&&mapCtx)setTimeout(()=>mapCenterOn(state.lat,state.lon),0);
     const dot=document.getElementById('gps-dot');
-    dot.className=state.accuracy<=15?'ok':'meh';
+    dot.className=state.accuracy<=15?'ok':state.accuracy<=50?'meh':'';
+    document.getElementById('gps-txt').textContent=`GPS ±${Math.round(state.accuracy)} m`;
     scheduleStamp();
     document.getElementById('gps-status-cfg').textContent=`Activo · precisión ±${Math.round(state.accuracy)} m`;
     if(state.routeCoords.length) computePK();
@@ -734,6 +748,7 @@ function startGPS(){
     state.lastError='GPS: '+err.message;
     document.getElementById('gps-status-cfg').textContent='Error: '+err.message;
     if(err.code===1)showToast('GPS sin permiso — actívalo en el navegador');
+    if(state.lat==null){document.getElementById('gps-dot').className='';document.getElementById('gps-txt').textContent=err.code===1?'GPS sin permiso':'Sin señal GPS';}
   },{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
 }
 function coordStr(d){
@@ -798,9 +813,6 @@ function computePK(){
   // cruz>0 → a la izquierda en el sentido de la línea; si se invierte el cadenamiento, se invierte el lado
   state.pkSide=((bestCross>0)!==state.reverse)?'Izq':'Der';
   state.pkLabel=fmtPK(state.pk);
-  document.getElementById('pk-value').textContent=state.pkLabel;
-  const sl=best>500?'fuera de eje':sideLabel({dist:best,side:state.pkSide});
-  document.getElementById('pk-side').textContent=sl?' · '+sl:'';
   scheduleStamp();
   document.getElementById('map-pk-chip').textContent=`PK ${state.pkLabel}`;
   document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(best)} m`+(best>500?' ⚠ fuera de ruta':'');
@@ -1057,7 +1069,7 @@ function calibrateFromPoints(points){
   if(T.length<2)return null;
   const err=Math.max(...marks.map(m=>Math.abs(off(m)-pk0))); // diferencia máx. vs. distancia geométrica
   state.pk0=pk0;state.reverse=rev;state.pkTable=T;
-  document.getElementById('cfg-pk0').value=Math.abs(pk0)<0.05?'':fmtPK(pk0);
+  document.getElementById('cfg-pk0').value='';document.getElementById('cfg-pk0').placeholder='No hace falta: calibrado con las marcas del KML';
   document.getElementById('cfg-rev').checked=rev;
   saveSettings();
   return{n:T.length,err};
@@ -1113,10 +1125,10 @@ function restoreRoute(){
 function clearRoute(){
   try{localStorage.removeItem('obrasnap.route');}catch(e){}
   state.routeCoords=[];state.routeName=null;state.pk=null;state.pkLabel='--+---';state.pkTable=null;
+  document.getElementById('cfg-pk0').placeholder='0+000';
   document.getElementById('kmz-loaded-name').textContent='Ninguno';
   document.getElementById('map-kmz-name').textContent='sin KMZ';
-  document.getElementById('pk-value').textContent='--+---';
-  document.getElementById('pk-side').textContent='';state.pkDist=null;
+  state.pkDist=null;
   setKmzStatus('Sin KMZ — el PK se calculará cuando cargues uno');
   drawMap();updateDiag();
 }
@@ -1221,7 +1233,7 @@ window.addEventListener('focus',()=>{if(!cameraHealthy())startCamera();});
 let mapCanvas,mapCtx,mapW,mapH;
 // ── MAPA: zoom con dos dedos alrededor de los dedos, botones +/−, mi ubicación y ver todo ──
 const MAP_MIN=40,MAP_MAX=5*111320;                // px por grado: de ~1 px/2.8 km a 5 px/m
-const mapCos=()=>Math.cos(((state.routeCoords.length?projLat0:state.lat)||0)*Math.PI/180);
+const mapCos=()=>Math.cos(((state.routeCoords.length?projLat0:(state.aux&&state.aux.lines[0]?state.aux.lines[0].f[0]:state.aux&&state.aux.points[0]?state.aux.points[0].lat:state.lat))||0)*Math.PI/180);
 let mapDpr=1;
 function initMap(){
   mapCanvas=document.getElementById('map-canvas');
@@ -1247,23 +1259,25 @@ function resizeMap(){
   mapW=wrap.offsetWidth;mapH=wrap.offsetHeight;
   mapCanvas.width=Math.round(mapW*mapDpr);mapCanvas.height=Math.round(mapH*mapDpr);
   mapCtx.setTransform(mapDpr,0,0,mapDpr,0,0);   // nítido en pantallas de alta resolución
-  if(!state.mapFitted&&state.routeCoords.length)resetMapView();
+  if(!state.mapFitted&&(state.routeCoords.length||state.aux))resetMapView();
   drawMap();
 }
 
 // ⤢ ver todo el eje
 function resetMapView(){
-  if(!state.routeCoords.length)return;
+  if(!state.routeCoords.length&&!state.aux)return;
   if(!mapW||!mapH){state.mapFitted=false;return;}
   state.mapFitted=true;
-  const c=mapCos(),lats=state.routeCoords.map(p=>p.lat),lons=state.routeCoords.map(p=>p.lon);
-  const minLat=Math.min(...lats),maxLat=Math.max(...lats),minLon=Math.min(...lons),maxLon=Math.max(...lons);
+  const c=mapCos();
+  let minLat,maxLat,minLon,maxLon;
+  if(state.routeCoords.length){const lats=state.routeCoords.map(p=>p.lat),lons=state.routeCoords.map(p=>p.lon);minLat=Math.min(...lats);maxLat=Math.max(...lats);minLon=Math.min(...lons);maxLon=Math.max(...lons);}
+  else({minLat,maxLat,minLon,maxLon}=auxBounds());
   const top=58,bottom=20;                         // espacio para el recuadro de PK de arriba
   state.mapScale=Math.min((mapW*0.82)/(((maxLon-minLon)||0.001)*c),((mapH-top-bottom)*0.9)/((maxLat-minLat)||0.001));
   const cLat=(minLat+maxLat)/2,cLon=(minLon+maxLon)/2;
   state.mapOffset={x:mapW/2-cLon*c*state.mapScale,y:top+(mapH-top-bottom)/2+cLat*state.mapScale};
 }
-function mapFitAll(){setFollow(false);if(!state.routeCoords.length){showToast('Carga un eje para verlo completo');return;}resetMapView();drawMap();}
+function mapFitAll(){setFollow(false);if(!state.routeCoords.length&&!state.aux){showToast('Carga un eje para verlo completo');return;}resetMapView();drawMap();}
 
 function toScreen(lat,lon){
   return{x:lon*mapCos()*state.mapScale+state.mapOffset.x,y:-lat*state.mapScale+state.mapOffset.y};
@@ -1366,7 +1380,7 @@ function drawMap(){
   for(let x=0;x<mapW;x+=40){mapCtx.beginPath();mapCtx.moveTo(x,0);mapCtx.lineTo(x,mapH);mapCtx.stroke();}
   for(let y=0;y<mapH;y+=40){mapCtx.beginPath();mapCtx.moveTo(0,y);mapCtx.lineTo(mapW,y);mapCtx.stroke();}
 
-  if(!state.routeCoords.length){
+  if(!state.routeCoords.length&&!state.aux){
     mapCtx.fillStyle=MC.empty;
     mapCtx.font='14px Barlow, sans-serif';
     mapCtx.textAlign='center';
@@ -1375,6 +1389,8 @@ function drawMap(){
     return;
   }
 
+  drawAuxOnMap();   // proyecto dibujado (capa auxiliar)
+  if(state.routeCoords.length){
   // route
   mapCtx.beginPath();
   state.routeCoords.forEach((c,i)=>{
@@ -1408,6 +1424,7 @@ function drawMap(){
     prevPk=pk;
   }
 
+  }
   // user position
   if(state.lat){
     const p=toScreen(state.lat,state.lon);
@@ -1545,8 +1562,10 @@ function sideLabel(m){
 
 function fontsReady(){
   if(!document.fonts||!document.fonts.load)return Promise.resolve();
+  const st=state.stampStyle,list=["700 20px 'Barlow Condensed'","20px 'Share Tech Mono'","500 20px 'Barlow'"];
+  [STAMP_FONTS[st.pkFont],STAMP_FONTS[st.infoFont]].filter(Boolean).forEach(F=>[F.b,F.m,F.r].forEach(w=>list.push(`${w} 20px ${F.fam}`)));
   return Promise.race([
-    Promise.all(["700 20px 'Barlow Condensed'","20px 'Share Tech Mono'","500 20px 'Barlow'"].map(f=>document.fonts.load(f).catch(()=>{}))),
+    Promise.all(list.map(f=>document.fonts.load(f).catch(()=>{}))),
     new Promise(r=>setTimeout(r,800))
   ]);
 }
@@ -1572,9 +1591,9 @@ const DEFAULT_STYLE={
   fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'heading',on:true},{k:'note1',on:false},{k:'note2',on:false}],
   note1:'',note2:'',showSide:true,showAcc:true,showAlt:false,
   pkFmt:'pk',sideFmt:'izqder',dateFmt:'txt',timeFmt:'24s',coordFmt:'dec',
-  textColor:'auto',font:'tec',align:'auto',margin:1,
+  textColor:'auto',pkFont:'stm',infoFont:'mix',pkScale:1,align:'auto',margin:1,
   pkSep:false,pkPos:'tr',
-  brand:'texto',brandPos:'tr',brandScale:1,
+  brand:'texto',brandPos:'tr',brandScale:1,logoOp:1,
   aspect:'4:3',quality:0.92,grid:false,timer:0,sound:true,vibrate:true,saveOriginal:false,
   mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true,
   fileFmt:'{AAMMDD}_{PK}_{HHMM}_{N}',seqReset:'day',seqDigits:3
@@ -1584,6 +1603,8 @@ function normalizeStyle(st){
   const d=JSON.parse(JSON.stringify(DEFAULT_STYLE));
   if(st.size&&st.scale==null)st.scale={S:0.8,M:1,L:1.25}[st.size]||1;
   delete st.size;
+  if(st.font&&!st.pkFont){const m={tec:['stm','mix'],cond:['barlowc','barlowc'],sans:['barlow','barlow']}[st.font]||['stm','mix'];st.pkFont=m[0];st.infoFont=m[1];}
+  delete st.font;
   const out=Object.assign(d,st);
   const keys=out.fields.map(f=>f.k);
   DEFAULT_STYLE.fields.forEach(f=>{if(!keys.includes(f.k))out.fields.push({...f});});
@@ -1649,11 +1670,26 @@ function placeBox(pos,W,H,w,h,mg){
   return{x:c==='l'?mg:c==='r'?W-mg-w:(W-w)/2,y:v==='t'?mg:v==='b'?H-mg-h:(H-h)/2};
 }
 
+// Letras disponibles (incluidas en la app). k ajusta el tamaño para que todas se vean parejas.
+const STAMP_FONTS={
+  stm:{name:'Técnica',fam:"'Share Tech Mono',monospace",b:400,m:400,r:400,k:1},
+  barlow:{name:'Barlow',fam:"'Barlow',sans-serif",b:700,m:500,r:400,k:0.94},
+  barlowc:{name:'Condensada',fam:"'Barlow Condensed',sans-serif",b:700,m:600,r:500,k:1.05},
+  robotomono:{name:'Roboto Mono',fam:"'Roboto Mono',monospace",b:700,m:500,r:400,k:0.88},
+  oswald:{name:'Oswald',fam:"'Oswald',sans-serif",b:600,m:500,r:400,k:0.95},
+  bebas:{name:'Bebas Neue',fam:"'Bebas Neue',sans-serif",b:400,m:400,r:400,k:1.18},
+  robotoc:{name:'Roboto Condensed',fam:"'Roboto Condensed',sans-serif",b:700,m:500,r:400,k:1},
+  atkinson:{name:'Muy legible',fam:"'Atkinson Hyperlegible',sans-serif",b:700,m:400,r:400,k:0.92},
+};
 function stampFonts(st,s){
-  const C="'Barlow Condensed',sans-serif",M="'Share Tech Mono',monospace",S="'Barlow',sans-serif";
-  if(st.font==='cond')return{title:`700 ${34*s}px ${C}`,pk:`600 ${76*s}px ${C}`,pkex:`500 ${32*s}px ${C}`,main:`500 ${36*s}px ${C}`,sub:`500 ${30*s}px ${C}`};
-  if(st.font==='sans')return{title:`700 ${32*s}px ${S}`,pk:`600 ${66*s}px ${S}`,pkex:`500 ${28*s}px ${S}`,main:`500 ${33*s}px ${S}`,sub:`400 ${27*s}px ${S}`};
-  return{title:`700 ${34*s}px ${C}`,pk:`400 ${72*s}px ${M}`,pkex:`400 ${30*s}px ${M}`,main:`500 ${34*s}px ${S}`,sub:`400 ${28*s}px ${M}`};
+  const P=STAMP_FONTS[st.pkFont]||STAMP_FONTS.stm,ps=s*(st.pkScale||1)*P.k;
+  const out={pk:`${P===STAMP_FONTS.stm?400:P.b} ${72*ps}px ${P.fam}`,pkex:`${P.r} ${30*ps}px ${P.fam}`};
+  if(!STAMP_FONTS[st.infoFont]){ // "Técnica mixta": título condensado, texto normal, datos en monoespaciada
+    const C="'Barlow Condensed',sans-serif",M="'Share Tech Mono',monospace",S="'Barlow',sans-serif";
+    return{...out,title:`700 ${34*s}px ${C}`,main:`500 ${34*s}px ${S}`,sub:`400 ${28*s}px ${M}`};
+  }
+  const I=STAMP_FONTS[st.infoFont],is=s*I.k;
+  return{...out,title:`${I.b} ${34*is}px ${I.fam}`,main:`${I.m} ${34*is}px ${I.fam}`,sub:`${I.r} ${28*is}px ${I.fam}`};
 }
 const TEXT_COLORS={blanco:'#ffffff',negro:'#0a0a0a',amarillo:'#facc15',verde:'#4ade80'};
 
@@ -1726,6 +1762,7 @@ function drawBlock(ctx,W,H,L,pos,s,mg,th,st,darkText){
 function drawBrand(ctx,W,H,s,mg,st){
   if(st.brand==='ninguna')return;
   ctx.save();
+  ctx.globalAlpha=st.logoOp??1;
   const bs=s*(st.brandScale||1);
   if(st.brand==='logo'&&state.logoImg&&state.logoImg.complete&&state.logoImg.naturalWidth){
     const im=state.logoImg,h=110*bs,w=im.naturalWidth*h/im.naturalHeight;
@@ -1744,7 +1781,7 @@ function drawBrand(ctx,W,H,s,mg,st){
 let stampQueued=false;
 function scheduleStamp(){
   if(stampQueued)return;stampQueued=true;
-  requestAnimationFrame(()=>{stampQueued=false;renderLiveStamp();if(document.getElementById('style-bg').classList.contains('open'))renderStylePreview();});
+  requestAnimationFrame(()=>{stampQueued=false;renderLiveStamp();});
 }
 function liveMeta(){return snapshotMeta(0,0);}
 function renderLiveStamp(){
@@ -1788,40 +1825,7 @@ function previewOn(canvas){
   }
   drawStampOnCanvas(ctx,W,H,liveMeta());
 }
-function renderStylePreview(){previewOn(document.getElementById('style-preview'));}
 function renderCfgPreview(){const c=document.getElementById('cfg-stamp-preview');if(c)previewOn(c);}
-
-// ── HOJA DE ESTILO ──
-function openStyle(){
-  const box=document.getElementById('st-swatches');
-  if(!box.children.length){
-    Object.entries(STAMP_THEMES).forEach(([k,t])=>{
-      const b=document.createElement('button');b.className='swatch'+(t.sw?'':' transp');b.title=t.name;b.dataset.v=k;
-      if(t.sw)b.style.background=t.sw;
-      b.onclick=()=>{state.stampStyle.op=t.op??null;setStyle('bg',k);};
-      box.appendChild(b);
-    });
-    document.querySelectorAll('#st-size button').forEach(b=>b.onclick=()=>setStyle('scale',{S:0.8,M:1,L:1.25}[b.dataset.v]));
-    document.querySelectorAll('#st-pos button').forEach(b=>b.onclick=()=>setStyle('pos',b.dataset.v));
-  }
-  syncStyleUI();
-  document.getElementById('style-bg').classList.add('open');
-  setTimeout(renderStylePreview,20);
-}
-function closeStyle(){document.getElementById('style-bg').classList.remove('open');}
-function setStyle(k,v){
-  state.stampStyle[k]=v;
-  syncStyleUI();saveSettings();scheduleStamp();renderStylePreview();
-}
-function syncStyleUI(){
-  const st=state.stampStyle,th=STAMP_THEMES[st.bg]||STAMP_THEMES.negro;
-  document.querySelectorAll('#st-swatches .swatch').forEach(b=>b.classList.toggle('on',b.dataset.v===st.bg));
-  document.querySelectorAll('#st-size button').forEach(b=>b.classList.toggle('on',Math.abs(({S:0.8,M:1,L:1.25}[b.dataset.v])-st.scale)<0.01));
-  document.querySelectorAll('#st-pos button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.pos));
-  const op=document.getElementById('st-op'),val=st.op!=null?st.op:(th.op||0);
-  op.disabled=!th.bg;op.value=Math.round(val*100);
-  document.getElementById('st-op-val').textContent=th.bg?`· ${Math.round(val*100)}%`:'· sin fondo';
-}
 
 // ── CONTROLES DE CÁMARA: zoom, flash, cambiar cámara ──
 let camCaps={};
@@ -1923,46 +1927,52 @@ async function addExif(blob,m){
 // ── AJUSTES (pantalla completa, generada desde un esquema) ──
 const POS9=[['tl','↖'],['tc','↑'],['tr','↗'],['ml','←'],['mc','•'],['mr','→'],['bl','↙'],['bc','↓'],['br','↘']];
 const SETTINGS_SCHEMA=[
-  {title:'Información en la foto',icon:'≡',sum:st=>st.fields.filter(f=>f.on).map(f=>FIELD_NAMES[f.k]).join(', ')||'Nada',rows:[
+  {group:'stamp',title:'Qué datos mostrar',icon:'≡',sum:st=>st.fields.filter(f=>f.on).map(f=>FIELD_NAMES[f.k]).join(', ')||'Nada',rows:[
     {type:'fields'},
     {type:'toggle',k:'showSide',label:'Lado y distancia al eje'},
     {type:'toggle',k:'showAcc',label:'Precisión del GPS (±m)'},
     {type:'toggle',k:'showAlt',label:'Altitud'},
   ]},
-  {title:'Formatos',icon:'Aa',sum:st=>[optLabel('pkFmt',st.pkFmt),optLabel('dateFmt',st.dateFmt),optLabel('timeFmt',st.timeFmt),optLabel('coordFmt',st.coordFmt)].join(' · '),rows:[
+  {group:'stamp',title:'Formatos',icon:'Aa',sum:st=>[optLabel('pkFmt',st.pkFmt),optLabel('dateFmt',st.dateFmt),optLabel('timeFmt',st.timeFmt),optLabel('coordFmt',st.coordFmt)].join(' · '),rows:[
     {type:'seg',k:'pkFmt',label:'PK',opts:[['pk','PK 1+250'],['pkdec','1+250.25'],['km','Km 1+250'],['num','1+250']]},
     {type:'seg',k:'sideFmt',label:'Lado',opts:[['izqder','12 m Izq.'],['lild','LI 12 m']]},
     {type:'seg',k:'dateFmt',label:'Fecha',opts:[['txt','19 Nov 2026'],['dmy','19/11/2026'],['iso','2026-11-19'],['dia','Jueves 19 Nov']]},
     {type:'seg',k:'timeFmt',label:'Hora',opts:[['24s','19:08:14'],['24','19:08'],['12s','7:08:14 p.m.'],['12','7:08 p.m.']]},
     {type:'seg',k:'coordFmt',label:'Coordenadas',opts:[['dec','Decimal'],['gms','G° M\' S"'],['utm','UTM']]},
   ]},
-  {title:'Estilo del stamp',icon:'◐',sum:st=>`${STAMP_THEMES[st.bg].name}${STAMP_THEMES[st.bg].bg?' '+Math.round((st.op??STAMP_THEMES[st.bg].op)*100)+'%':''} · ${optLabel('font',st.font)} · ${Math.round(st.scale*100)}%`,rows:[
+  {group:'stamp',title:'Letras',icon:'Aa',sum:st=>`PK: ${STAMP_FONTS[st.pkFont]?.name||'Técnica'} · Información: ${STAMP_FONTS[st.infoFont]?.name||'Técnica mixta'}`,rows:[
+    {type:'font',k:'pkFont',label:'Letra del PK',sample:'PK 7+400'},
+    {type:'range',k:'pkScale',label:'Tamaño del PK',min:0.6,max:1.6,step:0.05,fmt:v=>Math.round(v*100)+'%'},
+    {type:'font',k:'infoFont',label:'Letra de la información',sample:'Excavación 09:15',mix:true},
+  ]},
+  {group:'stamp',title:'Estilo',icon:'◐',sum:st=>`${STAMP_THEMES[st.bg].name}${STAMP_THEMES[st.bg].bg?' '+Math.round((st.op??STAMP_THEMES[st.bg].op)*100)+'%':''} · ${Math.round(st.scale*100)}%`,rows:[
     {type:'swatch',k:'bg',label:'Fondo'},
     {type:'range',k:'op',label:'Opacidad del fondo',min:0.2,max:1,step:0.05,fmt:v=>Math.round(v*100)+'%',show:st=>!!STAMP_THEMES[st.bg].bg},
     {type:'seg',k:'textColor',label:'Color del texto',opts:[['auto','Auto'],['blanco','Blanco'],['negro','Negro'],['amarillo','Amarillo'],['verde','Verde']]},
-    {type:'seg',k:'font',label:'Letra',opts:[['tec','Técnica'],['cond','Condensada'],['sans','Normal']]},
-    {type:'range',k:'scale',label:'Tamaño',min:0.6,max:1.8,step:0.05,fmt:v=>Math.round(v*100)+'%'},
+    {type:'range',k:'scale',label:'Tamaño general',min:0.6,max:1.8,step:0.05,fmt:v=>Math.round(v*100)+'%'},
     {type:'seg',k:'align',label:'Alineación del texto',opts:[['auto','Auto'],['left','Izquierda'],['center','Centro'],['right','Derecha']]},
     {type:'range',k:'margin',label:'Separación del borde',min:0,max:3,step:0.25,fmt:v=>Math.round(v*100)+'%'},
   ]},
-  {title:'Posición de los elementos',icon:'⊞',sum:st=>`Datos ${POS_NAMES[st.pos]}${st.pkSep?' · PK '+POS_NAMES[st.pkPos]:''}`,rows:[
+  {group:'stamp',title:'Posición de los elementos',icon:'⊞',sum:st=>`Datos ${POS_NAMES[st.pos]}${st.pkSep?' · PK '+POS_NAMES[st.pkPos]:''}`,rows:[
     {type:'pos9',k:'pos',label:'Bloque de datos'},
     {type:'toggle',k:'pkSep',label:'PK en un recuadro aparte'},
     {type:'pos9',k:'pkPos',label:'Recuadro del PK',show:st=>st.pkSep},
     {type:'pos9',k:'brandPos',label:'Marca / logo',show:st=>st.brand!=='ninguna'},
   ]},
-  {title:'Mini mapa del eje',icon:'⌖',sum:st=>st.mapOn?`Activo · ${st.mapRange} m · ${POS_NAMES[st.mapPos]}`:'Apagado',rows:[
+  {group:'stamp',title:'Mini mapa del eje',icon:'⌖',sum:st=>st.mapOn?`Activo · ${st.mapRange} m · ${POS_NAMES[st.mapPos]}`:'Apagado',rows:[
     {type:'toggle',k:'mapOn',label:'Mostrar mini mapa',sub:'Tramo del eje alrededor de la foto, marcas de PK, norte y hacia dónde apunta la cámara. Si estás lejos del eje, indica la distancia y hacia dónde queda.'},
     {type:'pos9',k:'mapPos',label:'Posición del mini mapa',show:st=>st.mapOn},
     {type:'seg',k:'mapRange',label:'Alcance',opts:[[150,'150 m'],[300,'300 m'],[600,'600 m'],[1000,'1 km']],show:st=>st.mapOn},
     {type:'range',k:'mapScale',label:'Tamaño del mini mapa',min:0.6,max:2,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.mapOn},
   ]},
-  {title:'Marca o logo',icon:'★',sum:st=>optLabel('brand',st.brand),rows:[
+  {group:'stamp',title:'Marca o logo',icon:'★',sum:st=>optLabel('brand',st.brand),rows:[
     {type:'seg',k:'brand',label:'Mostrar',opts:[['texto','OBRASNAP'],['logo','Mi logo'],['ninguna','Nada']]},
     {type:'logo',show:st=>st.brand==='logo'},
     {type:'range',k:'brandScale',label:'Tamaño de la marca',min:0.5,max:3,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.brand!=='ninguna'},
+    {type:'range',k:'logoOp',label:'Opacidad de la marca',min:0.1,max:1,step:0.05,fmt:v=>Math.round(v*100)+'%',show:st=>st.brand!=='ninguna'},
   ]},
-  {title:'Cámara',icon:'◉',sum:st=>[st.aspect,optLabel('quality',st.quality),optLabel('orient',st.orient),st.timer?st.timer+' s':''].filter(Boolean).join(' · '),rows:[
+  {group:'stamp',title:'Nombre de los archivos',icon:'#',sum:st=>{const m=liveMeta();return buildFileName(m,'jpg',peekSeq(m.ts));},rows:[{type:'filename'}]},
+  {group:'camara',title:'Cámara',icon:'◉',sum:st=>[st.aspect,optLabel('quality',st.quality),optLabel('orient',st.orient),st.timer?st.timer+' s':''].filter(Boolean).join(' · '),rows:[
     {type:'seg',k:'aspect',label:'Proporción de la foto',opts:[['4:3','4:3'],['16:9','16:9'],['1:1','1:1']],after:()=>{fitVideo();}},
     {type:'seg',k:'quality',label:'Calidad JPG',opts:[[0.92,'Alta'],[0.8,'Media'],[0.65,'Ligera']]},
     {type:'toggle',k:'grid',label:'Cuadrícula de encuadre',after:()=>applyGrid()},
@@ -1972,21 +1982,21 @@ const SETTINGS_SCHEMA=[
     {type:'toggle',k:'sound',label:'Sonido del obturador'},
     {type:'toggle',k:'vibrate',label:'Vibrar al tomar la foto'},
   ]},
-  {title:'Nombre de los archivos',icon:'#',sum:st=>{const m=liveMeta();return buildFileName(m,'jpg',peekSeq(m.ts));},rows:[{type:'filename'}]},
-  {title:'Guardado',icon:'↓',sum:st=>`Descargas: ${state.autoSave?'sí':'no'}${st.saveOriginal?' · copia sin datos':''}`,rows:[
+  {group:'camara',title:'Guardado',icon:'↓',sum:st=>`Descargas: ${state.autoSave?'sí':'no'}${st.saveOriginal?' · copia sin datos':''}`,rows:[
     {type:'toggle',k:'_autoSave',label:'Guardar cada foto en el teléfono',sub:'Galería › ObraSnap (app) o Descargas (navegador)',get:()=>state.autoSave,set:v=>{state.autoSave=v;saveSettings();}},
-    {type:'toggle',k:'saveOriginal',label:'Guardar también la foto sin datos',sub:'Se descarga una copia limpia junto a la foto con stamp'},
+    {type:'toggle',k:'saveOriginal',label:'Guardar también la foto sin datos',sub:'Se guarda una copia limpia junto a la foto con datos'},
   ]},
 ];
 
 const POS_NAMES={tl:'arriba izq.',tc:'arriba centro',tr:'arriba der.',ml:'centro izq.',mc:'centro',mr:'centro der.',bl:'abajo izq.',bc:'abajo centro',br:'abajo der.'};
 function optLabel(k,v){for(const sec of SETTINGS_SCHEMA)for(const row of sec.rows)if(row.k===k&&row.opts){const o=row.opts.find(o=>o[0]===v);return o?o[1]:'';}return '';}
-state.setPage=null;
-function settingsPage(i){state.setPage=i;buildSettings();document.getElementById('set-body').scrollTop=0;}
-// regresar: desde un tema vuelve al menú; desde el menú vuelve a la cámara (todo ya está guardado)
-function settingsBack(){if(state.setPage!=null)settingsPage(null);else closeSettings();}
-function openSettings(page=null){
-  state.setPage=page;
+state.setPage=null;state.setGroup='stamp';
+function settingsPage(i){state.setPage=i;buildSettings();document.getElementById('set-body').scrollTop=0;renderSettingsPreview();}
+// regresar: desde un tema del Stamp vuelve a su menú; si no, vuelve a Config (todo ya está guardado)
+function settingsBack(){if(state.setGroup==='stamp'&&state.setPage!=null)settingsPage(null);else{closeSettings();if(state.tab==='config')cfgPage(null);}}
+function openSettings(group='stamp',page=null){
+  state.setGroup=group;state.setPage=page;
+  document.getElementById('set-prev-wrap').style.display=group==='stamp'?'':'none';
   document.getElementById('settings').classList.add('open');
   buildSettings();
   setTimeout(renderSettingsPreview,30);
@@ -2018,24 +2028,39 @@ function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=
 function buildSettings(){
   const st=state.stampStyle,root=document.getElementById('set-body');
   const scroll=root.scrollTop;root.innerHTML='';
-  const page=state.setPage;
-  document.getElementById('set-back').textContent=page==null?'‹ Cámara':'‹ Ajustes';
-  document.getElementById('set-title').textContent=page==null?'Ajustes':SETTINGS_SCHEMA[page].title;
-  if(page==null){
-    // menú: un renglón por tema con su valor actual
+  const page=state.setPage,group=state.setGroup;
+  const mine=SETTINGS_SCHEMA.map((sec,i)=>[sec,i]).filter(([sec])=>sec.group===group);
+  if(group==='stamp'&&page==null){
+    document.getElementById('set-back').textContent='‹ Config';document.getElementById('set-title').textContent='Datos en la foto';
+    // menú del Stamp: un renglón por tema con su valor actual
     const card=el('div','menu-card');
-    SETTINGS_SCHEMA.forEach((sec,i)=>card.appendChild(menuItem(sec.icon,sec.title,sec.sum(st),()=>settingsPage(i))));
+    mine.forEach(([sec,i])=>card.appendChild(menuItem(sec.icon,sec.title,sec.sum(st),()=>settingsPage(i))));
     root.append(el('div','set-sec','Toca un tema para cambiarlo · se guarda automáticamente'),card);
-    const reset=el('button','set-btn danger set-reset','Restablecer ajustes de cámara');
-    reset.onclick=()=>{if(!confirm('¿Volver a los valores originales del stamp y la cámara?'))return;state.stampStyle=normalizeStyle({});settingChanged({after:()=>{fitVideo();applyGrid();}});};
+    const reset=el('button','set-btn danger set-reset','Restablecer datos en la foto y cámara');
+    reset.onclick=()=>{if(!confirm('¿Volver a los valores originales de los datos en la foto y de la cámara?'))return;state.stampStyle=normalizeStyle({});settingChanged({after:()=>{fitVideo();applyGrid();}});};
     root.appendChild(reset);root.scrollTop=scroll;return;
   }
-  [SETTINGS_SCHEMA[page]].forEach(sec=>{
-    root.appendChild(el('div','set-sec',''));
+  document.getElementById('set-back').textContent=group==='stamp'?'‹ Datos':'‹ Config';
+  document.getElementById('set-title').textContent=group==='stamp'?SETTINGS_SCHEMA[page].title:'Cámara';
+  (group==='stamp'?[SETTINGS_SCHEMA[page]]:mine.map(([sec])=>sec)).forEach(sec=>{
+    root.appendChild(el('div','set-sec',group==='stamp'?'':sec.title));
     const card=el('div','set-card');
     sec.rows.forEach(row=>{
       if(row.show&&!row.show(st))return;
       const get=row.get||(()=>st[row.k]),set=row.set||(v=>{st[row.k]=v;});
+      if(row.type==='font'){
+        const r0=el('div','set-row set-col');r0.appendChild(el('div','set-name',row.label));
+        const g=el('div','font-grid');
+        const opts=Object.entries(STAMP_FONTS).map(([k,F])=>[k,F.name,F.fam,F.b]);
+        if(row.mix)opts.unshift(['mix','Técnica mixta',"'Barlow Condensed',sans-serif",600]);
+        opts.forEach(([k,name,fam,w])=>{
+          const b=el('button','font-opt'+((get()===k||(row.mix&&k==='mix'&&!STAMP_FONTS[get()]))?' on':''));
+          const smp=el('span','font-smp',row.sample);smp.style.fontFamily=fam;smp.style.fontWeight=w;
+          b.append(smp,el('small','',name));b.onclick=()=>{set(k);fontsReady().then(()=>settingChanged(row));};
+          g.appendChild(b);
+        });
+        r0.appendChild(g);card.appendChild(r0);return;
+      }
       if(row.type==='filename'){
         const ex=()=>{const m=liveMeta();return buildFileName(m,'jpg',peekSeq(m.ts));};
         const r0=el('div','set-row set-col');
@@ -2232,7 +2257,7 @@ function activeId(){try{return localStorage.getItem('obrasnap.active');}catch(e)
 function setActiveId(id){try{localStorage.setItem('obrasnap.active',id);}catch(e){}state.profileId=id;}
 
 // Foto actual de la configuración → objeto exportable
-function snapshotProfile(includeAxis=true){
+function snapshotProfile(includeAxis=true,includeAux=true){
   const logo=(()=>{try{return localStorage.getItem('obrasnap.logo');}catch(e){return null;}})();
   return{
     format:PROFILE_FORMAT,version:1,
@@ -2244,6 +2269,7 @@ function snapshotProfile(includeAxis=true){
     stamp:JSON.parse(JSON.stringify(state.stampStyle)),
     pk:{pk0:document.getElementById('cfg-pk0').value||'',reverse:!!state.reverse},
     logo:logo||null,
+    aux:includeAux&&state.aux?{name:state.aux.name,lines:state.aux.lines,points:state.aux.points}:null,
     eje:includeAxis&&state.routeCoords.length>1?{
       nombre:state.routeName,
       pts:state.routeCoords.map(c=>[+c.lat.toFixed(7),+c.lon.toFixed(7)]),
@@ -2270,6 +2296,7 @@ function validateProfile(o){
   if(!STAMP_THEMES[out.stamp.bg])out.stamp.bg='negro';
   out.pk={pk0:str(o.pk&&o.pk.pk0,20),reverse:!!(o.pk&&o.pk.reverse)};
   out.logo=typeof o.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(o.logo)&&o.logo.length<1.5e6?o.logo:null;
+  out.aux=validateAux(o.aux);
   out.eje=null;
   if(o.eje&&Array.isArray(o.eje.pts)){
     const ok=p=>Array.isArray(p)&&p.length>=2&&isFinite(p[0])&&isFinite(p[1])&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180;
@@ -2301,6 +2328,7 @@ function applyProfile(p){
     setKmzStatus(`✓ ${p.eje.pts.length} pts · ${(total/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''} (de la obra)`);
     saveRoute();
   }else clearRoute();
+  state.aux=p.aux||null;auxCache=null;paintAux();
   saveSettings();renderActivities();
   computePK();drawMap();fitVideo();applyGrid();scheduleStamp();
   logEv('INFO',`Obra activa: ${p.nombre}${p.eje?' · con eje':''}`);
@@ -2318,8 +2346,11 @@ async function initProfiles(){
   }else{
     if(!profiles.some(p=>p.id===id))id=profiles[0].id;
     setActiveId(id);
+    const rec=profiles.find(p=>p.id===id);
+    state.aux=rec&&rec.data?validateAux(rec.data.aux):null;auxCache=null;
   }
-  renderProfiles();
+  paintAux();renderProfiles();
+  if(state.aux){state.mapFitted=false;if(mapCtx)resizeMap();}
   return first;
 }
 // guarda la configuración actual dentro del perfil activo
@@ -2343,7 +2374,7 @@ async function newProfile(){
   if(name==null||!name.trim())return;
   await storeActiveProfile();
   // empieza como copia de la actual (mismo logo y estilo), sin eje
-  const p=snapshotProfile(false);p.id=newId();p.nombre=name.trim();p.obra.nombre=name.trim();p.obra.actividad='';
+  const p=snapshotProfile(false,false);p.id=newId();p.nombre=name.trim();p.obra.nombre=name.trim();p.obra.actividad='';
   const rec={id:p.id,nombre:p.nombre,data:p,updated:Date.now()};
   profiles.push(rec);try{await dbProfilePut(rec);}catch(e){}
   setActiveId(p.id);applyProfile(validateProfile(p));renderProfiles();
@@ -2359,12 +2390,12 @@ async function deleteProfile(){
 }
 async function exportProfile(){
   const rec=await storeActiveProfile();
-  const withAxis=document.getElementById('prof-axis').checked;
-  const data=withAxis?rec.data:{...rec.data,eje:null};
+  const withAxis=document.getElementById('prof-axis').checked,withAux=document.getElementById('prof-aux').checked;
+  const data={...rec.data,eje:withAxis?rec.data.eje:null,aux:withAux?rec.data.aux:null};
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const safe=(data.nombre||'Obra').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w-]+/g,'_').slice(0,50);
   await shareOrDownload(blob,`${safe}.obrasnap`,'Configuración de obra');
-  logEv('INFO',`Configuración exportada: ${data.nombre} (${Math.round(blob.size/1024)} KB${data.eje?', con eje':''}${data.logo?', con logo':''})`);
+  logEv('INFO',`Configuración exportada: ${data.nombre} (${Math.round(blob.size/1024)} KB${data.eje?', con eje':''}${data.aux?', con capa auxiliar':''}${data.logo?', con logo':''})`);
 }
 function importProfileFile(input){
   const f=input.files[0];input.value='';if(!f)return;
@@ -2375,7 +2406,7 @@ async function importProfileText(text,fname){
   let p;
   try{p=validateProfile(JSON.parse(text));}
   catch(e){state.lastError='Importar obra: '+e.message;showToast('Archivo no válido: '+e.message);return;}
-  const detail=[p.eje?'eje':'sin eje',p.logo?'logo':'',`${p.obra.actividades.length} actividades`].filter(Boolean).join(', ');
+  const detail=[p.eje?'eje':'sin eje',p.aux?'capa auxiliar':'',p.logo?'logo':'',`${p.obra.actividades.length} actividades`].filter(Boolean).join(', ');
   // misma obra = mismo id o mismo nombre (p.ej. la obra de arranque de un teléfono nuevo)
   const norm=t=>(t||'').trim().toLowerCase();
   const same=profiles.find(x=>x.id===p.id)||profiles.find(x=>norm(x.id===state.profileId?state.obra:x.nombre)===norm(p.nombre));
@@ -2506,6 +2537,7 @@ function clearQuickNote(){state.quickNote='';paintQuickNote();scheduleStamp();}
 function paintQuickNote(){
   const p=document.getElementById('qnote-pill');
   p.style.display=state.quickNote?'':'none';
+  document.getElementById('btn-note').classList.toggle('on',!!state.quickNote);
   document.getElementById('qnote-txt').textContent=state.quickNote;
 }
 
@@ -2559,6 +2591,7 @@ function drawMiniMap(ctx,W,H,s,mg,st,m,th){
   for(let y=cy%gstep;y<pos.y+size;y+=gstep){if(y<pos.y)continue;ctx.beginPath();ctx.moveTo(pos.x,y);ctx.lineTo(pos.x+size,y);ctx.stroke();}
   // eje (solo el tramo cercano)
   const R=state.routeCoords,lim=range*1.6;
+  drawAuxOnMini(ctx,m,X,Y,lim,s);
   ctx.beginPath();let pen=false;
   for(const c of R){
     const near=Math.abs(c.x-P.x)<lim&&Math.abs(c.y-P.y)<lim;
@@ -2669,7 +2702,7 @@ async function importPhotos(input){
   await fontsReady();
   for(let i=0;i<files.length;i++){
     const f=files[i];
-    showToast(`Estampando ${i+1} de ${files.length}...`);
+    showToast(`Poniendo datos ${i+1} de ${files.length}...`);
     try{
       const buf=new Uint8Array(await f.arrayBuffer());
       const ex=readExif(buf);
@@ -2695,7 +2728,7 @@ async function importPhotos(input){
   state.photos.sort((a,b)=>b.ts-a.ts);
   updateGallery();updateThumb();
   const sin=ok-gps;
-  showToast(`${ok} foto(s) estampadas${sin?` · ${sin} sin GPS (sin PK)`:''}`);
+  showToast(`${ok} foto(s) con datos${sin?` · ${sin} sin GPS (sin PK)`:''}`);
   if(sin)setTimeout(()=>alert(`${sin} foto(s) no traían ubicación GPS, así que no se pudo calcular su PK.\n\nCausas comunes: la cámara del teléfono tiene apagada la ubicación, o la foto llegó por WhatsApp (que borra esos datos).`),400);
 }
 
@@ -2833,6 +2866,178 @@ function buildFileName(m,ext='jpg',seqOverride){
 // Asigna número y nombre en el momento de tomar/importar la foto (así el nombre no cambia después)
 function assignFileName(m,ext){m.seq=nextSeq(m.ts);m.fname=buildFileName(m,ext);return m.fname;}
 
+// ── CAPA AUXILIAR: el proyecto dibujado (bordes, estructuras, drenaje...). Solo se ve; no cambia el PK. ──
+// Se guarda dentro de la obra (state.aux) con líneas comprimidas: {c:'#rrggbb',a:alfa,w:grosor,p:polígono,f:[lat,lon,lat,lon,...]}
+state.aux=null;
+const AUX_MAX_FILE=30*1024*1024,AUX_MAX_PTS=150000;
+
+function kmlColor(v){ // KML: aabbggrr
+  const m=/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec((v||'').trim());
+  if(!m)return null;
+  return{c:'#'+m[4]+m[3]+m[2],a:Math.round(parseInt(m[1],16)/255*100)/100};
+}
+// simplificación Douglas-Peucker en metros (quita vértices que no cambian el dibujo)
+function simplifyLatLon(pts,tol){
+  if(pts.length<3)return pts;
+  const lat0=pts[0].lat*Math.PI/180,kx=111320*Math.cos(lat0),ky=110540;
+  const X=pts.map(p=>p.lon*kx),Y=pts.map(p=>p.lat*ky),keep=new Uint8Array(pts.length);keep[0]=keep[pts.length-1]=1;
+  const stack=[[0,pts.length-1]];
+  while(stack.length){
+    const[a,b]=stack.pop();let md=0,mi=-1;
+    const dx=X[b]-X[a],dy=Y[b]-Y[a],L=Math.hypot(dx,dy)||1e-9;
+    for(let i=a+1;i<b;i++){const d=Math.abs(dy*X[i]-dx*Y[i]+X[b]*Y[a]-Y[b]*X[a])/L;if(d>md){md=d;mi=i;}}
+    if(md>tol&&mi>0){keep[mi]=1;stack.push([a,mi],[mi,b]);}
+  }
+  return pts.filter((_,i)=>keep[i]);
+}
+function parseAuxKML(text){
+  text=text.replace(/^﻿/,'');
+  const doc=new DOMParser().parseFromString(text,'text/xml');
+  if(doc.getElementsByTagName('parsererror').length)throw new Error('el KML tiene un formato inválido');
+  const all=(n,root=doc)=>Array.from(root.getElementsByTagNameNS('*',n));
+  const first=(n,root)=>root.getElementsByTagNameNS('*',n)[0];
+  // estilos por id (Style y StyleMap → normal)
+  const styles={};
+  all('Style').forEach(st=>{const id=st.getAttribute('id');if(!id)return;
+    const lc=first('LineStyle',st),pc=first('PolyStyle',st);
+    styles[id]={line:lc&&kmlColor(first('color',lc)?.textContent),w:lc&&parseFloat(first('width',lc)?.textContent),poly:pc&&kmlColor(first('color',pc)?.textContent)};});
+  all('StyleMap').forEach(sm=>{const id=sm.getAttribute('id');if(!id)return;
+    const pair=all('Pair',sm).find(p=>first('key',p)?.textContent.trim()==='normal');const u=pair&&first('styleUrl',pair)?.textContent.trim().replace(/^#/,'');
+    if(u&&styles[u])styles[id]=styles[u];});
+  const lines=[],points=[];
+  all('Placemark').forEach(pm=>{
+    const su=first('styleUrl',pm)?.textContent.trim().replace(/^#/,''),inl=first('Style',pm);
+    let sty=(su&&styles[su])||{};
+    if(inl){const lc=first('LineStyle',inl),pc=first('PolyStyle',inl);sty={line:(lc&&kmlColor(first('color',lc)?.textContent))||sty.line,w:(lc&&parseFloat(first('width',lc)?.textContent))||sty.w,poly:(pc&&kmlColor(first('color',pc)?.textContent))||sty.poly};}
+    const name=(first('name',pm)?.textContent||'').trim().slice(0,60);
+    const add=(coordsEl,poly)=>{const pts=parseCoordText(coordsEl&&coordsEl.textContent);if(pts.length>=2)lines.push({pts,poly,c:(sty.line&&sty.line.c)||'#c2410c',a:sty.line?Math.max(0.35,sty.line.a):0.9,w:Math.min(6,Math.max(1,sty.w||1.5)),fill:poly&&sty.poly?sty.poly:null});};
+    all('LineString',pm).forEach(ls=>add(first('coordinates',ls),false));
+    all('Polygon',pm).forEach(pg=>{const ob=first('outerBoundaryIs',pg)||pg;add(first('coordinates',ob),true);});
+    all('Point',pm).forEach(pt=>{const p=parseCoordText(first('coordinates',pt)?.textContent)[0];if(p&&points.length<5000)points.push({lat:p.lat,lon:p.lon,name});});
+  });
+  if(!lines.length&&!points.length)throw new Error('el archivo no tiene líneas, polígonos ni puntos');
+  // simplificar hasta un tamaño manejable
+  let tol=0.25,out;
+  for(let k=0;k<6;k++){
+    out=lines.map(l=>({...l,pts:simplifyLatLon(l.pts,tol)}));
+    if(out.reduce((s,l)=>s+l.pts.length,0)<=AUX_MAX_PTS)break;tol*=2.5;
+  }
+  const total=out.reduce((s,l)=>s+l.pts.length,0);
+  if(total>AUX_MAX_PTS)throw new Error('el dibujo es demasiado grande; exporta solo lo necesario');
+  return{
+    lines:out.map(l=>{const f=[];l.pts.forEach(p=>f.push(+p.lat.toFixed(7),+p.lon.toFixed(7)));return{c:l.c,a:l.a,w:l.w,p:l.poly,fc:l.fill?l.fill.c:null,fa:l.fill?Math.min(0.35,l.fill.a):0,f};}),
+    points:points.map(p=>({lat:+p.lat.toFixed(7),lon:+p.lon.toFixed(7),n:p.name})),
+    stats:{lines:out.length,vertices:total,points:points.length,tol:Math.round(tol*100)/100}
+  };
+}
+async function loadAux(input){
+  const file=input.files[0];input.value='';if(!file)return;
+  if(file.size>AUX_MAX_FILE){showToast('Archivo demasiado grande (máx. 30 MB)');return;}
+  setAuxStatus('Leyendo '+file.name+'…');
+  try{
+    const buf=new Uint8Array(await file.arrayBuffer());
+    const text=buf[0]===0x50&&buf[1]===0x4B?await kmlFromZip(buf):new TextDecoder('utf-8').decode(buf);
+    const r=parseAuxKML(text);
+    state.aux={name:file.name.replace(/\.[^.]+$/,'').slice(0,80),lines:r.lines,points:r.points,stats:r.stats};
+    auxCache=null;paintAux();drawMap();scheduleStamp();
+    await storeActiveProfile();
+    logEv('INFO',`Capa auxiliar: ${state.aux.name} · ${r.stats.lines} líneas, ${r.stats.points} puntos, ${r.stats.vertices} vértices (simplificado a ${r.stats.tol} m)`);
+    showToast('Capa auxiliar cargada');
+    if(!state.routeCoords.length){state.mapFitted=false;resetMapView();}
+  }catch(e){state.lastError='Capa auxiliar: '+e.message;setAuxStatus('✗ '+e.message);showToast('Error: '+e.message);}
+}
+async function clearAux(){
+  if(!state.aux)return;
+  if(!confirm('¿Quitar la capa auxiliar de esta obra?'))return;
+  state.aux=null;auxCache=null;paintAux();drawMap();scheduleStamp();await storeActiveProfile();
+}
+function setAuxStatus(t){const e=document.getElementById('aux-status');if(e)e.textContent=t;}
+function paintAux(){
+  const a=state.aux;
+  setAuxStatus(a?`✓ ${a.name} · ${a.lines.length} líneas · ${a.points.length} puntos`:'Sin capa auxiliar');
+  const b=document.getElementById('aux-clear');if(b)b.style.display=a?'':'none';
+}
+// valida una capa que llega en un archivo de obra (no confiar en nada)
+function validateAux(a){
+  if(!a||typeof a!=='object'||!Array.isArray(a.lines))return null;
+  const col=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c:'#c2410c',num=(v,lo,hi,d)=>isFinite(v)?Math.min(hi,Math.max(lo,+v)):d;
+  let n=0;
+  const lines=a.lines.slice(0,50000).map(l=>{
+    const f=Array.isArray(l.f)?l.f.filter(isFinite).map(Number):[];if(f.length%2)f.pop();
+    for(let i=0;i<f.length;i+=2)if(Math.abs(f[i])>90||Math.abs(f[i+1])>180)return null;
+    n+=f.length/2;return f.length>=4?{c:col(l.c),a:num(l.a,0.1,1,0.9),w:num(l.w,0.5,6,1.5),p:!!l.p,fc:l.fc?col(l.fc):null,fa:num(l.fa,0,0.35,0),f}:null;
+  }).filter(Boolean);
+  if(n>AUX_MAX_PTS*1.2)return null;
+  const points=Array.isArray(a.points)?a.points.slice(0,5000).filter(p=>p&&isFinite(p.lat)&&isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180).map(p=>({lat:+p.lat,lon:+p.lon,n:typeof p.n==='string'?p.n.slice(0,60):''})):[];
+  if(!lines.length&&!points.length)return null;
+  return{name:typeof a.name==='string'?a.name.slice(0,80):'Capa auxiliar',lines,points,stats:a.stats&&typeof a.stats==='object'?{lines:lines.length,points:points.length}:null};
+}
+
+// Dibujo en el mapa: trazos precalculados en metros alrededor de un origen (precisos aun con mucho zoom)
+let auxCache=null;
+function buildAuxCache(){
+  const a=state.aux;if(!a)return null;
+  let lat0=0,lon0=0,n=0;
+  a.lines.forEach(l=>{for(let i=0;i<l.f.length;i+=2){lat0+=l.f[i];lon0+=l.f[i+1];n++;}});
+  a.points.forEach(p=>{lat0+=p.lat;lon0+=p.lon;n++;});
+  lat0/=n;lon0/=n;
+  const c=mapCos(),kx=111320*c,ky=111320;
+  const paths=a.lines.map(l=>{
+    const P=new Path2D();
+    for(let i=0;i<l.f.length;i+=2){const x=(l.f[i+1]-lon0)*kx,y=-(l.f[i]-lat0)*ky;i?P.lineTo(x,y):P.moveTo(x,y);}
+    if(l.p)P.closePath();
+    let mnLa=90,mxLa=-90,mnLo=180,mxLo=-180;for(let i=0;i<l.f.length;i+=2){mnLa=Math.min(mnLa,l.f[i]);mxLa=Math.max(mxLa,l.f[i]);mnLo=Math.min(mnLo,l.f[i+1]);mxLo=Math.max(mxLo,l.f[i+1]);}
+    return{P,l,bb:[mnLa,mxLa,mnLo,mxLo]};
+  });
+  return{lat0,lon0,c,paths};
+}
+function drawAuxOnMap(){
+  if(!state.aux)return;
+  if(!auxCache||Math.abs(auxCache.c-mapCos())>1e-9)auxCache=buildAuxCache();
+  const o=toScreen(auxCache.lat0,auxCache.lon0),k=state.mapScale/111320;
+  mapCtx.save();
+  mapCtx.setTransform(mapDpr*k,0,0,mapDpr*k,mapDpr*o.x,mapDpr*o.y);
+  mapCtx.lineJoin='round';mapCtx.lineCap='round';
+  auxCache.paths.forEach(({P,l})=>{
+    if(l.p&&l.fc&&l.fa>0){mapCtx.globalAlpha=l.fa;mapCtx.fillStyle=l.fc;mapCtx.fill(P);}
+    mapCtx.globalAlpha=l.a;mapCtx.strokeStyle=l.c;mapCtx.lineWidth=Math.max(1,l.w*0.9)/k;mapCtx.stroke(P);
+  });
+  mapCtx.restore();
+  // puntos con nombre (los nombres solo de cerca)
+  const ppm=k,MC=mapColors();
+  mapCtx.save();mapCtx.font='600 10px Barlow, sans-serif';
+  let shown=0;
+  for(const p of state.aux.points){
+    const q=toScreen(p.lat,p.lon);if(q.x<-20||q.y<-20||q.x>mapW+20||q.y>mapH+20)continue;
+    mapCtx.fillStyle='#c2410c';mapCtx.beginPath();mapCtx.arc(q.x,q.y,3,0,7);mapCtx.fill();
+    if(ppm>0.6&&p.n&&shown<150){mapCtx.fillStyle=MC.text;mapCtx.fillText(p.n,q.x+5,q.y+3);shown++;}
+  }
+  mapCtx.restore();
+}
+function auxBounds(){
+  const a=state.aux;if(!a)return null;
+  let mnLa=90,mxLa=-90,mnLo=180,mxLo=-180;
+  a.lines.forEach(l=>{for(let i=0;i<l.f.length;i+=2){mnLa=Math.min(mnLa,l.f[i]);mxLa=Math.max(mxLa,l.f[i]);mnLo=Math.min(mnLo,l.f[i+1]);mxLo=Math.max(mxLo,l.f[i+1]);}});
+  a.points.forEach(p=>{mnLa=Math.min(mnLa,p.lat);mxLa=Math.max(mxLa,p.lat);mnLo=Math.min(mnLo,p.lon);mxLo=Math.max(mxLo,p.lon);});
+  return{minLat:mnLa,maxLat:mxLa,minLon:mnLo,maxLon:mxLo};
+}
+// en el mini mapa de la foto: tenue, debajo del eje
+function drawAuxOnMini(ctx,m,X,Y,lim,s){
+  if(!state.aux)return;
+  if(!auxCache)auxCache=buildAuxCache();
+  const dLat=lim/110540*1.2,dLon=lim/(111320*Math.cos((m.lat||0)*Math.PI/180))*1.2;
+  const la=m.lat,lo=m.lon;
+  ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+  auxCache.paths.forEach(({l,bb})=>{
+    if(la==null||bb[1]<la-dLat||bb[0]>la+dLat||bb[3]<lo-dLon||bb[2]>lo+dLon)return;
+    ctx.beginPath();
+    for(let i=0;i<l.f.length;i+=2){const q=toXY(l.f[i],l.f[i+1]);i?ctx.lineTo(X(q),Y(q)):ctx.moveTo(X(q),Y(q));}
+    if(l.p)ctx.closePath();
+    ctx.globalAlpha=Math.min(0.75,l.a);ctx.strokeStyle=l.c;ctx.lineWidth=Math.max(2,l.w*1.6)*s;ctx.stroke();
+  });
+  ctx.restore();
+}
+
 // ── DESCARGA / COMPARTIR ──
 function photoFileName(m){
   if(m.fname)return m.fname; // nombre asignado al tomar la foto (formato de la obra)
@@ -2882,9 +3087,8 @@ window.obrasnapBack=function(){
   const open=id=>document.getElementById(id).classList.contains('open');
   if(open('log-view')){closeLog();return true;}
   if(open('prev-full')){closePrevFull();return true;}
-  if(open('settings')){if(state.setPage!=null)settingsBack();else closeSettings();return true;}
+  if(open('settings')){settingsBack();return true;}
   if(open('viewer')){closeViewer();return true;}
-  if(open('style-bg')){closeStyle();return true;}
   if(open('export-bg')){closeExport();return true;}
   if(open('modal-bg')){saveActivity();return true;}
   if(open('qnote-bg')){saveQuickNote();return true;}
@@ -3224,23 +3428,26 @@ function restoreSettings(){
 // ── CONFIG: menú y pantallas ──
 state.cfgPage=null;
 const CFG_MENU=[
-  {group:'Obra',items:[
-    {page:'obras',icon:'▦',title:'Obras',sum:()=>state.obra?`${state.obra} · ${profiles.length} en este teléfono`:'Sin obra configurada · toca para importar o crear'},
-    {page:'proyecto',icon:'✎',title:'Proyecto y actividades',sum:()=>state.activity?'Actividad: '+state.activity:`${(state.activities||[]).length} actividades frecuentes`},
-    {page:'eje',icon:'⌇',title:'Eje (KMZ)',sum:()=>state.routeCoords.length?`${state.routeName} · ${(state.routeCoords[state.routeCoords.length-1].dist/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''}`:'Sin eje cargado'},
-  ]},
   {group:'App',items:[
-    {action:()=>{switchTab('cam');openSettings();},icon:'⚙',title:'Cámara y stamp',sum:()=>'Información, formatos, estilo, mini mapa, nombre de archivos…'},
-    {page:'apariencia',icon:'◐',title:'Apariencia',sum:()=>APP_THEMES[currentTheme()].name},
+    {action:()=>openSettings('stamp'),icon:'≡',title:'Datos en la foto',sum:()=>`${SETTINGS_SCHEMA.find(x=>x.title==='Estilo').sum(state.stampStyle)} · ${optLabel('pkFmt',state.stampStyle.pkFmt)}`},
+    {action:()=>openSettings('camara'),icon:'◉',title:'Cámara',sum:()=>SETTINGS_SCHEMA.find(x=>x.title==='Cámara').sum(state.stampStyle)},
     {page:'gps',icon:'⊕',title:'GPS',sum:()=>document.getElementById('gps-status-cfg').textContent},
-    {page:'app',icon:'↻',title:'Versión y actualizaciones',show:()=>!!NATIVE,sum:()=>{const i=appInfo();return i?`ObraSnap ${i.versionName}${state.update?' · ¡hay versión nueva!':''}`:'';}},
+    {page:'apariencia',icon:'◐',title:'Apariencia',sum:()=>APP_THEMES[currentTheme()].name},
+  ]},
+  {group:'Obra',items:[
+    {page:'actividades',icon:'✎',title:'Actividades',sum:()=>state.activity?'Actual: '+state.activity:`${(state.activities||[]).length} actividades frecuentes`},
+    {page:'eje',icon:'⌇',title:'Eje',sum:()=>(state.routeCoords.length?`${state.routeName} · ${(state.routeCoords[state.routeCoords.length-1].dist/1000).toFixed(2)} km${state.pkTable?' · PK calibrado':''}`:'Sin eje cargado')+(state.aux?' · capa auxiliar':'')},
+    {page:'obras',icon:'▦',title:'Obras',sum:()=>state.obra?`${state.obra} · ${profiles.length} en este teléfono`:'Sin obra configurada · toca para importar o crear'},
+  ]},
+  {group:'Soporte',items:[
+    {page:'app',icon:'↻',title:'Versiones',show:()=>!!NATIVE,sum:()=>{const i=appInfo();return i?`ObraSnap ${i.versionName}${state.update?' · ¡hay versión nueva!':''}`:'';}},
     {page:'diag',icon:'⚑',title:'Diagnóstico',sum:()=>state.lastError?'Último error: '+state.lastError:`Versión ${APP_VERSION} · sin errores`},
   ]},
 ];
 function renderCfgMenu(){
   const box=document.getElementById('cfg-menu');box.innerHTML='';
   CFG_MENU.forEach(g=>{
-    box.appendChild(el('div','config-label',g.group));
+    if(g.group)box.appendChild(el('div','config-label',g.group));
     const card=el('div','menu-card');
     g.items.filter(it=>!it.show||it.show()).forEach(it=>card.appendChild(menuItem(it.icon,it.title,it.sum(),it.action||(()=>cfgPage(it.page)))));
     box.appendChild(card);
@@ -3318,7 +3525,7 @@ function switchTab(tab){
   const prev=state.tab;state.tab=tab;
   syncVolumeShutter();
   // al cambiar de pestaña, cerrar hojas que quedaron abiertas encima
-  if(prev!==tab){closeExport();closeStyle();document.getElementById('modal-bg').classList.remove('open');}
+  if(prev!==tab){closeExport();document.getElementById('modal-bg').classList.remove('open');}
   document.body.classList.toggle('cam-on',tab==='cam');
   if(tab==='config')cfgPage(null);
   if(tab!=='cam'&&prev==='cam'){stopRecordingIfAny();stopCamera();}
