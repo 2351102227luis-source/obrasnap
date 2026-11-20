@@ -121,6 +121,7 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 
 #log-view{position:fixed;inset:0;z-index:170;background:var(--bg);display:none;flex-direction:column;color:var(--text);}
 #log-view.open{display:flex;}
+.sheet-head .head-back{width:auto !important;min-width:84px;text-align:left !important;white-space:nowrap;}
 #log-text{flex:1;overflow:auto;margin:0;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--text);background:var(--bg2);white-space:pre-wrap;word-break:break-word;}
 
 /* AJUSTES (estilo iOS) */
@@ -175,7 +176,8 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-settings svg,body[da
 .menu-tx b{font-size:14.5px;font-weight:600;}
 .menu-tx small{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .menu-ch{font-size:20px;color:var(--text2);line-height:1;}
-#set-head #set-back{width:auto;min-width:52px;text-align:left;visibility:hidden;white-space:nowrap;}
+#set-head #set-back{width:auto;min-width:84px;text-align:left;white-space:nowrap;}
+.head-pad{width:84px !important;}
 #cfg-back{display:none;background:none;border:none;color:var(--accent);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;padding:0 10px 0 0;}
 #config-header{display:flex;align-items:center;}
 #settings .swatch{border-color:var(--surface2);}
@@ -588,7 +590,7 @@ input[type=file]{display:none;}
         <div class="seg" id="st-size"><button data-v="S">Chico</button><button data-v="M">Mediano</button><button data-v="L">Grande</button></div>
         <div class="st-label">Posición</div>
         <div class="seg" id="st-pos"><button data-v="bl">↙ Abajo izq.</button><button data-v="br">↘ Abajo der.</button><button data-v="tl">↖ Arriba izq.</button><button data-v="tr">↗ Arriba der.</button></div>
-        <button id="st-done" onclick="closeStyle()">Listo</button>
+        <button id="st-done" onclick="closeStyle()">‹ Regresar a la cámara</button>
       </div>
     </div>
 
@@ -597,7 +599,7 @@ input[type=file]{display:none;}
         <div class="modal-title">Nota rápida</div>
         <div class="config-row-sub" style="margin:-8px 0 10px">Solo para la siguiente foto. Ej.: "Fisura en losa", "Falta compactación"</div>
         <input type="text" id="qnote-input" class="act-new" style="width:100%;padding:10px 12px;font-size:14px" maxlength="80" placeholder="Escribe la nota..." onkeydown="if(event.key==='Enter')saveQuickNote()">
-        <button class="modal-btn" onclick="saveQuickNote()">Listo</button>
+        <button class="modal-btn" onclick="saveQuickNote()">Guardar nota</button>
       </div>
     </div>
 
@@ -637,12 +639,12 @@ input[type=file]{display:none;}
   </div>
 </div>
 <div id="log-view">
-  <div id="log-head" class="sheet-head"><span></span><b>Registro</b><button onclick="closeLog()">Cerrar</button></div>
+  <div id="log-head" class="sheet-head"><button class="head-back" onclick="closeLog()">‹ Diagnóstico</button><b>Registro</b><span class="head-pad"></span></div>
   <pre id="log-text"></pre>
   <div style="padding:10px 16px 18px;"><button class="set-btn" style="width:100%;padding:12px" onclick="shareLog()">Compartir registro (para soporte)</button></div>
 </div>
 <div id="settings">
-  <div id="set-head"><button id="set-back" onclick="settingsBack()">‹ Ajustes</button><b id="set-title">Ajustes</b><button onclick="closeSettings()">Listo</button></div>
+  <div id="set-head"><button id="set-back" onclick="settingsBack()">‹ Cámara</button><b id="set-title">Ajustes</b><span class="head-pad"></span></div>
   <div id="set-prev-wrap"><canvas id="set-preview"></canvas></div>
   <div id="set-body"></div>
   <input type="file" id="logo-file" accept="image/*" onchange="loadLogo(this)">
@@ -656,7 +658,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-m';
+const APP_VERSION='2026.11.20-n';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1901,7 +1903,8 @@ const POS_NAMES={tl:'arriba izq.',tc:'arriba centro',tr:'arriba der.',ml:'centro
 function optLabel(k,v){for(const sec of SETTINGS_SCHEMA)for(const row of sec.rows)if(row.k===k&&row.opts){const o=row.opts.find(o=>o[0]===v);return o?o[1]:'';}return '';}
 state.setPage=null;
 function settingsPage(i){state.setPage=i;buildSettings();document.getElementById('set-body').scrollTop=0;}
-function settingsBack(){settingsPage(null);}
+// regresar: desde un tema vuelve al menú; desde el menú vuelve a la cámara (todo ya está guardado)
+function settingsBack(){if(state.setPage!=null)settingsPage(null);else closeSettings();}
 function openSettings(page=null){
   state.setPage=page;
   document.getElementById('settings').classList.add('open');
@@ -1926,13 +1929,13 @@ function buildSettings(){
   const st=state.stampStyle,root=document.getElementById('set-body');
   const scroll=root.scrollTop;root.innerHTML='';
   const page=state.setPage;
-  document.getElementById('set-back').style.visibility=page==null?'hidden':'visible';
+  document.getElementById('set-back').textContent=page==null?'‹ Cámara':'‹ Ajustes';
   document.getElementById('set-title').textContent=page==null?'Ajustes':SETTINGS_SCHEMA[page].title;
   if(page==null){
     // menú: un renglón por tema con su valor actual
     const card=el('div','menu-card');
     SETTINGS_SCHEMA.forEach((sec,i)=>card.appendChild(menuItem(sec.icon,sec.title,sec.sum(st),()=>settingsPage(i))));
-    root.append(el('div','set-sec','Toca un tema para cambiarlo'),card);
+    root.append(el('div','set-sec','Toca un tema para cambiarlo · se guarda automáticamente'),card);
     const reset=el('button','set-btn danger set-reset','Restablecer ajustes de cámara');
     reset.onclick=()=>{if(!confirm('¿Volver a los valores originales del stamp y la cámara?'))return;state.stampStyle=normalizeStyle({});settingChanged({after:()=>{fitVideo();applyGrid();}});};
     root.appendChild(reset);root.scrollTop=scroll;return;

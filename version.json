@@ -1,6 +1,6 @@
 {
-  "versionCode": 9,
-  "versionName": "2.7",
+  "versionCode": 10,
+  "versionName": "2.8",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Ajustes y Config ordenados en menús: cada tema abre su propia pantalla."
+  "notas": "Los menús tienen botón para regresar en lugar de \"Listo\"; todo se guarda automáticamente."
 }
