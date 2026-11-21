@@ -55,27 +55,29 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
 #screens{flex:1;overflow:hidden;position:relative;}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;}
-.screen.active{display:flex;}
+.screen.active{display:flex;z-index:1;animation:scr-in .26s ease;}
+.screen.leaving{display:flex;z-index:0;}
+@keyframes scr-in{from{opacity:0}to{opacity:1}}
 
 /* NAV BAR */
-#navbar{display:flex;background:var(--bg);border-top:1px solid var(--surface2);padding-bottom:env(safe-area-inset-bottom);}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 6px;border:none;background:none;color:var(--text2);font-family:var(--sans);font-size:10px;cursor:pointer;transition:color .2s;}
+#navbar{display:flex;background:var(--bg);border-top:1px solid var(--surface2);padding-bottom:env(safe-area-inset-bottom);transition:background-color .28s ease,border-color .28s ease;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 4px;border:none;background:none;color:var(--text2);font-family:var(--sans);font-size:10px;cursor:pointer;transition:color .2s;}
 .nav-btn.active{color:var(--accent);}
-.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 
 /* ── CAMERA SCREEN (estilo cámara de iPhone) ── */
 #cam-screen{background:#000;}
 body.cam-on #navbar{background:#000;border-top-color:#111;}
 body.cam-on .nav-btn{color:#8e8e93;}
 body.cam-on .nav-btn.active{color:#f3ead8;}
-#cam-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;min-height:52px;}
+#cam-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 14px;min-height:44px;}
 .cam-top-side{display:flex;align-items:center;gap:10px;min-width:0;}
 #btn-flash.off{display:none;}
-.cam-icon{width:36px;height:36px;flex-shrink:0;border-radius:50%;border:none;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;padding:0;}
+.cam-icon{width:34px;height:34px;flex-shrink:0;border-radius:50%;border:none;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;padding:0;}
 .cam-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
 .cam-icon.on{color:#000;background:#ffd60a;}
 .cam-icon.off{visibility:hidden;}
-#cam-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:16px;padding:6px 12px;font-family:var(--mono);font-size:12px;color:#fff;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#cam-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:16px;padding:5px 11px;font-family:var(--mono);font-size:12px;color:#fff;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #gps-dot{width:7px;height:7px;flex-shrink:0;border-radius:50%;background:#ef4444;display:inline-block;animation:pulse-dot 2s infinite;}
 #gps-dot.ok{background:#34c759;}#gps-dot.meh{background:#f59e0b;}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
@@ -93,22 +95,22 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 @keyframes focusring{0%{opacity:1;transform:scale(1.4);}35%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(1);}}
 #video-wrap{touch-action:none;}
 #stamp-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-#cam-bottom{padding:6px 0 12px;background:#000;}
-#zoom-row{display:flex;justify-content:center;align-items:center;gap:8px;height:40px;}
-.zoom-btn{width:30px;height:30px;border-radius:50%;border:none;background:rgba(38,38,38,.9);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;padding:0;transition:all .15s;}
-.zoom-btn.on{width:38px;height:38px;color:#ffd60a;font-size:12.5px;}
-#mode-row{display:flex;justify-content:center;gap:34px;padding:6px 0 14px;}
+#cam-bottom{padding:2px 0 8px;background:#000;}
+#zoom-row{display:flex;justify-content:center;align-items:center;gap:8px;height:34px;}
+.zoom-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(38,38,38,.9);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;padding:0;transition:all .15s;}
+.zoom-btn.on{width:34px;height:34px;color:#ffd60a;font-size:12px;}
+#mode-row{display:flex;justify-content:center;gap:34px;padding:3px 0 9px;}
 .mode{font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:1.3px;color:rgba(255,255,255,.88);background:none;border:none;cursor:pointer;padding:2px 0;}
 .mode.on{color:#ffd60a;}
 #cam-controls{display:flex;align-items:center;justify-content:space-between;padding:0 32px;}
-#btn-gallery-thumb{width:50px;height:50px;border-radius:8px;overflow:hidden;background:#1c1c1e;cursor:pointer;}
+#btn-gallery-thumb{width:44px;height:44px;border-radius:8px;overflow:hidden;background:#1c1c1e;cursor:pointer;}
 #thumb-img{width:100%;height:100%;object-fit:cover;display:none;}
 #thumb-placeholder{width:100%;height:100%;}
-#btn-capture{width:76px;height:76px;border-radius:50%;background:transparent;border:4px solid #fff;padding:4px;cursor:pointer;}
+#btn-capture{width:66px;height:66px;border-radius:50%;background:transparent;border:4px solid #fff;padding:4px;cursor:pointer;}
 #btn-capture-inner{width:100%;height:100%;border-radius:50%;background:#fff;transition:transform .12s;}
 #btn-capture:active #btn-capture-inner{transform:scale(.88);}
-#btn-flip{width:50px;height:50px;border-radius:50%;border:none;background:#1c1c1e;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
-#btn-flip svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+#btn-flip{width:44px;height:44px;border-radius:50%;border:none;background:#1c1c1e;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+#btn-flip svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 
 #btn-capture.video #btn-capture-inner{background:#ff3b30;}
 #btn-capture.rec #btn-capture-inner{background:#ff3b30;transform:scale(.48);border-radius:8px;}
@@ -855,7 +857,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.16';
+const APP_VERSION='2026.11.21-2.17';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1762,7 +1764,7 @@ const STAMP_THEMES={
 const DEFAULT_STYLE={
   bg:'negro',op:0.6,scale:1,pos:'bl',
   fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'note1',on:false},{k:'ref',on:false}],
-  note1:'',showSide:true,showAcc:true,showAlt:false,
+  note1:'',showSide:true,showAcc:false,showAlt:false,
   pkFmt:'pk',sideFmt:'izqder',dateFmt:'txt',timeFmt:'24s',coordFmt:'dec',
   pkRound:1,pkRoundVideo:false,
   textColor:'auto',pkFont:'stm',infoFont:'mix',pkScale:1,align:'auto',margin:1,
@@ -1832,7 +1834,6 @@ function fmtCoordStyle(m,st){
     const g=(v,P,Q)=>{const a=Math.abs(v),d=Math.floor(a),mf=(a-d)*60,mi=Math.floor(mf),s=((mf-mi)*60).toFixed(1);return `${d}°${String(mi).padStart(2,'0')}'${s.padStart(4,'0')}"${v>=0?P:Q}`;};
     t=`${g(m.lat,'N','S')}  ${g(m.lon,'E','W')}`;
   }else t=`${Math.abs(m.lat).toFixed(5)}°${m.lat>=0?'N':'S'}  ${Math.abs(m.lon).toFixed(5)}°${m.lon>=0?'E':'W'}`;
-  if(st.showAcc&&m.acc!=null)t+=`  ±${Math.round(m.acc)} m`;
   if(st.showAlt&&m.alt!=null)t+=`  Alt ${Math.round(m.alt)} m`;
   return t;
 }
@@ -2195,7 +2196,6 @@ const SETTINGS_SCHEMA=[
   {group:'stamp',title:'Qué datos mostrar',icon:'≡',sum:st=>st.fields.filter(f=>f.on).map(f=>FIELD_NAMES[f.k]).join(', ')||'Nada',rows:[
     {type:'fields'},
     {type:'toggle',k:'showSide',label:'Lado y distancia al eje'},
-    {type:'toggle',k:'showAcc',label:'Precisión del GPS (±m)'},
     {type:'toggle',k:'showAlt',label:'Altitud'},
   ]},
   {group:'stamp',title:'Formatos',icon:'Aa',sum:st=>[optLabel('pkFmt',st.pkFmt)+((st.pkRound||1)>1?` (a ${st.pkRound} m)`:''),optLabel('dateFmt',st.dateFmt),optLabel('timeFmt',st.timeFmt),optLabel('coordFmt',st.coordFmt)].join(' · '),rows:[
@@ -3846,7 +3846,7 @@ function loadGoTarget(){try{const g=JSON.parse(localStorage.getItem(goKey())||'n
 function goRefText(m){
   const g=state.goTarget;if(!g||m.lat==null)return '';
   const r=geoDist({lat:m.lat,lon:m.lon},g);
-  return `a ${fmtM(r.d,0)} de ${g.kind==='libre'?'punto marcado':g.name}${m.acc!=null?` (GPS ±${Math.round(m.acc)} m)`:''}`;
+  return `a ${fmtM(r.d,0)} de ${g.kind==='libre'?'punto marcado':g.name}`;
 }
 function ptLine(p){const k=pkOfPt(p);return `${p.name}${p.d?' ('+p.d+')':''}${k&&k.off<500?` · PK ${fmtPK(k.pk)}${k.off>=1?` a ${Math.round(k.off)} m del eje`:''}`:''}`;}
 // rumbo topográfico: N 45°30'12" E
@@ -4601,7 +4601,7 @@ function setAppTheme(t){
   if(!APP_THEMES[t]||t===currentTheme())return;
   if(t==='senal')document.documentElement.dataset.theme='senal';else delete document.documentElement.dataset.theme;
   try{localStorage.setItem('obrasnap.theme',t);}catch(e){}
-  paintTheme();
+  paintTheme();syncBars();
   logEv('INFO','Apariencia: '+APP_THEMES[t].name);
   showToast('Apariencia: '+APP_THEMES[t].name);
 }
@@ -4637,11 +4637,22 @@ function switchTab(tab){
   if(tab!=='cam'&&prev==='cam'){stopRecordingIfAny();stopCamera();}
   if(tab==='cam'&&prev!=='cam')setTimeout(()=>startCamera(),50);
   if(tab==='config')updateDiag();
+  // fundido: la pantalla anterior se queda debajo mientras aparece la nueva
+  if(prev&&prev!==tab){const pe=document.getElementById(prev+'-screen');pe.classList.add('leaving');clearTimeout(pe._lv);pe._lv=setTimeout(()=>pe.classList.remove('leaving'),300);}
   ['cam','map','gallery','config'].forEach(t=>{
     document.getElementById(t+'-screen').classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
   });
   if(tab==='map'){resizeMap();drawMap();}
+  syncBars();
+}
+// Barras del teléfono (hora/batería arriba y botones de Android abajo) del color de la pantalla
+function syncBars(){
+  const cam=state.tab==='cam',cs=getComputedStyle(document.documentElement);
+  const top=cam?'#000000':(cs.getPropertyValue('--bg2').trim()||'#fbf6ec'),bot=cam?'#000000':(cs.getPropertyValue('--bg').trim()||'#f3ead8');
+  const lum=h=>{const n=parseInt(h.replace('#','').slice(0,6),16);return(0.299*(n>>16)+0.587*(n>>8&255)+0.114*(n&255))/255;};
+  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=top;
+  if(NATIVE&&NATIVE.setBars){try{NATIVE.setBars(top,bot,lum(top)>0.6);}catch(e){}}
 }
 
 // ── TOAST ──

@@ -72,6 +72,12 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.17
+
+- Controles de la cámara y pestañas un poco más chicos: la foto gana alto (16:9 crece de ~318 a ~345 pt de ancho).
+- La precisión del GPS (±m) ya no va en la foto.
+- Cambio de pantalla con fundido suave; en el APK la barra de hora/batería y la de Android toman el color de cada pantalla.
+
 ## Versión 2.16 (limpieza)
 
 - Letras del PK e información: Técnica, Condensada y Muy legible. Fondos: Transparente, Negro, Arena, Blanco y Amarillo.

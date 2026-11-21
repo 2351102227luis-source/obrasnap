@@ -465,6 +465,20 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setVolumeShutter(boolean on) { volumeShutter = on; }
 
+        /** Color de la barra de arriba (hora, batería) y de la de abajo según la pantalla; íconos oscuros si el fondo es claro. */
+        @JavascriptInterface
+        public void setBars(String top, String bottom, boolean lightBg) {
+            runOnUiThread(() -> {
+                try {
+                    getWindow().setStatusBarColor(Color.parseColor(top));
+                    getWindow().setNavigationBarColor(Color.parseColor(bottom));
+                    androidx.core.view.WindowInsetsControllerCompat c = androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                    c.setAppearanceLightStatusBars(lightBg);
+                    c.setAppearanceLightNavigationBars(lightBg);
+                } catch (Exception e) { Log.e(TAG, "barras", e); }
+            });
+        }
+
         /** Borra del teléfono un archivo que guardó la app (foto o video). */
         @JavascriptInterface
         public String deleteMedia(String u) {

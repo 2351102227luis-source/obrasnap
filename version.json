@@ -1,6 +1,6 @@
 {
-  "versionCode": 18,
-  "versionName": "2.16",
+  "versionCode": 19,
+  "versionName": "2.17",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Versión más limpia: 3 letras, 5 fondos, datos sin borde ni sombra, un solo texto libre, apariencia sin cambio de ícono y menos botones repetidos."
+  "notas": "Controles de la cámara más compactos (más pantalla para la foto), sin precisión del GPS en la foto y cambio suave de colores entre pantallas."
 }
