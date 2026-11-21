@@ -72,6 +72,13 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.18
+
+- Zoom (1× · 2 · 3) en una columna sobre la foto, a la derecha (a la izquierda si los datos o el mini mapa van a media altura a la derecha).
+- 16:9 a pantalla completa: los íconos de arriba quedan sobre la imagen; 4:3 y 1:1 siguen centradas.
+- Nivel: línea al centro que se pone amarilla cuando el teléfono está derecho (Cámara › Nivel).
+- Miniatura de la última foto con borde blanco.
+
 ## Versión 2.17
 
 - Controles de la cámara y pestañas un poco más chicos: la foto gana alto (16:9 crece de ~318 a ~345 pt de ancho).

@@ -96,14 +96,23 @@ body.cam-on .nav-btn.active{color:#f3ead8;}
 #video-wrap{touch-action:none;}
 #stamp-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 #cam-bottom{padding:2px 0 8px;background:#000;}
-#zoom-row{display:flex;justify-content:center;align-items:center;gap:8px;height:34px;}
+#zoom-row{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(0,0,0,.28);padding:5px 3px;border-radius:20px;}
+#zoom-row:empty{display:none;}
+#zoom-row.left{right:auto;left:8px;}
+#level{position:absolute;left:50%;top:50%;width:150px;margin-left:-75px;height:0;pointer-events:none;z-index:3;display:none;}
+#level.on{display:block;}
+#level::before,#level::after{content:'';position:absolute;top:-1px;width:22px;border-top:1.5px solid rgba(255,255,255,.7);}
+#level::before{left:-30px;}#level::after{right:-30px;}
+#level i{position:absolute;left:0;right:0;top:-1px;border-top:1.5px solid rgba(255,255,255,.9);transition:border-color .15s;}
+#level.ok::before,#level.ok::after,#level.ok i{border-color:#ffd60a;}
+body.cam-tall #cam-top{position:absolute;left:0;right:0;top:0;z-index:6;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0));padding-bottom:16px;}
 .zoom-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(38,38,38,.9);color:#fff;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;padding:0;transition:all .15s;}
 .zoom-btn.on{width:34px;height:34px;color:#ffd60a;font-size:12px;}
 #mode-row{display:flex;justify-content:center;gap:34px;padding:3px 0 9px;}
 .mode{font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:1.3px;color:rgba(255,255,255,.88);background:none;border:none;cursor:pointer;padding:2px 0;}
 .mode.on{color:#ffd60a;}
 #cam-controls{display:flex;align-items:center;justify-content:space-between;padding:0 32px;}
-#btn-gallery-thumb{width:44px;height:44px;border-radius:8px;overflow:hidden;background:#1c1c1e;cursor:pointer;}
+#btn-gallery-thumb{width:44px;height:44px;border-radius:8px;border:2px solid rgba(255,255,255,.92);overflow:hidden;background:#1c1c1e;cursor:pointer;}
 #thumb-img{width:100%;height:100%;object-fit:cover;display:none;}
 #thumb-placeholder{width:100%;height:100%;}
 #btn-capture{width:66px;height:66px;border-radius:50%;background:transparent;border:4px solid #fff;padding:4px;cursor:pointer;}
@@ -462,6 +471,8 @@ input[type=file]{display:none;}
           <video id="video" autoplay playsinline muted poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
           <div id="cam-loading">Abriendo cámara…</div>
           <div id="zoom-ind"></div>
+          <div id="zoom-row"></div>
+          <div id="level"><i></i></div>
           <div id="focus-ring"></div>
           <div id="grid"></div>
           <canvas id="stamp-canvas"></canvas>
@@ -473,7 +484,6 @@ input[type=file]{display:none;}
         </div>
       </div>
       <div id="cam-bottom">
-        <div id="zoom-row"></div>
         <div id="mode-row">
           <button class="mode on" data-mode="foto" onclick="setMode('foto')">FOTO</button>
           <button class="mode" data-mode="video" onclick="setMode('video')">VIDEO</button>
@@ -857,7 +867,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.17';
+const APP_VERSION='2026.11.21-2.18';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1771,7 +1781,7 @@ const DEFAULT_STYLE={
   pkSep:false,pkPos:'tr',
   brand:'texto',brandPos:'tr',brandScale:1,logoOp:1,
   aspect:'4:3',quality:0.92,grid:false,timer:0,sound:true,vibrate:true,saveOriginal:false,
-  mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true,
+  mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true,level:true,
   fileFmt:'{AAMMDD}_{PK}_{HHMM}_{N}',seqReset:'day',seqDigits:3
 };
 const FIELD_NAMES={obra:'Nombre de obra',pk:'PK',act:'Actividad',datetime:'Fecha y hora',coords:'Coordenadas GPS',note1:'Texto libre',ref:'Distancia al punto elegido (Mapa › Medir › Ir a punto)'};
@@ -1967,16 +1977,19 @@ function scheduleStamp(){
 function liveMeta(video){return snapshotMeta(0,0,video);}
 function renderLiveStamp(){
   if(state.tab!=='cam')return;
+  const st0=state.stampStyle;document.getElementById('zoom-row').classList.toggle('left',st0.pos==='mr'||(st0.mapOn&&st0.mapPos==='mr'));
   const c=document.getElementById('stamp-canvas');
   const dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
   if(!w||!h)return;
   if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}
   const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
   const rot=photoRotation();
+  // 16:9: los íconos de arriba van sobre la imagen; en la vista se baja lo de arriba para que no quede tapado (la foto no cambia)
+  const top=document.body.classList.contains('cam-tall')&&!rot?Math.round(46*dpr):0;
   if(rot){
     ctx.save();ctx.translate(c.width/2,c.height/2);ctx.rotate(rot*Math.PI/180);ctx.translate(-c.height/2,-c.width/2);
     drawStampOnCanvas(ctx,c.height,c.width,liveMeta());ctx.restore();
-  }else drawStampOnCanvas(ctx,c.width,c.height,liveMeta());
+  }else{ctx.save();ctx.translate(0,top);drawStampOnCanvas(ctx,c.width,c.height-top,liveMeta());ctx.restore();}
 }
 // Ajusta el recuadro de la vista previa a la proporción real de la foto (lo que ves = lo que sale)
 function fitVideo(){
@@ -1986,6 +1999,9 @@ function fitVideo(){
   if(!v.videoWidth){wrap.style.width='100%';wrap.style.height='100%';return;}
   const ar=photoAspect(),r=ar.w/ar.h;
   let w=aw,h=aw/r;if(h>ah){h=ah;w=ah*r;}
+  // solo 16:9 usa toda la pantalla (los íconos de arriba quedan sobre la imagen)
+  const tall=(state.stampStyle.aspect||'4:3')==='16:9';
+  if(document.body.classList.contains('cam-tall')!==tall){document.body.classList.toggle('cam-tall',tall);requestAnimationFrame(fitVideo);}
   wrap.style.width=Math.round(w)+'px';wrap.style.height=Math.round(h)+'px';
   scheduleStamp();
 }
@@ -2243,6 +2259,7 @@ const SETTINGS_SCHEMA=[
     {type:'seg',k:'aspect',label:'Proporción de la foto',opts:[['4:3','4:3'],['16:9','16:9'],['1:1','1:1']],after:()=>{fitVideo();}},
     {type:'seg',k:'quality',label:'Calidad JPG',opts:[[0.92,'Alta'],[0.8,'Media'],[0.65,'Ligera']]},
     {type:'toggle',k:'grid',label:'Cuadrícula de encuadre',after:()=>applyGrid()},
+    {type:'toggle',k:'level',label:'Nivel (línea que avisa si el teléfono está derecho)',after:()=>paintLevel()},
     {type:'seg',k:'orient',label:'Orientación de la foto',opts:[['auto','Automática'],['portrait','Siempre vertical'],['landscape','Siempre horizontal']]},
     {type:'seg',k:'timer',label:'Temporizador',opts:[[0,'No'],[3,'3 s'],[10,'10 s']]},
     {type:'toggle',k:'volShutter',label:'Botón de volumen toma la foto',sub:'Solo en la app Android',after:()=>syncVolumeShutter()},
@@ -2745,7 +2762,18 @@ window.addEventListener('devicemotion',e=>{
   if(Math.abs(gx)>Math.abs(gy)+2.5)r=gx>0?-90:90;
   else if(Math.abs(gy)>Math.abs(gx)+2.5)r=0;
   if(r!==state.devRot){state.devRot=r;document.body.dataset.rot=r;scheduleStamp();}
+  paintLevel();
 });
+// Nivel: la línea se queda horizontal con el mundo; amarilla cuando el teléfono está derecho (±1°)
+function paintLevel(){
+  const L=document.getElementById('level');if(!L)return;
+  const on=state.tab==='cam'&&state.stampStyle.level!==false&&Math.hypot(gx,gy)>4; // apagado si el teléfono está acostado
+  L.classList.toggle('on',on);if(!on)return;
+  const a=Math.atan2(gx,gy)*180/Math.PI,base=Math.round(a/90)*90,dev=a-base;
+  L.firstChild.style.transform=`rotate(${dev.toFixed(1)}deg)`;
+  L.style.transform=`rotate(${base}deg)`;
+  L.classList.toggle('ok',Math.abs(dev)<1);
+}
 // Giro a aplicar a la foto según el ajuste (Automática / Vertical / Horizontal)
 function photoRotation(){
   const o=state.stampStyle.orient||'auto';

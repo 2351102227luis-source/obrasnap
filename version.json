@@ -1,6 +1,6 @@
 {
-  "versionCode": 19,
-  "versionName": "2.17",
+  "versionCode": 20,
+  "versionName": "2.18",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Controles de la cámara más compactos (más pantalla para la foto), sin precisión del GPS en la foto y cambio suave de colores entre pantallas."
+  "notas": "Zoom al lado sobre la foto, 16:9 a pantalla completa, nivel para tomar fotos derechas y miniatura con borde."
 }
