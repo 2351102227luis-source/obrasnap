@@ -526,7 +526,14 @@ public class MainActivity extends Activity {
                 else { send = new Intent(Intent.ACTION_SEND_MULTIPLE); send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris); }
                 send.setType(mime);
                 if (text != null && !text.isEmpty()) {
-                    send.putExtra(Intent.EXTRA_TEXT, text);
+                    if (uris.size() == 1) send.putExtra(Intent.EXTRA_TEXT, text);
+                    else {
+                        // un pie solo en la primera foto: así WhatsApp las junta en un álbum con un solo texto
+                        ArrayList<CharSequence> caps = new ArrayList<>();
+                        caps.add(text);
+                        for (int k = 1; k < uris.size(); k++) caps.add("");
+                        send.putCharSequenceArrayListExtra(Intent.EXTRA_TEXT, caps);
+                    }
                     runOnUiThread(() -> {
                         try {
                             android.content.ClipboardManager cm = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);

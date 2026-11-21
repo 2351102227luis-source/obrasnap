@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.21
+
+- Enviar por WhatsApp: el texto va solo en la primera foto (lista de pies con el resto vacíos), así WhatsApp arma un álbum con un solo texto. El texto sigue copiado al portapapeles por si la versión de WhatsApp no lo toma.
+
 ## Versión 2.20
 
 - Galería › Exportar › **Enviar por WhatsApp**: un paquete por actividad (respeta obra, rango y orden de Exportar). Cada envío lleva el texto *Actividad* · fecha, número de fotos, tramo de PK y obra; el texto también se copia al portapapeles. Fotos sin actividad van en "Sin actividad"; más de 90 fotos se parten en varios envíos.

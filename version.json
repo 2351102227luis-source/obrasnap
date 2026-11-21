@@ -1,6 +1,6 @@
 {
-  "versionCode": 22,
-  "versionName": "2.20",
+  "versionCode": 23,
+  "versionName": "2.21",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Enviar por WhatsApp: un paquete de fotos por actividad, con fecha, actividad y PK."
+  "notas": "WhatsApp: el texto va en una sola foto para que el paquete llegue como álbum."
 }

@@ -891,7 +891,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.20';
+const APP_VERSION='2026.11.21-2.21';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -4460,6 +4460,7 @@ async function waSend(i){
       else{files.forEach(f=>downloadBlob(f,f.name));showToast('Fotos descargadas; el texto quedó copiado');}
     }
     p.sent=true;paintWaPackages();
+    if(NATIVE&&p.list.length>1)showToast('Texto copiado: si no aparece en el pie, pégalo en la primera foto');
     logEv('INFO',`WhatsApp: paquete "${p.name}" · ${p.list.length} fotos`);
   }catch(e){state.lastError='Enviar paquete: '+e.message;showToast('No se pudo enviar: '+e.message);}
 }
