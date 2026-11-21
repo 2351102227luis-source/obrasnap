@@ -511,7 +511,11 @@ public class MainActivity extends Activity {
 
         /** Comparte varios archivos: "stage:<nombre>" (preparados en caché) o content://… ya guardados. */
         @JavascriptInterface
-        public String shareMany(String json, String mime) {
+        public String shareMany(String json, String mime) { return shareManyText(json, mime, null); }
+
+        /** Igual que shareMany, con un texto (pie del paquete); el texto también se copia al portapapeles por si la app destino no lo toma. */
+        @JavascriptInterface
+        public String shareManyText(String json, String mime, String text) {
             try {
                 org.json.JSONArray a = new org.json.JSONArray(json);
                 ArrayList<Uri> uris = new ArrayList<>();
@@ -521,6 +525,15 @@ public class MainActivity extends Activity {
                 if (uris.size() == 1) { send = new Intent(Intent.ACTION_SEND); send.putExtra(Intent.EXTRA_STREAM, uris.get(0)); }
                 else { send = new Intent(Intent.ACTION_SEND_MULTIPLE); send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris); }
                 send.setType(mime);
+                if (text != null && !text.isEmpty()) {
+                    send.putExtra(Intent.EXTRA_TEXT, text);
+                    runOnUiThread(() -> {
+                        try {
+                            android.content.ClipboardManager cm = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText("ObraSnap", text));
+                        } catch (Exception ignored) { }
+                    });
+                }
                 android.content.ClipData clip = android.content.ClipData.newRawUri("", uris.get(0));
                 for (int k = 1; k < uris.size(); k++) clip.addItem(new android.content.ClipData.Item(uris.get(k)));
                 send.setClipData(clip);

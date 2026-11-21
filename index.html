@@ -196,6 +196,16 @@ body.cam-tall #cam-top{position:absolute;left:0;right:0;top:0;z-index:6;backgrou
 #csv-table th{font-family:var(--sans);font-weight:600;text-align:left;color:var(--accent);padding:4px;border-bottom:1px solid var(--surface2);white-space:nowrap;}
 #csv-table td{padding:3px 4px;border-bottom:1px solid var(--surface2);white-space:nowrap;}
 #csv-msg{font-size:12.5px;margin:10px 0 4px;color:var(--text);}
+.wa-row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--surface2);}
+.wa-row.sent{opacity:.55;}
+.wa-row.next{background:var(--bg3);border-radius:10px;padding:11px 8px;}
+.wa-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.wa-tx b{font-size:15px;font-weight:700;color:var(--accent);}
+.wa-tx small{font-size:12px;color:var(--text2);}
+.wa-send{flex-shrink:0;padding:10px 16px;border-radius:10px;border:none;background:#1f8a5c;color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;}
+.wa-row.sent .wa-send{background:var(--surface2);color:var(--text);}
+.wa-done{text-align:center;padding:14px;font-size:13.5px;color:var(--text2);}
+.sheet-box>.sheet-back{align-self:flex-start;}
 .pick-sub{display:block;font-size:11.5px;font-weight:400;opacity:.8;margin-top:2px;}
 .sheet-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;}
 /* iconos de la cámara giran con el teléfono, como en el iPhone */
@@ -761,6 +771,16 @@ input[type=file]{display:none;}
         <div id="exp-count"></div>
         <button class="modal-btn" onclick="runExport('pdf')">Reporte PDF</button>
         <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="runExport('zip')">Descargar fotos (.zip)</button>
+        <button class="cfg-btn2" style="width:100%;margin-top:8px;padding:11px;" onclick="openWaPackages()">Enviar por WhatsApp · un paquete por actividad</button>
+      </div>
+    </div>
+
+    <div id="wa-bg" class="sheet-bg" onclick="if(event.target===this)closeWaPackages()">
+      <div class="sheet-box" style="max-height:85%;display:flex;flex-direction:column">
+        <button class="sheet-back" onclick="closeWaPackages()">‹ Regresar</button>
+        <div class="modal-title">Enviar por WhatsApp</div>
+        <div class="config-row-sub" style="margin:-8px 0 10px">Un envío por actividad, con su fecha y PK. Manda uno, regresa a la app y sigue con el siguiente.</div>
+        <div id="wa-list" style="overflow-y:auto;min-height:0"></div>
       </div>
     </div>
 
@@ -871,7 +891,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.19';
+const APP_VERSION='2026.11.21-2.20';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -4022,6 +4042,7 @@ window.obrasnapBack=function(){
   if(open('modal-bg')){saveActivity();return true;}
   if(open('qnote-bg')){saveQuickNote();return true;}
   if(open('csv-bg')){closeCsv();return true;}
+  if(open('wa-bg')){closeWaPackages();return true;}
   if(open('pts-bg')){closePoints();return true;}
   if(state.tab==='map'&&MEAS.mode){measClose();return true;}
   if(state.tab==='map'&&infoPt){closeInfo();return true;}
@@ -4374,6 +4395,73 @@ function exportSelection(){
   if(onlyThis)list=list.filter(p=>p.profileId?p.profileId===state.profileId:p.obra===state.obra);
   list=list.slice().sort(order==='pk'?(a,b)=>(a.pk??Infinity)-(b.pk??Infinity)||a.ts-b.ts:(a,b)=>a.ts-b.ts);
   return list;
+}
+// ── ENVIAR POR WHATSAPP: un paquete por actividad, con fecha, actividad y PK como texto ──
+const WA_MAX=90; // WhatsApp acepta ~100 archivos por envío
+let waPk=[];
+function fmtDayRange(list){
+  const ds=[...new Set(list.map(m=>new Date(m.ts).toDateString()))].map(d=>new Date(d)).sort((a,b)=>a-b);
+  const f=d=>`${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`;
+  if(ds.length===1)return f(ds[0]);
+  const a=ds[0],b=ds[ds.length-1];
+  return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()?`${a.getDate()} al ${f(b)}`:`${f(a)} al ${f(b)}`;
+}
+function waBuild(){
+  const list=exportSelection(),groups=new Map();
+  list.forEach(m=>{const k=(m.act||'').trim()||'Sin actividad';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(m);});
+  const out=[];
+  groups.forEach((ms,act)=>{
+    const parts=Math.ceil(ms.length/WA_MAX);
+    for(let i=0;i<parts;i++){
+      const sl=ms.slice(i*WA_MAX,(i+1)*WA_MAX),pks=sl.map(m=>m.pk).filter(v=>v!=null);
+      const lo=pks.length?Math.min(...pks):null,hi=pks.length?Math.max(...pks):null;
+      const pkTxt=lo==null?'sin PK':lo===hi?`PK ${fmtPK(lo)}`:`PK ${fmtPK(lo)} a ${fmtPK(hi)}`;
+      const obras=[...new Set(sl.map(m=>m.obra).filter(Boolean))];
+      const name=act+(parts>1?` (${i+1} de ${parts})`:'');
+      const text=`*${name}* · ${fmtDayRange(sl)}\n${sl.length} foto${sl.length>1?'s':''} · ${pkTxt}`+(obras.length===1?`\n${obras[0]}`:'');
+      out.push({name,list:sl,pkTxt,day:fmtDayRange(sl),text,sent:false});
+    }
+  });
+  return out;
+}
+function openWaPackages(){
+  waPk=waBuild();
+  if(!waPk.length){showToast('No hay fotos en ese rango');return;}
+  closeExport();paintWaPackages();document.getElementById('wa-bg').classList.add('open');
+}
+function closeWaPackages(){document.getElementById('wa-bg').classList.remove('open');}
+function paintWaPackages(){
+  const box=document.getElementById('wa-list');box.innerHTML='';
+  const next=waPk.findIndex(p=>!p.sent);
+  waPk.forEach((p,i)=>{
+    const r=el('div','wa-row'+(p.sent?' sent':'')+(i===next?' next':''));
+    const tx=el('div','wa-tx');tx.append(el('b','',p.name),el('small','',`${p.list.length} foto${p.list.length>1?'s':''} · ${p.pkTxt} · ${p.day}`));
+    const b=el('button','wa-send',p.sent?'✓ Enviado':'Enviar');b.onclick=()=>waSend(i);
+    r.append(tx,b);box.appendChild(r);
+  });
+  if(next<0)box.appendChild(el('div','wa-done','Listo: se enviaron todos los paquetes.'));
+}
+async function waSend(i){
+  const p=waPk[i];if(!p)return;
+  try{
+    if(NATIVE){
+      const items=[];
+      for(const m of p.list){
+        if(m.phoneUri){items.push(m.phoneUri);continue;}
+        const r=await nativeTransfer(await entryBlob(m),photoFileName(m),'stage');
+        items.push('stage:'+String(r).replace(/^ok:stage:/,''));
+      }
+      const r=String(NATIVE.shareManyText?NATIVE.shareManyText(JSON.stringify(items),'image/jpeg',p.text):NATIVE.shareMany(JSON.stringify(items),'image/jpeg'));
+      if(!r.startsWith('ok'))throw new Error(r.replace(/^err:/,''));
+    }else{
+      const files=[];for(const m of p.list)files.push(new File([await entryBlob(m)],photoFileName(m),{type:'image/jpeg'}));
+      try{await navigator.clipboard.writeText(p.text);}catch(e){}
+      if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,text:p.text});}catch(e){if(e.name==='AbortError')return;throw e;}}
+      else{files.forEach(f=>downloadBlob(f,f.name));showToast('Fotos descargadas; el texto quedó copiado');}
+    }
+    p.sent=true;paintWaPackages();
+    logEv('INFO',`WhatsApp: paquete "${p.name}" · ${p.list.length} fotos`);
+  }catch(e){state.lastError='Enviar paquete: '+e.message;showToast('No se pudo enviar: '+e.message);}
 }
 function updateExportCount(){
   const n=exportSelection().length;
