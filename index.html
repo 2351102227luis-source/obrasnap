@@ -22,16 +22,6 @@
 @font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');}
 @font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2');}
 /* letras extra para el stamp */
-@font-face{font-family:'Roboto Mono';font-weight:400;font-display:swap;src:url(fonts/roboto-mono-latin-400-normal.woff2) format('woff2');}
-@font-face{font-family:'Roboto Mono';font-weight:500;font-display:swap;src:url(fonts/roboto-mono-latin-500-normal.woff2) format('woff2');}
-@font-face{font-family:'Roboto Mono';font-weight:700;font-display:swap;src:url(fonts/roboto-mono-latin-700-normal.woff2) format('woff2');}
-@font-face{font-family:'Oswald';font-weight:400;font-display:swap;src:url(fonts/oswald-latin-400-normal.woff2) format('woff2');}
-@font-face{font-family:'Oswald';font-weight:500;font-display:swap;src:url(fonts/oswald-latin-500-normal.woff2) format('woff2');}
-@font-face{font-family:'Oswald';font-weight:600;font-display:swap;src:url(fonts/oswald-latin-600-normal.woff2) format('woff2');}
-@font-face{font-family:'Bebas Neue';font-weight:400;font-display:swap;src:url(fonts/bebas-neue-latin-400-normal.woff2) format('woff2');}
-@font-face{font-family:'Roboto Condensed';font-weight:400;font-display:swap;src:url(fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');}
-@font-face{font-family:'Roboto Condensed';font-weight:500;font-display:swap;src:url(fonts/roboto-condensed-latin-500-normal.woff2) format('woff2');}
-@font-face{font-family:'Roboto Condensed';font-weight:700;font-display:swap;src:url(fonts/roboto-condensed-latin-700-normal.woff2) format('woff2');}
 @font-face{font-family:'Atkinson Hyperlegible';font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-400-normal.woff2) format('woff2');}
 @font-face{font-family:'Atkinson Hyperlegible';font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-latin-700-normal.woff2) format('woff2');}
 @font-face{font-family:'Share Tech Mono';font-weight:400;font-display:swap;src:url(fonts/share-tech-mono-latin-400-normal.woff2) format('woff2');}
@@ -553,9 +543,7 @@ input[type=file]{display:none;}
       </div>
       <div id="gallery-tools">
         <button class="cfg-btn2" onclick="document.getElementById('import-file').click()">＋ Poner datos a fotos de la galería</button>
-        <button class="cfg-btn2" onclick="document.getElementById('verify-file').click()">✓ Verificar foto</button>
         <input type="file" id="import-file" accept="image/*" multiple onchange="importPhotos(this)">
-        <input type="file" id="verify-file" onchange="verifyPhoto(this)">
       </div>
       <div id="gallery-grid" style="display:none;"></div>
       <div id="gallery-empty">
@@ -725,8 +713,6 @@ input[type=file]{display:none;}
         <div class="config-card">
           <div class="config-row"><div class="diag" id="diag"></div></div>
           <div class="config-row" style="gap:8px;">
-            <button class="cfg-btn2" onclick="startCamera(true);switchTab('cam')">Reiniciar cámara</button>
-            <button class="cfg-btn2" onclick="clearRoute()">Borrar KMZ</button>
           </div>
           <div class="config-row" style="gap:8px;">
             <button class="cfg-btn2" onclick="openLog()">Ver registro</button>
@@ -869,7 +855,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.20-2.15';
+const APP_VERSION='2026.11.21-2.16';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1765,23 +1751,18 @@ function fontsReady(){
 // Stamp: panel semitransparente abajo-izquierda con barra de acento, escalado al lado corto de la imagen
 // Fondos disponibles para el bloque de información
 const STAMP_THEMES={
-  transparente:{name:'Transparente',sw:null,bg:null,title:'#f3ead8',main:'#ffffff',sub:'#ffffff',side:'#fbf6ec',outline:true},
+  transparente:{name:'Transparente',sw:null,bg:null,title:'#f3ead8',main:'#ffffff',sub:'#ffffff',side:'#fbf6ec'},
   negro:{name:'Negro',sw:'#000',bg:[0,0,0],title:'#e8dcc4',main:'#ffffff',sub:'#e5e7eb',side:'#e8dcc4',bar:'#e8dcc4',op:0.6},
   arena:{name:'Arena',sw:'#f3ead8',bg:[243,234,216],title:'#1f3a5f',main:'#1f2a3a',sub:'#4a4337',side:'#1f3a5f',bar:'#1f3a5f',op:0.9,light:true},
-  marino:{name:'Azul marino',sw:'#1f3a5f',bg:[31,58,95],title:'#e8dcc4',main:'#ffffff',sub:'#e8e2d4',side:'#e8dcc4',op:0.85},
   blanco:{name:'Blanco',sw:'#fff',bg:[255,255,255],title:'#1f3a5f',main:'#0a0a0a',sub:'#262626',side:'#1f3a5f',bar:'#1f3a5f',op:0.85,light:true},
-  verde:{name:'Verde',sw:'#15803d',bg:[21,128,61],title:'#dcfce7',main:'#ffffff',sub:'#f0fdf4',side:'#dcfce7',op:0.85},
-  azul:{name:'Azul',sw:'#1d4ed8',bg:[29,78,216],title:'#dbeafe',main:'#ffffff',sub:'#eff6ff',side:'#dbeafe',op:0.85},
   amarillo:{name:'Amarillo',sw:'#facc15',bg:[250,204,21],title:'#422006',main:'#0a0a0a',sub:'#1c1917',side:'#422006',op:0.9,light:true},
-  naranja:{name:'Naranja',sw:'#ea580c',bg:[234,88,12],title:'#ffedd5',main:'#ffffff',sub:'#fff7ed',side:'#ffedd5',op:0.85},
-  rojo:{name:'Rojo',sw:'#b91c1c',bg:[185,28,28],title:'#fee2e2',main:'#ffffff',sub:'#fef2f2',side:'#fee2e2',op:0.85},
 };
 
 // Stamp configurable: campos, formatos, colores y posición según state.stampStyle (ver DEFAULT_STYLE)
 const DEFAULT_STYLE={
   bg:'negro',op:0.6,scale:1,pos:'bl',
-  fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'heading',on:true},{k:'note1',on:false},{k:'note2',on:false},{k:'ref',on:false}],
-  note1:'',note2:'',showSide:true,showAcc:true,showAlt:false,
+  fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'note1',on:false},{k:'ref',on:false}],
+  note1:'',showSide:true,showAcc:true,showAlt:false,
   pkFmt:'pk',sideFmt:'izqder',dateFmt:'txt',timeFmt:'24s',coordFmt:'dec',
   pkRound:1,pkRoundVideo:false,
   textColor:'auto',pkFont:'stm',infoFont:'mix',pkScale:1,align:'auto',margin:1,
@@ -1791,13 +1772,25 @@ const DEFAULT_STYLE={
   mapOn:false,mapPos:'br',mapScale:1,mapRange:300,orient:'auto',volShutter:true,
   fileFmt:'{AAMMDD}_{PK}_{HHMM}_{N}',seqReset:'day',seqDigits:3
 };
-const FIELD_NAMES={obra:'Nombre de obra',pk:'PK',act:'Actividad',datetime:'Fecha y hora',coords:'Coordenadas GPS',note1:'Texto libre 1',note2:'Texto libre 2',heading:'Rumbo (brújula)',ref:'Distancia al punto elegido (Mapa › Medir › Ir a punto)'};
+const FIELD_NAMES={obra:'Nombre de obra',pk:'PK',act:'Actividad',datetime:'Fecha y hora',coords:'Coordenadas GPS',note1:'Texto libre',ref:'Distancia al punto elegido (Mapa › Medir › Ir a punto)'};
 function normalizeStyle(st){
   const d=JSON.parse(JSON.stringify(DEFAULT_STYLE));
   if(st.size&&st.scale==null)st.scale={S:0.8,M:1,L:1.25}[st.size]||1;
   delete st.size;
   if(st.font&&!st.pkFont){const m={tec:['stm','mix'],cond:['barlowc','barlowc'],sans:['barlow','barlow']}[st.font]||['stm','mix'];st.pkFont=m[0];st.infoFont=m[1];}
   delete st.font;
+  const FONT_MAP={barlow:'barlowc',robotoc:'barlowc',oswald:'barlowc',bebas:'barlowc',robotomono:'stm'};
+  if(FONT_MAP[st.pkFont])st.pkFont=FONT_MAP[st.pkFont];
+  if(FONT_MAP[st.infoFont])st.infoFont=FONT_MAP[st.infoFont];
+  // fondos quitados → negro
+  if(['verde','azul','rojo','naranja','marino'].includes(st.bg))st.bg='negro';
+  // un solo texto libre: si había dos, se juntan
+  if(st.fields&&st.fields.some(f=>f.k==='note2')){
+    const f1=st.fields.find(f=>f.k==='note1'),f2=st.fields.find(f=>f.k==='note2');
+    const on1=f1&&f1.on&&st.note1,on2=f2&&f2.on&&st.note2;
+    if(on2){st.note1=on1?st.note1+' · '+st.note2:st.note2;if(f1)f1.on=true;}
+  }
+  delete st.note2;
   const out=Object.assign(d,st);
   const keys=out.fields.map(f=>f.k);
   DEFAULT_STYLE.fields.forEach(f=>{if(!keys.includes(f.k))out.fields.push({...f});});
@@ -1866,12 +1859,7 @@ function placeBox(pos,W,H,w,h,mg){
 // Letras disponibles (incluidas en la app). k ajusta el tamaño para que todas se vean parejas.
 const STAMP_FONTS={
   stm:{name:'Técnica',fam:"'Share Tech Mono',monospace",b:400,m:400,r:400,k:1},
-  barlow:{name:'Barlow',fam:"'Barlow',sans-serif",b:700,m:500,r:400,k:0.94},
   barlowc:{name:'Condensada',fam:"'Barlow Condensed',sans-serif",b:700,m:600,r:500,k:1.05},
-  robotomono:{name:'Roboto Mono',fam:"'Roboto Mono',monospace",b:700,m:500,r:400,k:0.88},
-  oswald:{name:'Oswald',fam:"'Oswald',sans-serif",b:600,m:500,r:400,k:0.95},
-  bebas:{name:'Bebas Neue',fam:"'Bebas Neue',sans-serif",b:400,m:400,r:400,k:1.18},
-  robotoc:{name:'Roboto Condensed',fam:"'Roboto Condensed',sans-serif",b:700,m:500,r:400,k:1},
   atkinson:{name:'Muy legible',fam:"'Atkinson Hyperlegible',sans-serif",b:700,m:400,r:400,k:0.92},
 };
 function stampFonts(st,s){
@@ -1903,7 +1891,7 @@ function drawStampOnCanvas(ctx,W,H,m){
     else if(f.k==='act'&&m.act)L.push({t:m.act,sz:F.main,c:th.main,gap:8*s});
     else if(f.k==='datetime')L.push({t:fmtDateStyle(m.ts,st),sz:F.sub,c:th.sub,gap:4*s});
     else if(f.k==='coords')L.push({t:fmtCoordStyle(m,st),sz:F.sub,c:th.sub,gap:4*s});
-    else if((f.k==='note1'||f.k==='note2')&&st[f.k])L.push({t:st[f.k],sz:F.main,c:th.main,gap:6*s});
+    else if(f.k==='note1'&&st[f.k])L.push({t:st[f.k],sz:F.main,c:th.main,gap:6*s});
     else if(f.k==='heading'&&m.heading!=null)L.push({t:headingText(m),sz:F.sub,c:th.sub,gap:4*s});
     else if(f.k==='ref'&&m.ref)L.push({t:m.ref,sz:F.sub,c:th.sub,gap:4*s});
   });
@@ -1939,10 +1927,8 @@ function drawBlock(ctx,W,H,L,pos,s,mg,th,st,darkText){
     if(bar){ctx.fillStyle=th.bar;roundRect(ctx,barRight?x0+pw-bar:x0,y0,bar,ph,barRight?[0,14*s,14*s,0]:[14*s,0,0,14*s]);ctx.fill();}
   }
   ctx.textBaseline='top';ctx.textAlign='left';
-  const outline=th.outline;
-  if(outline){ctx.lineJoin='round';ctx.strokeStyle=darkText?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.85)';ctx.shadowColor=darkText?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.7)';ctx.shadowBlur=6*s;}
-  else if(!darkText){ctx.shadowColor='rgba(0,0,0,0.45)';ctx.shadowBlur=3*s;ctx.shadowOffsetY=1*s;}
-  const txt=(t,x,y,px)=>{if(outline){ctx.lineWidth=Math.max(2,px*0.13);ctx.strokeText(t,x,y);}ctx.fillText(t,x,y);};
+  // letras limpias: sin borde ni sombra (desde la 2.16)
+  const txt=(t,x,y,px)=>{ctx.fillText(t,x,y);};
   const inL=x0+pad+(barRight?0:bar),inR=x0+pw-pad-(barRight?bar:0);
   let y=y0+pad;
   L.forEach(l=>{
@@ -1965,7 +1951,7 @@ function drawBrand(ctx,W,H,s,mg,st){
   }else{
     ctx.font=`600 ${24*bs}px 'Barlow Condensed',sans-serif`;ctx.textBaseline='top';
     const t='OBRASNAP',w=ctx.measureText(t).width,p=placeBox(st.brandPos,W,H,w,24*bs,mg);
-    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=4*s;
+    ctx.fillStyle='rgba(255,255,255,0.85)';
     ctx.fillText(t,p.x,p.y);
   }
   ctx.restore();
@@ -2381,7 +2367,7 @@ function buildSettings(){
           dn.onclick=()=>{[st.fields[i+1],st.fields[i]]=[st.fields[i],st.fields[i+1]];settingChanged();};
           r.append(name,up,dn,mkSwitch(f.on,v=>{f.on=v;settingChanged();}));
           card.appendChild(r);
-          if((f.k==='note1'||f.k==='note2')&&f.on){
+          if(f.k==='note1'&&f.on){
             const r2=el('div','set-row set-sub');
             const inp=el('input','set-input');inp.type='text';inp.maxLength=60;inp.placeholder='Ej: Frente 3 · Cuerpo A · Supervisor: ...';inp.value=st[f.k]||'';
             inp.oninput=()=>{st[f.k]=inp.value;saveSettings();scheduleStamp();renderSettingsPreview();};
@@ -2573,7 +2559,7 @@ function validateProfile(o){
   out.obra={nombre:str(ob.nombre)||out.nombre,actividad:str(ob.actividad,80),
     actividades:Array.isArray(ob.actividades)?ob.actividades.filter(a=>typeof a==='string'&&a.trim()).map(a=>a.trim().slice(0,60)).slice(0,60):DEFAULT_ACTIVITIES.slice()};
   out.stamp=normalizeStyle(o.stamp&&typeof o.stamp==='object'?{...o.stamp}:{});
-  ['note1','note2'].forEach(k=>out.stamp[k]=str(out.stamp[k],80));
+  out.stamp.note1=str(out.stamp.note1,80);
   out.stamp.fileFmt=str(out.stamp.fileFmt,120)||DEFAULT_STYLE.fileFmt;
   if(![1,5,10,20].includes(+out.stamp.pkRound))out.stamp.pkRound=1;else out.stamp.pkRound=+out.stamp.pkRound;
   out.stamp.pkRoundVideo=!!out.stamp.pkRoundVideo;
@@ -3027,19 +3013,6 @@ async function sha256Hex(blob){
   }catch(e){return null;}
 }
 function shortCode(hex){return hex?hex.slice(0,8).toUpperCase().replace(/^(.{4})/,'$1-'):'—';}
-async function verifyPhoto(input){
-  const f=input.files[0];input.value='';if(!f)return;
-  const hex=await sha256Hex(f);
-  const i=state.photos.findIndex(p=>p.sha256&&p.sha256===hex);
-  logEv('INFO',`Verificar ${f.name}: ${i>=0?'coincide':'no coincide'} (${shortCode(hex)})`);
-  if(i>=0){
-    const p=state.photos[i];
-    alert(`✓ FOTO ORIGINAL\n\nEl archivo es idéntico a la foto tomada con ObraSnap:\nPK ${p.pkLabel} · ${p.dt}\nCódigo ${shortCode(hex)}\n\nNo ha sido editada ni recortada.`);
-    switchTab('gallery');openViewer(i);
-  }else{
-    alert(`✗ NO COINCIDE con ninguna foto de este teléfono\n(código del archivo: ${shortCode(hex)})\n\nPuede ser que:\n• la foto fue editada, recortada o tiene filtros\n• se mandó por WhatsApp como foto (la recomprime); mándala como "Documento"\n• se tomó en otro teléfono: verifícala allá o compara con el código del reporte PDF`);
-  }
-}
 
 // ── VIDEO CON STAMP ──
 state.mode='foto';
@@ -4253,7 +4226,7 @@ async function openViewer(i,from){
   info.innerHTML='';
   const rows=isVid(m)
     ?[['PK',entryPk(m)],['Duración',fmtDur(m.dur)],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—']]
-    :[['PK',m.pkLabel+(m.dist!=null?' · '+sideLabel(m):'')],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—'],['Código',shortCode(m.sha256)+(m.imported?' · importada':'')]];
+    :[['PK',m.pkLabel+(m.dist!=null?' · '+sideLabel(m):'')],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—']].concat(m.imported?[['Origen','Foto importada de la galería']]:[]);
   rows.forEach(([k,v])=>{const r=document.createElement('div');r.innerHTML='<b></b> <span></span>';r.children[0].textContent=k;r.children[1].textContent=v;info.appendChild(r);});
   V.classList.add('open');
   if(isVid(m))return;
@@ -4499,7 +4472,7 @@ async function buildReportPDF(list,progress){
     let rc=header(),ry=84;
     rc+=T(M,ry,11,true,'Registro de autenticidad');ry+=14;
     rc+=T(M,ry,8,false,'Huella SHA-256 de cada archivo de foto tal como lo guardó ObraSnap. Si un archivo se edita o se recomprime, su huella cambia.','0.35 0.35 0.35');ry+=11;
-    rc+=T(M,ry,8,false,'Se puede comprobar en ObraSnap (Galería > Verificar foto) o con cualquier programa de SHA-256.','0.35 0.35 0.35');ry+=18;
+    rc+=T(M,ry,8,false,'Huella SHA-256 del archivo guardado: se puede comprobar con cualquier programa de SHA-256.','0.35 0.35 0.35');ry+=18;
     list.forEach((p,i)=>{
       if(ry>PH-46){pages.push({content:rc,x:{}});rc=header();ry=84;}
       rc+=T(M,ry,8,true,`${i+1}. PK ${p.pkLabel}`)+T(M+70,ry,8,false,clip(photoFileName(p),8,false,250));
@@ -4621,7 +4594,7 @@ function paintTheme(){
   const t=currentTheme();
   document.getElementById('fav').href=APP_THEMES[t].icon;document.getElementById('fav2').href=APP_THEMES[t].icon;
   document.querySelectorAll('.theme-pick button').forEach(b=>b.classList.toggle('on',b.dataset.theme===t));
-  document.getElementById('theme-note').textContent=NATIVE&&NATIVE.setIcon?'El ícono del teléfono cambia junto con los colores (puede tardar unos segundos).':'';
+  document.getElementById('theme-note').textContent='Solo cambia los colores de la app; el ícono del teléfono no cambia.';
   drawMap();
 }
 function setAppTheme(t){
@@ -4629,7 +4602,6 @@ function setAppTheme(t){
   if(t==='senal')document.documentElement.dataset.theme='senal';else delete document.documentElement.dataset.theme;
   try{localStorage.setItem('obrasnap.theme',t);}catch(e){}
   paintTheme();
-  if(NATIVE&&NATIVE.setIcon){try{NATIVE.setIcon(t);}catch(e){state.lastError='Cambiar ícono: '+e.message;}}
   logEv('INFO','Apariencia: '+APP_THEMES[t].name);
   showToast('Apariencia: '+APP_THEMES[t].name);
 }

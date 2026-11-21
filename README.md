@@ -60,7 +60,7 @@ estilo y posiciones de los datos en la foto, ajustes de cámara, logo y —opcio
   le pone los datos con la leyenda "Foto importada". Varias a la vez. En Android se pide el permiso
   "ubicación de fotos" porque el sistema borra el GPS sin él. Si la foto no trae GPS se le ponen los datos sin PK.
 - **Código de autenticidad**: cada foto guarda su huella SHA-256 (código corto en el visor y el PDF; huella completa
-  en la última página del reporte). **Verificar foto** dice si un archivo es idéntico al original.
+  en la última página del reporte). (Hasta la 2.15, "Verificar foto" comparaba un archivo con el original.)
   WhatsApp recomprime las fotos: para conservar la huella hay que mandarlas como "Documento".
 - **Video con datos en la foto** (modo VIDEO): datos en la foto en vivo con hora, GPS y PK, con audio; MP4 cuando el teléfono lo permite
   (si no, WebM), 1280 px, máximo 10 min. Se guarda en Películas › ObraSnap.
@@ -71,6 +71,15 @@ Ajustes → **Nombre de los archivos**. El formato es parte de la obra (viaja en
 Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (001250) `{N}` (consecutivo) `{INI}` (iniciales del teléfono)
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
+
+## Versión 2.16 (limpieza)
+
+- Letras del PK e información: Técnica, Condensada y Muy legible. Fondos: Transparente, Negro, Arena, Blanco y Amarillo.
+- Los datos en la foto ya no llevan borde ni sombra.
+- Un solo texto libre (si había dos, se juntan). El rumbo de brújula ya no va en la foto.
+- Apariencia Arena / Señalética solo cambia los colores; el ícono queda fijo (si estaba cambiado, regresa al normal).
+- Se quitan "Verificar foto" y los botones repetidos de Diagnóstico. El código SHA-256 sigue en el reporte PDF.
+- Las obras y ajustes anteriores se convierten solos a las opciones que quedan.
 
 ## Versión 2.15
 

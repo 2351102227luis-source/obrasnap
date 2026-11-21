@@ -116,6 +116,7 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new Bridge(), "ObraSnapAndroid");
 
         cleanShareCache();
+        fixLauncherIcon();
         askPermissions();
         if (saved != null) web.restoreState(saved); else web.loadUrl(HOME);
         handleIntent(getIntent());
@@ -209,6 +210,20 @@ public class MainActivity extends Activity {
         }
         // si la cámara se acaba de autorizar, que la página la vuelva a pedir
         web.evaluateJavascript("window.startCamera&&startCamera(true)", null);
+    }
+
+    /** Desde la 2.16 el ícono ya no cambia con la apariencia: si quedó el de Señalética, se regresa al normal. */
+    private void fixLauncherIcon() {
+        try {
+            String pkg = getPackageName();
+            PackageManager pm = getPackageManager();
+            android.content.ComponentName arena = new android.content.ComponentName(pkg, pkg + ".LauncherArena");
+            android.content.ComponentName senal = new android.content.ComponentName(pkg, pkg + ".LauncherSenal");
+            if (pm.getComponentEnabledSetting(senal) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+                pm.setComponentEnabledSetting(arena, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                pm.setComponentEnabledSetting(senal, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+            }
+        } catch (Exception e) { Log.e(TAG, "icono", e); }
     }
 
     private class Chrome extends WebChromeClient {

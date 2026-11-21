@@ -1,6 +1,6 @@
 {
-  "versionCode": 17,
-  "versionName": "2.15",
+  "versionCode": 18,
+  "versionName": "2.16",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Capas desde el mapa, tocar un punto o línea para ver coordenadas, PK y distancia, y mucho más zoom (hasta 1 cm por píxel)."
+  "notas": "Versión más limpia: 3 letras, 5 fondos, datos sin borde ni sombra, un solo texto libre, apariencia sin cambio de ícono y menos botones repetidos."
 }
