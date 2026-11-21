@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.22
+
+- **Corregir actividad** (Galería: selección múltiple › etiqueta, o en el visor › Actividad): hasta 48 h después de tomar la foto. La app guarda una copia limpia (sin datos) solo dentro de la app (IndexedDB, almacén `clean`) y la borra a las 48 h; al corregir vuelve a estampar, reemplaza la copia del teléfono, actualiza nombre de archivo y código, y anota la actividad anterior (`actPrev`).
+
 ## Versión 2.21
 
 - Enviar por WhatsApp: el texto va solo en la primera foto (lista de pies con el resto vacíos), así WhatsApp arma un álbum con un solo texto. El texto sigue copiado al portapapeles por si la versión de WhatsApp no lo toma.

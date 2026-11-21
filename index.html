@@ -196,6 +196,9 @@ body.cam-tall #cam-top{position:absolute;left:0;right:0;top:0;z-index:6;backgrou
 #csv-table th{font-family:var(--sans);font-weight:600;text-align:left;color:var(--accent);padding:4px;border-bottom:1px solid var(--surface2);white-space:nowrap;}
 #csv-table td{padding:3px 4px;border-bottom:1px solid var(--surface2);white-space:nowrap;}
 #csv-msg{font-size:12.5px;margin:10px 0 4px;color:var(--text);}
+#af-bg{position:fixed;z-index:200;}
+#af-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:150px;overflow-y:auto;}
+.af-chip{padding:7px 12px;border-radius:16px;border:1px solid var(--surface2);background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;cursor:pointer;}
 .wa-row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--surface2);}
 .wa-row.sent{opacity:.55;}
 .wa-row.next{background:var(--bg3);border-radius:10px;padding:11px 8px;}
@@ -561,6 +564,7 @@ input[type=file]{display:none;}
         <button onclick="galSelEnd()">Cancelar</button><span id="gsel-n"></span>
         <button class="gsel-act" onclick="galSelShare()" aria-label="Compartir"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
         <button class="gsel-act" onclick="galSelDownload()" aria-label="Descargar"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button>
+        <button class="gsel-act" onclick="galSelActivity()" aria-label="Cambiar actividad"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></button>
         <button class="gsel-act danger" onclick="galSelDelete()" aria-label="Borrar"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
       </div>
       <div id="gallery-header">
@@ -775,6 +779,18 @@ input[type=file]{display:none;}
       </div>
     </div>
 
+    <div id="af-bg" class="sheet-bg" onclick="if(event.target===this)closeActFix()">
+      <div class="sheet-box">
+        <button class="sheet-back" onclick="closeActFix()">‹ Regresar</button>
+        <div class="modal-title">Cambiar actividad</div>
+        <div class="config-row-sub" id="af-sub" style="margin:-8px 0 10px"></div>
+        <input type="text" id="af-input" class="act-new" style="width:100%;padding:10px 12px;font-size:14px" maxlength="60" placeholder="Actividad correcta">
+        <div id="af-chips"></div>
+        <div class="config-row-sub" style="margin:8px 0 0">La foto se vuelve a estampar con el texto correcto y se reemplaza la copia del teléfono. Lo que ya mandaste por WhatsApp no cambia.</div>
+        <button class="modal-btn" id="af-ok" onclick="applyActFix()">Corregir</button>
+      </div>
+    </div>
+
     <div id="wa-bg" class="sheet-bg" onclick="if(event.target===this)closeWaPackages()">
       <div class="sheet-box" style="max-height:85%;display:flex;flex-direction:column">
         <button class="sheet-back" onclick="closeWaPackages()">‹ Regresar</button>
@@ -864,6 +880,7 @@ input[type=file]{display:none;}
   <div id="viewer-actions">
     <button onclick="viewerShare()">Compartir</button>
     <button onclick="viewerDownload()">Descargar</button>
+    <button onclick="viewerActivity()" id="viewer-act-btn">Actividad</button>
     <button class="danger" onclick="viewerDelete()">Eliminar</button>
   </div>
 </div>
@@ -891,7 +908,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.21';
+const APP_VERSION='2026.11.21-2.22';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1650,11 +1667,12 @@ function drawMap(){
 let dbp=null;
 function db(){
   if(!dbp)dbp=new Promise((res,rej)=>{
-    const r=indexedDB.open('obrasnap',2);
+    const r=indexedDB.open('obrasnap',3);
     r.onupgradeneeded=()=>{const d=r.result,has=n=>d.objectStoreNames.contains(n);
       if(!has('photos'))d.createObjectStore('photos',{keyPath:'id'});
       if(!has('blobs'))d.createObjectStore('blobs');
-      if(!has('profiles'))d.createObjectStore('profiles',{keyPath:'id'});};
+      if(!has('profiles'))d.createObjectStore('profiles',{keyPath:'id'});
+      if(!has('clean'))d.createObjectStore('clean');};
     r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
   });
   return dbp;
@@ -1673,11 +1691,24 @@ async function dbAllMeta(){const d=await db();return idbReq(d.transaction('photo
 async function dbGetBlob(id){const d=await db();return idbReq(d.transaction('blobs').objectStore('blobs').get(id));}
 async function dbDelete(id){
   const d=await db();
-  await new Promise((res,rej)=>{const t=d.transaction(['photos','blobs'],'readwrite');t.objectStore('photos').delete(id);t.objectStore('blobs').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error);});
+  await new Promise((res,rej)=>{const t=d.transaction(['photos','blobs','clean'],'readwrite');t.objectStore('photos').delete(id);t.objectStore('blobs').delete(id);t.objectStore('clean').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error);});
 }
 async function photoBlob(m){return m._blob||await dbGetBlob(m.id);}
+// Copia limpia (sin datos) de cada foto, solo dentro de la app y por 48 h: permite corregir la actividad y volver a estampar
+const CLEAN_MS=48*3600e3;
+async function dbSaveClean(id,blob){try{const d=await db();await idbReq(d.transaction('clean','readwrite').objectStore('clean').put({blob,at:Date.now()},id));}catch(e){logEv('WARN','Copia limpia: '+e.message);}}
+async function dbGetClean(id){const d=await db();const v=await idbReq(d.transaction('clean').objectStore('clean').get(id));return v&&Date.now()-v.at<CLEAN_MS?v.blob:null;}
+async function cleanupClean(){
+  try{const d=await db();let n=0;
+    await new Promise((res,rej)=>{const t=d.transaction('clean','readwrite'),c=t.objectStore('clean').openCursor();
+      c.onsuccess=()=>{const cur=c.result;if(!cur)return;if(Date.now()-cur.value.at>=CLEAN_MS){cur.delete();n++;}cur.continue();};t.oncomplete=res;t.onerror=()=>rej(t.error);});
+    if(n)logEv('INFO',`Copias limpias vencidas borradas: ${n}`);
+  }catch(e){}
+}
+const canFixAct=m=>!isVid(m)&&m.cleanUntil&&Date.now()<m.cleanUntil;
 async function loadPhotos(){
   try{
+    cleanupClean();
     const all=await dbAllMeta();
     state.photos=all.sort((a,b)=>b.ts-a.ts);
     updateGallery();updateThumb();
@@ -1715,10 +1746,12 @@ async function capturePhoto(){
       const ro=await downloadBlob(orig,photoFileName(meta).replace(/\.jpg$/,'_original.jpg'));
       if(NATIVE&&String(ro||'').startsWith('ok:'))meta.origUri=String(ro).slice(3);
     }
+    const clean=await new Promise(r=>canvas.toBlob(r,'image/jpeg',st.quality||0.92));
     await fontsReady();
     drawStampOnCanvas(ctx,W,H,meta);
     let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',st.quality||0.92));
     try{blob=await addExif(blob,meta);}catch(e){console.warn('exif',e);}
+    if(clean){meta.cleanUntil=Date.now()+CLEAN_MS;dbSaveClean(meta.id,clean);}
     meta.thumb=makeThumb(canvas);
     meta.size=blob.size;
     meta.sha256=await sha256Hex(blob);
@@ -3039,8 +3072,10 @@ async function importPhotos(input){
       const meta=metaAt(ex.lat,ex.lon,ts,{w:W,h:H,alt:ex.alt??null,imported:true,src:f.name.slice(0,80),dateSrc:ex.dt?'exif':'archivo'});
       if(meta.lat!=null)gps++;
       assignFileName(meta);
+      const clean=await new Promise(r=>canvas.toBlob(r,'image/jpeg',state.stampStyle.quality||0.92));
       drawStampOnCanvas(ctx,W,H,meta);
       let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',state.stampStyle.quality||0.92));
+      if(clean){meta.cleanUntil=Date.now()+CLEAN_MS;dbSaveClean(meta.id,clean);}
       try{blob=await addExif(blob,meta);}catch(e){}
       meta.thumb=makeThumb(canvas);meta.size=blob.size;meta.sha256=await sha256Hex(blob);
       if(state.autoSave){const rs=await downloadBlob(blob,photoFileName(meta));if(NATIVE&&String(rs||'').startsWith('ok:'))meta.phoneUri=String(rs).slice(3);}
@@ -4043,6 +4078,7 @@ window.obrasnapBack=function(){
   if(open('qnote-bg')){saveQuickNote();return true;}
   if(open('csv-bg')){closeCsv();return true;}
   if(open('wa-bg')){closeWaPackages();return true;}
+  if(open('af-bg')){closeActFix();return true;}
   if(open('pts-bg')){closePoints();return true;}
   if(state.tab==='map'&&MEAS.mode){measClose();return true;}
   if(state.tab==='map'&&infoPt){closeInfo();return true;}
@@ -4186,6 +4222,56 @@ async function galSelShare(){const l=galSelected();if(l.length)await shareEntrie
 async function galSelDownload(){const l=galSelected();if(!l.length)return;await downloadEntries(l);galSelEnd();}
 async function galSelDelete(){const l=galSelected();if(!l.length)return;if(await deleteEntries(l))galSelEnd();}
 
+// ── corregir la actividad (hasta 48 h): vuelve a estampar desde la copia limpia ──
+let actFix=[];
+function openActFix(list){
+  actFix=list.filter(m=>!isVid(m));if(!actFix.length)return;
+  const ok=actFix.filter(canFixAct).length,no=actFix.length-ok;
+  document.getElementById('af-sub').textContent=ok?`${ok} foto${ok>1?'s':''} se ${ok>1?'pueden':'puede'} corregir`+(no?` · ${no} ya no (pasaron más de 48 h o son de antes de la versión 2.22)`:''):'Estas fotos ya no se pueden corregir: pasaron más de 48 h desde que se tomaron (o son de antes de la versión 2.22).';
+  const inp=document.getElementById('af-input');const acts=[...new Set(actFix.map(m=>m.act).filter(Boolean))];inp.value=acts.length===1?acts[0]:'';
+  const box=document.getElementById('af-chips');box.innerHTML='';
+  (state.activities||[]).forEach(a=>{const b=el('button','af-chip',a);b.onclick=()=>{inp.value=a;};box.appendChild(b);});
+  document.getElementById('af-ok').disabled=!ok;
+  document.getElementById('af-bg').classList.add('open');
+}
+function closeActFix(){document.getElementById('af-bg').classList.remove('open');}
+async function applyActFix(){
+  const act=document.getElementById('af-input').value.trim().slice(0,60);
+  const list=actFix.filter(canFixAct);if(!list.length)return;
+  closeActFix();
+  let done=0,fail=0;
+  await fontsReady();
+  for(const m of list){
+    try{
+      if((m.act||'')===act){done++;continue;}
+      showToast(`Corrigiendo ${done+fail+1} de ${list.length}…`);
+      const clean=await dbGetClean(m.id);if(!clean)throw new Error('sin copia limpia');
+      const bmp=await createImageBitmap(clean),cv=document.createElement('canvas');cv.width=bmp.width;cv.height=bmp.height;
+      const ctx=cv.getContext('2d');ctx.drawImage(bmp,0,0);if(bmp.close)bmp.close();
+      const meta={...m,act,actPrev:m.actPrev??(m.act||''),actFixedAt:Date.now()};delete meta._blob;
+      const oldName=photoFileName(m);meta.fname=buildFileName(meta,'jpg',m.seq);
+      drawStampOnCanvas(ctx,cv.width,cv.height,meta);
+      let blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',state.stampStyle.quality||0.92));
+      try{blob=await addExif(blob,meta);}catch(e){}
+      meta.thumb=makeThumb(cv);meta.size=blob.size;meta.sha256=await sha256Hex(blob);
+      // la copia del teléfono se reemplaza (se borra la vieja y se guarda la nueva)
+      if(NATIVE&&m.phoneUri){
+        try{NATIVE.deleteMedia(m.phoneUri);}catch(e){}
+        const rs=await downloadBlob(blob,photoFileName(meta));meta.phoneUri=String(rs||'').startsWith('ok:')?String(rs).slice(3):null;
+      }
+      await dbSavePhoto(meta,blob);
+      const k=state.photos.indexOf(m);if(k>=0)state.photos[k]=meta;
+      logEv('INFO',`Actividad corregida: ${oldName} · "${meta.actPrev}" → "${act}"`);done++;
+    }catch(e){fail++;logEv('WARN','Corregir actividad: '+e.message);}
+  }
+  if(act&&!state.activities.some(a=>a.toLowerCase()===act.toLowerCase())){state.activities.push(act);saveSettings();renderActivities&&renderActivities();}
+  updateGallery();updateThumb();if(gSel)galSelEnd();
+  if(viewerIdx>=0){const i=Math.min(viewerIdx,state.photos.length-1);openViewer(i);}
+  showToast(fail?`${done} corregida(s) · ${fail} con error`:`Actividad corregida en ${done} foto${done>1?'s':''}`);
+}
+function galSelActivity(){const l=galSelected();if(l.length)openActFix(l);}
+function viewerActivity(){const m=state.photos[viewerIdx];if(m)openActFix([m]);}
+
 // ── compartir / descargar / borrar (una o varias) ──
 async function entryBlob(m){
   if(m._blob)return m._blob;
@@ -4280,6 +4366,8 @@ async function openViewer(i,from){
   const rows=isVid(m)
     ?[['PK',entryPk(m)],['Duración',fmtDur(m.dur)],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—']]
     :[['PK',m.pkLabel+(m.dist!=null?' · '+sideLabel(m):'')],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—']].concat(m.imported?[['Origen','Foto importada de la galería']]:[]);
+  if(m.actPrev!=null&&!isVid(m))rows.push(['Corregida',`Actividad antes: ${m.actPrev||'(sin actividad)'}`]);
+  document.getElementById('viewer-act-btn').style.display=isVid(m)?'none':'';
   rows.forEach(([k,v])=>{const r=document.createElement('div');r.innerHTML='<b></b> <span></span>';r.children[0].textContent=k;r.children[1].textContent=v;info.appendChild(r);});
   V.classList.add('open');
   if(isVid(m))return;

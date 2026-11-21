@@ -1,6 +1,6 @@
 {
-  "versionCode": 23,
-  "versionName": "2.21",
+  "versionCode": 24,
+  "versionName": "2.22",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "WhatsApp: el texto va en una sola foto para que el paquete llegue como álbum."
+  "notas": "Corregir la actividad de fotos hasta 48 horas después: se vuelven a estampar y se reemplaza la copia del teléfono."
 }
