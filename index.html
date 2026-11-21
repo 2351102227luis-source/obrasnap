@@ -199,6 +199,11 @@ body.cam-tall #cam-top{position:absolute;left:0;right:0;top:0;z-index:6;backgrou
 #af-bg{position:fixed;z-index:200;}
 #af-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:150px;overflow-y:auto;}
 .af-chip{padding:7px 12px;border-radius:16px;border:1px solid var(--surface2);background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;cursor:pointer;}
+#wt-bg{z-index:210;}
+#wt-text{white-space:pre-line;background:var(--bg3);border-left:3px solid #1f8a5c;border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.45;color:var(--text);}
+.wt-steps{margin:12px 0 4px 20px;font-size:13.5px;line-height:1.5;color:var(--text);}
+.wt-steps li{margin-bottom:4px;}
+.wt-off{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);margin:8px 0 2px;}
 .wa-row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--surface2);}
 .wa-row.sent{opacity:.55;}
 .wa-row.next{background:var(--bg3);border-radius:10px;padding:11px 8px;}
@@ -794,6 +799,22 @@ input[type=file]{display:none;}
       </div>
     </div>
 
+    <div id="wt-bg" class="sheet-bg" onclick="if(event.target===this)waTipClose()">
+      <div class="sheet-box">
+        <button class="sheet-back" onclick="waTipClose()">‹ Regresar</button>
+        <div class="modal-title">El texto ya va copiado</div>
+        <div id="wt-text"></div>
+        <ol class="wt-steps">
+          <li>En WhatsApp, elige el chat o grupo.</li>
+          <li>En la primera foto, toca <b>«Añade un comentario»</b>.</li>
+          <li>Toca el texto que sugiere el teclado, o mantén el dedo y elige <b>Pegar</b>.</li>
+          <li>Envía: llega como álbum con un solo texto.</li>
+        </ol>
+        <label class="wt-off"><input type="checkbox" id="wt-off"> No volver a mostrar</label>
+        <button class="modal-btn" onclick="waTipGo()">Abrir WhatsApp</button>
+      </div>
+    </div>
+
     <div id="wa-bg" class="sheet-bg" onclick="if(event.target===this)closeWaPackages()">
       <div class="sheet-box" style="max-height:85%;display:flex;flex-direction:column">
         <button class="sheet-back" onclick="closeWaPackages()">‹ Regresar</button>
@@ -912,7 +933,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.23';
+const APP_VERSION='2026.11.21-2.24';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -4081,6 +4102,7 @@ window.obrasnapBack=function(){
   if(open('modal-bg')){saveActivity();return true;}
   if(open('qnote-bg')){saveQuickNote();return true;}
   if(open('csv-bg')){closeCsv();return true;}
+  if(open('wt-bg')){waTipClose();return true;}
   if(open('wa-bg')){closeWaPackages();return true;}
   if(open('af-bg')){closeActFix();return true;}
   if(open('pts-bg')){closePoints();return true;}
@@ -4536,7 +4558,23 @@ function paintWaPackages(){
   });
   if(next<0)box.appendChild(el('div','wa-done','Listo: se enviaron todos los paquetes.'));
 }
-async function waSend(i){
+// Aviso antes de abrir WhatsApp (varias fotos): el texto va copiado y se pega en el comentario de la primera foto
+const waTipOff=()=>{try{return localStorage.getItem('obrasnap.waTipOff')==='1';}catch(e){return false;}};
+let waTipIdx=-1;
+function waSend(i){
+  const p=waPk[i];if(!p)return;
+  if(NATIVE&&p.list.length>1&&!waTipOff()){
+    waTipIdx=i;document.getElementById('wt-text').textContent=p.text.replace(/\*/g,'');
+    document.getElementById('wt-off').checked=false;document.getElementById('wt-bg').classList.add('open');return;
+  }
+  waSendNow(i);
+}
+function waTipGo(){
+  if(document.getElementById('wt-off').checked){try{localStorage.setItem('obrasnap.waTipOff','1');}catch(e){}}
+  document.getElementById('wt-bg').classList.remove('open');const i=waTipIdx;waTipIdx=-1;waSendNow(i);
+}
+function waTipClose(){document.getElementById('wt-bg').classList.remove('open');waTipIdx=-1;}
+async function waSendNow(i){
   const p=waPk[i];if(!p)return;
   try{
     if(NATIVE){
@@ -4555,7 +4593,7 @@ async function waSend(i){
       else{files.forEach(f=>downloadBlob(f,f.name));showToast('Fotos descargadas; el texto quedó copiado');}
     }
     p.sent=true;paintWaPackages();
-    if(NATIVE&&p.list.length>1)showToast('Texto copiado: si no aparece en el pie, pégalo en la primera foto');
+    if(NATIVE&&p.list.length>1&&waTipOff())showToast('Texto copiado: pégalo en el comentario de la primera foto');
     logEv('INFO',`WhatsApp: paquete "${p.name}" · ${p.list.length} fotos`);
   }catch(e){state.lastError='Enviar paquete: '+e.message;showToast('No se pudo enviar: '+e.message);}
 }

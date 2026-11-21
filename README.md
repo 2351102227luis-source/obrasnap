@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.24
+
+- Enviar por WhatsApp (paquetes de varias fotos): antes de abrir WhatsApp aparece un aviso con el texto copiado y los pasos para pegarlo en el comentario de la primera foto (WhatsApp no permite a otras apps poner el pie solo en una foto). Opción "No volver a mostrar".
+
 ## Versión 2.23
 
 - Visor: acciones con íconos (Compartir · Actividad · Info · Eliminar). La información de la foto queda oculta y se muestra con ⓘ. "Descargar" solo aparece si la foto no está ya guardada en el teléfono (también en la selección múltiple).
