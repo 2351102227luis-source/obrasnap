@@ -1,6 +1,6 @@
 {
-  "versionCode": 26,
-  "versionName": "2.24",
+  "versionCode": 27,
+  "versionName": "2.25",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "WhatsApp: aviso antes de abrirlo con el texto copiado y los pasos para pegarlo en la primera foto."
+  "notas": "Corrige fotos horizontales que salían de cabeza en teléfonos con el sensor de giro invertido."
 }

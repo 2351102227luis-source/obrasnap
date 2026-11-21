@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.25
+
+- Fotos horizontales de cabeza: la app detecta si el acelerómetro del teléfono reporta el signo invertido (con el teléfono vertical y derecho la gravedad debe dar y≈+9.8) y lo corrige. Respaldo manual en Cámara: "La foto horizontal sale de cabeza" (solo en ese teléfono). Diagnóstico muestra el sensor de giro.
+
 ## Versión 2.24
 
 - Enviar por WhatsApp (paquetes de varias fotos): antes de abrir WhatsApp aparece un aviso con el texto copiado y los pasos para pegarlo en el comentario de la primera foto (WhatsApp no permite a otras apps poner el pie solo en una foto). Opción "No volver a mostrar".

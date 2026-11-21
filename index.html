@@ -933,7 +933,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.24';
+const APP_VERSION='2026.11.21-2.25';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -2343,6 +2343,7 @@ const SETTINGS_SCHEMA=[
     {type:'toggle',k:'grid',label:'Cuadrícula de encuadre',after:()=>applyGrid()},
     {type:'toggle',k:'level',label:'Nivel (línea que avisa si el teléfono está derecho)',after:()=>paintLevel()},
     {type:'seg',k:'orient',label:'Orientación de la foto',opts:[['auto','Automática'],['portrait','Siempre vertical'],['landscape','Siempre horizontal']]},
+    {type:'toggle',k:'_rotFlip',label:'La foto horizontal sale de cabeza',sub:'Prende esto solo si al girar el teléfono la foto sale al revés (la app ya intenta corregirlo sola). Solo afecta a este teléfono.',show:st=>st.orient!=='portrait',get:()=>rotFlip,set:v=>{rotFlip=v;try{localStorage.setItem('obrasnap.rotFlip',v?'1':'0');}catch(e){}gx=-gx;gy=-gy;}},
     {type:'seg',k:'timer',label:'Temporizador',opts:[[0,'No'],[3,'3 s'],[10,'10 s']]},
     {type:'toggle',k:'volShutter',label:'Botón de volumen toma la foto',sub:'Solo en la app Android',after:()=>syncVolumeShutter()},
     {type:'toggle',k:'sound',label:'Sonido del obturador'},
@@ -2836,9 +2837,21 @@ function addActivity(v){
 // giramos la foto (y el stamp) para que salga derecha, como hace la cámara del iPhone.
 state.devRot=0;           // 0 = vertical · -90 = girado a la izquierda · 90 = girado a la derecha
 let gx=0,gy=9.8;
+// Algunos teléfonos (y el iPhone) reportan el acelerómetro con el signo al revés: la foto horizontal saldría de cabeza.
+// Se detecta solo: con el teléfono derecho en vertical la gravedad debe dar y≈+9.8; si da −9.8, se invierte el signo.
+let accInv=(()=>{try{return localStorage.getItem('obrasnap.accInv')==='1';}catch(e){return false;}})(),accVotes=0,accRaw={x:0,y:0};
+let rotFlip=(()=>{try{return localStorage.getItem('obrasnap.rotFlip')==='1';}catch(e){return false;}})(); // de cada teléfono, no viaja con la obra
+function accSign(){return (accInv?-1:1)*(rotFlip?-1:1);}
 window.addEventListener('devicemotion',e=>{
   const g=e.accelerationIncludingGravity;if(!g||g.x==null)return;
-  gx=gx*0.8+g.x*0.2;gy=gy*0.8+g.y*0.2;
+  accRaw={x:g.x,y:g.y};
+  if(Math.abs(g.y)>7.5&&Math.abs(g.x)<2.5){ // vertical y derecho (o de cabeza, que casi no pasa)
+    accVotes=Math.max(-40,Math.min(40,accVotes+(g.y>0?1:-1)));
+    const inv=accVotes<=-25?true:accVotes>=25?false:accInv;
+    if(inv!==accInv){accInv=inv;try{localStorage.setItem('obrasnap.accInv',inv?'1':'0');}catch(_){}logEv('INFO','Sensor de giro: signo '+(inv?'invertido (corregido)':'normal'));}
+  }
+  const k=accSign();
+  gx=gx*0.8+g.x*k*0.2;gy=gy*0.8+g.y*k*0.2;
   let r=state.devRot;
   // histéresis: cambia solo cuando el giro es claro (evita parpadeo a 45°)
   if(Math.abs(gx)>Math.abs(gy)+2.5)r=gx>0?-90:90;
@@ -4830,6 +4843,7 @@ function updateDiag(){
   el.textContent=
 `Versión: ${APP_VERSION}
 Cámara: ${state.camState}${st.width?` · ${st.width}×${st.height}`:''}
+Sensor de giro: x ${accRaw.x.toFixed(1)} · y ${accRaw.y.toFixed(1)} · signo ${accInv?'invertido (corregido)':'normal'}${rotFlip?' · invertido a mano':''}
 Funciones de la cámara: ${camTrack()?capsText():capsLogged||'(abre la cámara una vez)'}
 Pista: ${t?t.readyState+(t.muted?' (muted)':''):'—'}
 GPS: ${state.lat!=null?`±${Math.round(state.accuracy)} m`:'sin fix'}
