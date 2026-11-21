@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.23
+
+- Visor: acciones con íconos (Compartir · Actividad · Info · Eliminar). La información de la foto queda oculta y se muestra con ⓘ. "Descargar" solo aparece si la foto no está ya guardada en el teléfono (también en la selección múltiple).
+
 ## Versión 2.22
 
 - **Corregir actividad** (Galería: selección múltiple › etiqueta, o en el visor › Actividad): hasta 48 h después de tomar la foto. La app guarda una copia limpia (sin datos) solo dentro de la app (IndexedDB, almacén `clean`) y la borra a las 48 h; al corregir vuelve a estampar, reemplaza la copia del teléfono, actualiza nombre de archivo y código, y anota la actividad anterior (`actPrev`).

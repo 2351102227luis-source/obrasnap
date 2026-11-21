@@ -327,12 +327,15 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-act svg,body[data-ro
 #viewer.is-vid #viewer-play{display:flex;}
 #viewer-video{display:none;position:absolute;inset:0;width:100%;height:100%;background:#000;}
 .vnav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:56px;border:none;border-radius:8px;background:rgba(0,0,0,.35);color:#fff;font-size:28px;cursor:pointer;}
-#viewer-info{padding:10px 16px 4px;font-size:12px;color:#f3ead8;display:grid;gap:3px;}
+#viewer-info{padding:10px 16px 4px;font-size:12px;color:#f3ead8;display:none;gap:3px;}
+#viewer.show-info #viewer-info{display:grid;}
 #viewer-info b{font-family:var(--mono);font-weight:400;color:#a8a29e;display:inline-block;min-width:74px;font-size:11px;}
-#viewer-actions{display:flex;gap:8px;padding:10px 16px;padding-bottom:max(14px,env(safe-area-inset-bottom));}
-#viewer-actions button{flex:1;padding:12px 0;border-radius:10px;border:1px solid #3a3a3c;background:#1c1c1e;color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
-#viewer-actions button:first-child{background:var(--accent2);border-color:var(--accent2);color:var(--on-accent);}
-#viewer-actions .danger{color:#fca5a5;border-color:#7f1d1d;background:transparent;}
+#viewer-actions{display:flex;justify-content:space-around;gap:4px;padding:8px 10px;padding-bottom:max(12px,env(safe-area-inset-bottom));}
+#viewer-actions button{flex:1;max-width:84px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;border:none;background:none;color:#f3ead8;font-family:var(--sans);font-size:10.5px;cursor:pointer;border-radius:12px;}
+#viewer-actions button svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+#viewer-actions button span{opacity:.75;}
+#viewer-actions .danger{color:#fca5a5;}
+#viewer.show-info #viewer-info-btn{color:#ffd60a;background:rgba(255,255,255,.08);}
 #export-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
 #export-bg.open{display:flex;}
 #export-box{background:var(--bg2);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;}
@@ -878,10 +881,11 @@ input[type=file]{display:none;}
   <div id="viewer-img-wrap"><button class="vnav" onclick="viewerStep(-1)" style="left:6px">‹</button><img id="viewer-img" alt="" draggable="false"><button id="viewer-play" onclick="viewerPlay()" aria-label="Reproducir video"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><video id="viewer-video" controls playsinline></video><button class="vnav" onclick="viewerStep(1)" style="right:6px">›</button></div>
   <div id="viewer-info"></div>
   <div id="viewer-actions">
-    <button onclick="viewerShare()">Compartir</button>
-    <button onclick="viewerDownload()">Descargar</button>
-    <button onclick="viewerActivity()" id="viewer-act-btn">Actividad</button>
-    <button class="danger" onclick="viewerDelete()">Eliminar</button>
+    <button onclick="viewerShare()" aria-label="Compartir"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Compartir</span></button>
+    <button onclick="viewerActivity()" id="viewer-act-btn" aria-label="Cambiar actividad"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg><span>Actividad</span></button>
+    <button onclick="toggleViewerInfo()" id="viewer-info-btn" aria-label="Información"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/></svg><span>Info</span></button>
+    <button onclick="viewerDownload()" id="viewer-dl-btn" aria-label="Descargar"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg><span>Descargar</span></button>
+    <button class="danger" onclick="viewerDelete()" aria-label="Eliminar"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><span>Eliminar</span></button>
   </div>
 </div>
 <div id="log-view">
@@ -908,7 +912,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.22';
+const APP_VERSION='2026.11.21-2.23';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -4215,6 +4219,7 @@ function galSelPaint(){
   document.querySelectorAll('#gallery-grid .gallery-item').forEach(d=>d.classList.toggle('sel',on&&gSel.has(d.dataset.id)));
   if(on)document.getElementById('gsel-n').textContent=gSel.size?`${gSel.size} seleccionada${gSel.size>1?'s':''}`:'Toca para elegir';
   document.querySelectorAll('#gsel-bar .gsel-act').forEach(b=>b.disabled=!on||!gSel.size);
+  const dl=document.querySelector('#gsel-bar .gsel-act[aria-label=Descargar]');if(dl)dl.style.display=NATIVE&&on&&galSelected().every(m=>m.phoneUri)?'none':'';
 }
 function galSelEnd(){gSel=null;galSelPaint();}
 function galSelected(){return gSel?state.photos.filter(p=>gSel.has(p.id)):[];}
@@ -4368,6 +4373,7 @@ async function openViewer(i,from){
     :[['PK',m.pkLabel+(m.dist!=null?' · '+sideLabel(m):'')],['Fecha',m.dt],['GPS',metaCoords(m)],['Actividad',m.act||'—'],['Obra',m.obra||'—']].concat(m.imported?[['Origen','Foto importada de la galería']]:[]);
   if(m.actPrev!=null&&!isVid(m))rows.push(['Corregida',`Actividad antes: ${m.actPrev||'(sin actividad)'}`]);
   document.getElementById('viewer-act-btn').style.display=isVid(m)?'none':'';
+  document.getElementById('viewer-dl-btn').style.display=NATIVE&&m.phoneUri?'none':'';
   rows.forEach(([k,v])=>{const r=document.createElement('div');r.innerHTML='<b></b> <span></span>';r.children[0].textContent=k;r.children[1].textContent=v;info.appendChild(r);});
   V.classList.add('open');
   if(isVid(m))return;
@@ -4380,11 +4386,12 @@ async function openViewer(i,from){
 }
 function closeViewer(){
   const V=document.getElementById('viewer');
-  V.classList.remove('open','immersive','zoomed','is-vid');stopViewerVideo();
+  V.classList.remove('open','immersive','zoomed','is-vid','show-info');stopViewerVideo();
   document.getElementById('viewer-img').style.transform='';V.style.background='';
   if(viewerUrl){URL.revokeObjectURL(viewerUrl);viewerUrl=null;}
   viewerIdx=-1;
 }
+function toggleViewerInfo(){const V=document.getElementById('viewer');V.classList.toggle('show-info');}
 function viewerStep(d){const n=viewerIdx+d;if(n>=0&&n<state.photos.length)openViewer(n);}
 // Video: en la app Android se abre el reproductor del teléfono; en el navegador, aquí mismo
 async function viewerPlay(){

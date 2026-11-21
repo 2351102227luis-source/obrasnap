@@ -1,6 +1,6 @@
 {
-  "versionCode": 24,
-  "versionName": "2.22",
+  "versionCode": 25,
+  "versionName": "2.23",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Corregir la actividad de fotos hasta 48 horas después: se vuelven a estampar y se reemplaza la copia del teléfono."
+  "notas": "Visor más limpio: acciones con íconos, información oculta detrás de ⓘ y sin Descargar cuando la foto ya está en el teléfono."
 }
