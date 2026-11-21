@@ -246,7 +246,11 @@ body[data-rot="90"] #btn-flash svg,body[data-rot="90"] #btn-act svg,body[data-ro
 .set-pos9{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,38px);gap:4px;padding:6px;background:var(--bg3);border-radius:10px;align-self:center;border:1px solid var(--surface2);}
 .set-pos9 button{border:none;border-radius:6px;background:var(--bg2);color:var(--text2);font-size:15px;cursor:pointer;}
 .set-pos9 button.on{background:var(--accent);color:var(--on-accent);}
-.set-sw{display:flex;flex-wrap:wrap;gap:10px;}
+.set-sw{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 2px 5px;border-radius:10px;border:2px solid var(--surface2);background:var(--bg);cursor:pointer;font-family:var(--sans);font-size:11px;color:var(--text);}
+.swatch i{width:34px;height:34px;border-radius:8px;border:1px solid rgba(0,0,0,.18);display:block;}
+.swatch span{font-size:10.5px;letter-spacing:-.2px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.swatch.transp i{background:repeating-conic-gradient(#cfc6b4 0 25%,#fff 0 50%) 0 0/12px 12px;}
 .set-range{width:100%;accent-color:var(--accent);}
 .set-input{width:100%;background:var(--bg);border:1px solid var(--surface2);border-radius:8px;padding:9px 10px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;}
 .set-btn{background:var(--bg);border:1px solid var(--surface2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;cursor:pointer;}
@@ -867,7 +871,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.18';
+const APP_VERSION='2026.11.21-2.19';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1773,11 +1777,11 @@ const STAMP_THEMES={
 // Stamp configurable: campos, formatos, colores y posición según state.stampStyle (ver DEFAULT_STYLE)
 const DEFAULT_STYLE={
   bg:'negro',op:0.6,scale:1,pos:'bl',
-  fields:[{k:'obra',on:true},{k:'pk',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'note1',on:false},{k:'ref',on:false}],
+  fields:[{k:'pk',on:true},{k:'obra',on:true},{k:'act',on:true},{k:'datetime',on:true},{k:'coords',on:true},{k:'note1',on:false},{k:'ref',on:false}],
   note1:'',showSide:true,showAcc:false,showAlt:false,
   pkFmt:'pk',sideFmt:'izqder',dateFmt:'txt',timeFmt:'24s',coordFmt:'dec',
   pkRound:1,pkRoundVideo:false,
-  textColor:'auto',pkFont:'stm',infoFont:'mix',pkScale:1,align:'auto',margin:1,
+  textColor:'auto',pkFont:'barlowc',infoFont:'mix',pkScale:1,align:'auto',margin:0.5,
   pkSep:false,pkPos:'tr',
   brand:'texto',brandPos:'tr',brandScale:1,logoOp:1,
   aspect:'4:3',quality:0.92,grid:false,timer:0,sound:true,vibrate:true,saveOriginal:false,
@@ -1803,7 +1807,14 @@ function normalizeStyle(st){
     if(on2){st.note1=on1?st.note1+' · '+st.note2:st.note2;if(f1)f1.on=true;}
   }
   delete st.note2;
+  st.align='auto';
+  if(st.margin==null||st.margin===1)st.margin=0.5; // 2.19: separación del borde 50 % por omisión
   const out=Object.assign(d,st);
+  if(!out.v219){ // 2.19: diseño parejo con el PK arriba
+    const i=out.fields.findIndex(f=>f.k==='pk'),j=out.fields.findIndex(f=>f.k==='obra');
+    if(i>j&&j>=0){const[pk]=out.fields.splice(i,1);out.fields.splice(j,0,pk);}
+    out.v219=true;
+  }
   const keys=out.fields.map(f=>f.k);
   DEFAULT_STYLE.fields.forEach(f=>{if(!keys.includes(f.k))out.fields.push({...f});});
   out.fields=out.fields.filter(f=>FIELD_NAMES[f.k]);
@@ -1874,14 +1885,9 @@ const STAMP_FONTS={
   atkinson:{name:'Muy legible',fam:"'Atkinson Hyperlegible',sans-serif",b:700,m:400,r:400,k:0.92},
 };
 function stampFonts(st,s){
-  const P=STAMP_FONTS[st.pkFont]||STAMP_FONTS.stm,ps=s*(st.pkScale||1)*P.k;
-  const out={pk:`${P===STAMP_FONTS.stm?400:P.b} ${72*ps}px ${P.fam}`,pkex:`${P.r} ${30*ps}px ${P.fam}`};
-  if(!STAMP_FONTS[st.infoFont]){ // "Técnica mixta": título condensado, texto normal, datos en monoespaciada
-    const C="'Barlow Condensed',sans-serif",M="'Share Tech Mono',monospace",S="'Barlow',sans-serif";
-    return{...out,title:`700 ${34*s}px ${C}`,main:`500 ${34*s}px ${S}`,sub:`400 ${28*s}px ${M}`};
-  }
-  const I=STAMP_FONTS[st.infoFont],is=s*I.k;
-  return{...out,title:`${I.b} ${34*is}px ${I.fam}`,main:`${I.m} ${34*is}px ${I.fam}`,sub:`${I.r} ${28*is}px ${I.fam}`};
+  // Diseño parejo (2.19): una sola letra y un solo color; texto 12 pt, obra 13 pt, PK 14 pt
+  const P=STAMP_FONTS[st.pkFont]||STAMP_FONTS.barlowc,base=32*s*P.k,f=(w,px)=>`${w} ${px}px ${P.fam}`;
+  return{pk:f(P.b,base*14/12*(st.pkScale||1)),pkex:f(P.m,base),title:f(P.m,base*13/12),main:f(P.m,base),sub:f(P.m,base)};
 }
 const TEXT_COLORS={blanco:'#ffffff',negro:'#0a0a0a',amarillo:'#facc15',verde:'#4ade80'};
 
@@ -1893,21 +1899,21 @@ function drawStampOnCanvas(ctx,W,H,m){
   const darkText=st.textColor==='negro'||(st.textColor==='auto'&&th.light);
   const F=stampFonts(st,s);
   const mg=26*s*(st.margin??1);
-  const pkLine=()=>({t:fmtPkStyle(m,st),sz:F.pk,c:th.main,gap:6*s,ex:fmtSideStyle(m,st),exf:F.pkex,exc:th.side});
+  const pkLine=()=>({t:fmtPkStyle(m,st),sz:F.pk,c:th.main,gap:6*s,ex:fmtSideStyle(m,st),exf:F.pkex,exc:th.main});
   const L=[];
   st.fields.forEach(f=>{
     if(!f.on)return;
-    if(f.k==='obra'&&m.obra)L.push({t:m.obra.toUpperCase(),sz:F.title,c:th.title,gap:4*s});
+    if(f.k==='obra'&&m.obra)L.push({t:m.obra,sz:F.title,c:th.main,gap:5*s});
     else if(f.k==='pk'&&!st.pkSep)L.push(pkLine());
-    else if(f.k==='act'&&m.act)L.push({t:m.act,sz:F.main,c:th.main,gap:8*s});
-    else if(f.k==='datetime')L.push({t:fmtDateStyle(m.ts,st),sz:F.sub,c:th.sub,gap:4*s});
-    else if(f.k==='coords')L.push({t:fmtCoordStyle(m,st),sz:F.sub,c:th.sub,gap:4*s});
-    else if(f.k==='note1'&&st[f.k])L.push({t:st[f.k],sz:F.main,c:th.main,gap:6*s});
-    else if(f.k==='heading'&&m.heading!=null)L.push({t:headingText(m),sz:F.sub,c:th.sub,gap:4*s});
-    else if(f.k==='ref'&&m.ref)L.push({t:m.ref,sz:F.sub,c:th.sub,gap:4*s});
+    else if(f.k==='act'&&m.act)L.push({t:m.act,sz:F.main,c:th.main,gap:5*s});
+    else if(f.k==='datetime')L.push({t:fmtDateStyle(m.ts,st),sz:F.sub,c:th.main,gap:5*s});
+    else if(f.k==='coords')L.push({t:fmtCoordStyle(m,st),sz:F.sub,c:th.main,gap:5*s});
+    else if(f.k==='note1'&&st[f.k])L.push({t:st[f.k],sz:F.main,c:th.main,gap:5*s});
+    else if(f.k==='heading'&&m.heading!=null)L.push({t:headingText(m),sz:F.sub,c:th.main,gap:5*s});
+    else if(f.k==='ref'&&m.ref)L.push({t:m.ref,sz:F.sub,c:th.main,gap:5*s});
   });
-  if(m.note)L.push({t:'Nota: '+m.note,sz:F.main,c:th.title,gap:4*s});
-  if(m.imported)L.push({t:'Foto importada · fecha'+(m.lat!=null?' y GPS':'')+' del archivo original',sz:F.sub,c:th.sub,gap:0});
+  if(m.note)L.push({t:'Nota: '+m.note,sz:F.main,c:th.main,gap:5*s});
+  if(m.imported)L.push({t:'Foto importada · fecha'+(m.lat!=null?' y GPS':'')+' del archivo original',sz:F.sub,c:th.main,gap:0});
   drawMiniMap(ctx,W,H,s,mg,st,m,th);
   ctx.save();
   if(L.length)drawBlock(ctx,W,H,L,st.pos,s,mg,th,st,darkText);
@@ -1924,12 +1930,12 @@ function drawBlock(ctx,W,H,L,pos,s,mg,th,st,darkText){
   L.forEach((l,i)=>{
     l.px=fontPx(l.sz);
     ctx.font=l.sz;l.t=fitText(ctx,l.t,maxText);l.w=ctx.measureText(l.t).width;
-    if(l.ex){ctx.font=l.exf;const room=maxText-l.w-16*s;l.ex=room>40*s?fitText(ctx,l.ex,room):'';if(l.ex){l.exw=ctx.measureText(l.ex).width;l.w+=16*s+l.exw;}}
+    if(l.ex){ctx.font=l.exf;const room=maxText-l.w-16*s;l.ex=room>40*s?fitText(ctx,l.ex,room):'';if(l.ex){l.exw=ctx.measureText(l.ex).width;l.w+=10*s+l.exw;}}
     wMax=Math.max(wMax,l.w);hSum+=l.px*1.12+(i<L.length-1?l.gap:0);
   });
   const pw=wMax+2*pad+bar,ph=hSum+2*pad;
   const {x:x0,y:y0}=placeBox(pos,W,H,pw,ph,mg);
-  const align=st.align==='auto'?({l:'left',c:'center',r:'right'}[pos[1]]):st.align;
+  const align={l:'left',c:'center',r:'right'}[pos[1]]; // siempre según la esquina
   const barRight=align==='right';
   ctx.save();
   if(th.bg){
@@ -1945,7 +1951,7 @@ function drawBlock(ctx,W,H,L,pos,s,mg,th,st,darkText){
   L.forEach(l=>{
     const x=align==='right'?inR-l.w:align==='center'?(inL+inR-l.w)/2:inL;
     ctx.font=l.sz;ctx.fillStyle=l.c;txt(l.t,x,y,l.px);
-    if(l.ex){const w=ctx.measureText(l.t).width;ctx.font=l.exf;ctx.fillStyle=l.exc;txt(l.ex,x+w+16*s,y+l.px*0.42,fontPx(l.exf));}
+    if(l.ex){const w=ctx.measureText(l.t).width;ctx.font=l.exf;ctx.fillStyle=l.exc;{const ep=fontPx(l.exf);txt(l.ex,x+w+10*s,y+(l.px-ep)*0.8,ep);}}
     y+=l.px*1.12+l.gap;
   });
   ctx.restore();
@@ -2223,28 +2229,26 @@ const SETTINGS_SCHEMA=[
     {type:'seg',k:'timeFmt',label:'Hora',opts:[['24s','19:08:14'],['24','19:08'],['12s','7:08:14 p.m.'],['12','7:08 p.m.']]},
     {type:'seg',k:'coordFmt',label:'Coordenadas',opts:[['dec','Decimal'],['gms','G° M\' S"'],['utm','UTM']]},
   ]},
-  {group:'stamp',title:'Letras',icon:'Aa',sum:st=>`PK: ${STAMP_FONTS[st.pkFont]?.name||'Técnica'} · Información: ${STAMP_FONTS[st.infoFont]?.name||'Técnica mixta'}`,rows:[
-    {type:'font',k:'pkFont',label:'Letra del PK',sample:'PK 7+400'},
-    {type:'range',k:'pkScale',label:'Tamaño del PK',min:0.6,max:1.6,step:0.05,fmt:v=>Math.round(v*100)+'%'},
-    {type:'font',k:'infoFont',label:'Letra de la información',sample:'Excavación 09:15',mix:true},
+  {group:'stamp',title:'Letra',icon:'Aa',sum:st=>`${STAMP_FONTS[st.pkFont]?.name||'Condensada'} · PK ${Math.round((st.pkScale||1)*100)}%`,rows:[
+    {type:'font',k:'pkFont',label:'Letra de los datos',sample:'PK 7+400 · Terracerías'},
+    {type:'range',k:'pkScale',label:'Tamaño del PK',min:0.8,max:1.6,step:0.05,fmt:v=>Math.round(v*100)+'%'},
   ]},
   {group:'stamp',title:'Estilo',icon:'◐',sum:st=>`${STAMP_THEMES[st.bg].name}${STAMP_THEMES[st.bg].bg?' '+Math.round((st.op??STAMP_THEMES[st.bg].op)*100)+'%':''} · ${Math.round(st.scale*100)}%`,rows:[
     {type:'swatch',k:'bg',label:'Fondo'},
     {type:'range',k:'op',label:'Opacidad del fondo',min:0.2,max:1,step:0.05,fmt:v=>Math.round(v*100)+'%',show:st=>!!STAMP_THEMES[st.bg].bg},
     {type:'seg',k:'textColor',label:'Color del texto',opts:[['auto','Auto'],['blanco','Blanco'],['negro','Negro'],['amarillo','Amarillo'],['verde','Verde']]},
     {type:'range',k:'scale',label:'Tamaño general',min:0.6,max:1.8,step:0.05,fmt:v=>Math.round(v*100)+'%'},
-    {type:'seg',k:'align',label:'Alineación del texto',opts:[['auto','Auto'],['left','Izquierda'],['center','Centro'],['right','Derecha']]},
     {type:'range',k:'margin',label:'Separación del borde',min:0,max:3,step:0.25,fmt:v=>Math.round(v*100)+'%'},
   ]},
-  {group:'stamp',title:'Posición de los elementos',icon:'⊞',sum:st=>`Datos ${POS_NAMES[st.pos]}${st.pkSep?' · PK '+POS_NAMES[st.pkPos]:''}`,rows:[
+  {group:'stamp',title:'Posición de los elementos',icon:'⊞',sum:st=>`Datos ${POS_NAMES[st.pos]}${st.pkSep?' · PK '+POS_NAMES[st.pkPos]:''}${st.mapOn?' · mapa '+POS_NAMES[st.mapPos]:''}`,rows:[
     {type:'pos9',k:'pos',label:'Bloque de datos'},
     {type:'toggle',k:'pkSep',label:'PK en un recuadro aparte'},
     {type:'pos9',k:'pkPos',label:'Recuadro del PK',show:st=>st.pkSep},
+    {type:'pos9',k:'mapPos',label:'Mini mapa',show:st=>st.mapOn},
     {type:'pos9',k:'brandPos',label:'Marca / logo',show:st=>st.brand!=='ninguna'},
   ]},
-  {group:'stamp',title:'Mini mapa del eje',icon:'⌖',sum:st=>st.mapOn?`Activo · ${st.mapRange} m · ${POS_NAMES[st.mapPos]}`:'Apagado',rows:[
+  {group:'stamp',title:'Mini mapa del eje',icon:'⌖',sum:st=>st.mapOn?`Activo · ${st.mapRange} m`:'Apagado',rows:[
     {type:'toggle',k:'mapOn',label:'Mostrar mini mapa',sub:'Tramo del eje alrededor de la foto, marcas de PK, norte y hacia dónde apunta la cámara. Si estás lejos del eje, indica la distancia y hacia dónde queda.'},
-    {type:'pos9',k:'mapPos',label:'Posición del mini mapa',show:st=>st.mapOn},
     {type:'seg',k:'mapRange',label:'Alcance',opts:[[150,'150 m'],[300,'300 m'],[600,'600 m'],[1000,'1 km']],show:st=>st.mapOn},
     {type:'range',k:'mapScale',label:'Tamaño del mini mapa',min:0.6,max:2,step:0.1,fmt:v=>Math.round(v*100)+'%',show:st=>st.mapOn},
   ]},
@@ -2420,7 +2424,7 @@ function buildSettings(){
         const sw=el('div','set-sw');
         Object.entries(STAMP_THEMES).forEach(([k,t])=>{
           const b=el('button','swatch'+(t.sw?'':' transp')+(st.bg===k?' on':''));b.title=t.name;
-          if(t.sw)b.style.background=t.sw;
+          const chip=el('i');if(t.sw)chip.style.background=t.sw;b.append(chip,el('span','',t.name));
           b.onclick=()=>{st.bg=k;st.op=t.op??null;settingChanged(row);};
           sw.appendChild(b);
         });

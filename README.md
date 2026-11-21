@@ -72,6 +72,12 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.19
+
+- Texto de la foto parejo: una sola letra y un solo color; texto 12 pt, obra 13 pt y PK 14 pt (negritas, arriba). Config › Letra.
+- Posición de los elementos incluye el mini mapa.
+- Estilo: sin alineación (automática según la esquina) y separación del borde 50 % por omisión; muestras de fondo con nombre.
+
 ## Versión 2.18
 
 - Zoom (1× · 2 · 3) en una columna sobre la foto, a la derecha (a la izquierda si los datos o el mini mapa van a media altura a la derecha).

@@ -1,6 +1,6 @@
 {
-  "versionCode": 20,
-  "versionName": "2.18",
+  "versionCode": 21,
+  "versionName": "2.19",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Zoom al lado sobre la foto, 16:9 a pantalla completa, nivel para tomar fotos derechas y miniatura con borde."
+  "notas": "Texto de la foto parejo (una letra, un color; PK y obra apenas más grandes), mini mapa en Posición de los elementos, alineación automática y fondos visibles en Estilo."
 }
