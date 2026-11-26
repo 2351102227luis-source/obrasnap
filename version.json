@@ -1,6 +1,6 @@
 {
-  "versionCode": 27,
-  "versionName": "2.25",
+  "versionCode": 28,
+  "versionName": "2.26",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Corrige fotos horizontales que salían de cabeza en teléfonos con el sensor de giro invertido."
+  "notas": "PK en la barra de notificaciones, también con la app cerrada (Config › App)."
 }

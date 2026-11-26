@@ -465,6 +465,42 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setVolumeShutter(boolean on) { volumeShutter = on; }
 
+        /** PK en la barra de notificaciones: prende/apaga el servicio. json = eje y ajustes de la obra. */
+        @JavascriptInterface
+        public String setPkNotify(boolean on, String json) {
+            android.content.SharedPreferences p = getSharedPreferences(PkService.PREFS, MODE_PRIVATE);
+            if (!on) {
+                p.edit().putBoolean("on", false).apply();
+                if (PkService.running) startService(new Intent(MainActivity.this, PkService.class).setAction(PkService.ACTION_STOP));
+                return "ok";
+            }
+            if (!has(Manifest.permission.ACCESS_FINE_LOCATION) && !has(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                runOnUiThread(() -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_PERMS));
+                return "err:falta el permiso de ubicación; vuelve a intentarlo después de aceptarlo";
+            }
+            if (Build.VERSION.SDK_INT >= 33 && !has(Manifest.permission.POST_NOTIFICATIONS)) {
+                runOnUiThread(() -> requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_PERMS));
+                return "err:falta el permiso de notificaciones; vuelve a intentarlo después de aceptarlo";
+            }
+            p.edit().putBoolean("on", true).putString("axis", json == null ? "{}" : json).apply();
+            try {
+                Intent i = new Intent(MainActivity.this, PkService.class).setAction(PkService.ACTION_UPDATE);
+                if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
+                return "ok";
+            } catch (Exception e) { return "err:" + e.getMessage(); }
+        }
+
+        /** La obra, el eje o el redondeo cambiaron: actualizar el servicio si está prendido. */
+        @JavascriptInterface
+        public void updatePkAxis(String json) {
+            android.content.SharedPreferences p = getSharedPreferences(PkService.PREFS, MODE_PRIVATE);
+            p.edit().putString("axis", json == null ? "{}" : json).apply();
+            if (PkService.running) startService(new Intent(MainActivity.this, PkService.class).setAction(PkService.ACTION_UPDATE));
+        }
+
+        @JavascriptInterface
+        public boolean pkNotifyOn() { return PkService.running; }
+
         /** Color de la barra de arriba (hora, batería) y de la de abajo según la pantalla; íconos oscuros si el fondo es claro. */
         @JavascriptInterface
         public void setBars(String top, String bottom, boolean lightBg) {

@@ -933,7 +933,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.21-2.25';
+const APP_VERSION='2026.11.26-2.26';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -1039,6 +1039,33 @@ function parsePK(s){
   const n=parseFloat(s);return isNaN(n)?0:n;
 }
 
+// ── PK en la barra de notificaciones (app Android): el servicio calcula el PK con este mismo eje ──
+function pkNotifyOn(){try{return !!(NATIVE&&NATIVE.pkNotifyOn&&NATIVE.pkNotifyOn());}catch(e){return false;}}
+function pkAxisJson(){
+  const st=state.stampStyle,R=state.routeCoords;
+  return JSON.stringify({obra:state.obra||'',sideFmt:st.sideFmt||'izqder',round:st.pkRound||1,pk0:state.pk0||0,rev:!!state.reverse,lat0:projLat0,
+    pts:R.map(c=>[+c.x.toFixed(3),+c.y.toFixed(3),+c.dist.toFixed(3)]),tbl:state.pkTable||null});
+}
+let pkAxisKey='';
+function syncPkNotify(){
+  if(!pkNotifyOn())return;
+  const st=state.stampStyle,R=state.routeCoords;
+  const key=[state.routeName,R.length,R.length?R[R.length-1].dist.toFixed(2):0,state.pk0,state.reverse,st.pkRound,st.sideFmt,state.obra,state.pkTable?state.pkTable.length:0].join('|');
+  if(key===pkAxisKey)return;pkAxisKey=key;
+  try{NATIVE.updatePkAxis(pkAxisJson());}catch(e){}
+}
+function togglePkNotify(){
+  if(pkNotifyOn()){NATIVE.setPkNotify(false,'');showToast('PK en la barra: apagado');setTimeout(renderCfgMenu,300);return;}
+  if(state.routeCoords.length<2){showToast('Carga primero el eje de la obra');return;}
+  const r=String(NATIVE.setPkNotify(true,pkAxisJson()));
+  if(!r.startsWith('ok')){showToast(r.replace(/^err:/,''));return;}
+  pkAxisKey='';syncPkNotify();
+  logEv('INFO','PK en la barra de notificaciones: encendido');
+  let seen=false;try{seen=localStorage.getItem('obrasnap.pkNotifTip')==='1';localStorage.setItem('obrasnap.pkNotifTip','1');}catch(e){}
+  if(!seen)alert('Listo: el PK aparece en la barra de notificaciones y sigue aunque cierres la app.\n\nPara quitarlo: toca "Detener" en la notificación o apágalo aquí.\n\nSi en tu Samsung se apaga solo: Ajustes › Aplicaciones › ObraSnap › Batería › Sin restricciones.');
+  else showToast('PK en la barra: encendido');
+  setTimeout(renderCfgMenu,300);
+}
 function computePK(){
   if(state.lat==null||state.routeCoords.length<2)return;
   const coords=state.routeCoords;
@@ -1052,6 +1079,7 @@ function computePK(){
   state.pkLabel=fmtPK(state.pk);
   scheduleStamp();
   document.getElementById('map-pk-chip').textContent=`PK ${state.pkLabel}`;
+  syncPkNotify();
   document.getElementById('map-dist-chip').textContent=`Dist. al eje: ${Math.round(best)} m`+(best>500?' ⚠ fuera de ruta':'');
 }
 
@@ -4804,6 +4832,7 @@ const CFG_MENU=[
   {group:'App',items:[
     {action:()=>openSettings('stamp'),icon:'≡',title:'Datos en la foto',sum:()=>`${SETTINGS_SCHEMA.find(x=>x.title==='Estilo').sum(state.stampStyle)} · ${optLabel('pkFmt',state.stampStyle.pkFmt)}`},
     {action:()=>openSettings('camara'),icon:'◉',title:'Cámara',sum:()=>SETTINGS_SCHEMA.find(x=>x.title==='Cámara').sum(state.stampStyle)},
+    {action:()=>togglePkNotify(),icon:'⌖',title:'PK en la barra de notificaciones',show:()=>!!(NATIVE&&NATIVE.setPkNotify),sum:()=>pkNotifyOn()?'Encendido · también con la app cerrada · toca para apagar':'Apagado · toca para encender'},
   ]},
   {group:'Obra',items:[
     {page:'actividades',icon:'✎',title:'Actividades',sum:()=>state.activity?'Actual: '+state.activity:`${(state.activities||[]).length} actividades frecuentes`},

@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.26
+
+- **PK en la barra de notificaciones** (solo APK; Config › App): servicio de Android en primer plano (`PkService`, tipo location) que lee el GPS cada ~5 s o 3 m y calcula el PK con el mismo método de la app (`PkMath`: proyección en el plano local WGS84 y tabla de marcas del KML o PK inicial + sentido, con el redondeo de la obra). Muestra "PK 3+189 · 31 m Der." y la obra; botón Detener. Sigue con la app cerrada. La página le manda el eje (`setPkNotify` / `updatePkAxis`) cuando cambia la obra, el eje o el redondeo. Permisos: notificaciones y servicio de ubicación en primer plano.
+
 ## Versión 2.25
 
 - Fotos horizontales de cabeza: la app detecta si el acelerómetro del teléfono reporta el signo invertido (con el teléfono vertical y derecho la gravedad debe dar y≈+9.8) y lo corrige. Respaldo manual en Cámara: "La foto horizontal sale de cabeza" (solo en ese teléfono). Diagnóstico muestra el sensor de giro.
