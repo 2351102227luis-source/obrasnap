@@ -1,6 +1,6 @@
 {
-  "versionCode": 28,
-  "versionName": "2.26",
+  "versionCode": 29,
+  "versionName": "2.27",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "PK en la barra de notificaciones, también con la app cerrada (Config › App)."
+  "notas": "Secciones desde LandXML (corte/terraplén, rasante, subrasante, terreno, anchos, ceros y capas como la cota de piedra) y widget de la obra para la pantalla de inicio."
 }

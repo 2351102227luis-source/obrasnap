@@ -72,6 +72,12 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.27
+
+- **LandXML** (Istram / Civil 3D) en Config › Capas y planos (o "Cargar capa" en el Mapa): eje en planta (rectas, curvas y clotoides; muestreado cada 2 m), rasante (PVI y curvas verticales) y secciones transversales. Reconoce rasante, subrasante y terreno natural; las demás capas se pueden nombrar (ej. "Cota de piedra"). Se puede usar solo para secciones o también como eje principal (PK exacto del diseño). Viaja en el archivo `.obrasnap` (`secc`).
+- **Tarjeta de sección** en el Mapa (botón de sección, o "Sección" al tocar el eje): corte o terraplén en el eje (rasante − TN), rasante, subrasante, terreno, calzada, corona, ceros, capas extra y el dibujo de la sección con tu posición; sigue tu PK o recorre con ‹ › y buscando un PK; estructuras sin terreno.
+- **Widget** de Android (4×2, al agrandarlo muestra el resumen por actividad): obra, PK y lado, corte/terraplén, actividad, fotos de hoy con lo que falta por enviar y la última foto; botones Foto, Sección y Enviar. Lo actualiza la app y, con el PK en la barra encendido, el servicio en vivo (que ahora también muestra corte/terraplén en la notificación).
+
 ## Versión 2.26
 
 - **PK en la barra de notificaciones** (solo APK; Config › App): servicio de Android en primer plano (`PkService`, tipo location) que lee el GPS cada ~5 s o 3 m y calcula el PK con el mismo método de la app (`PkMath`: proyección en el plano local WGS84 y tabla de marcas del KML o PK inicial + sentido, con el redondeo de la obra). Muestra "PK 3+189 · 31 m Der." y la obra; botón Detener. Sigue con la app cerrada. La página le manda el eje (`setPkNotify` / `updatePkAxis`) cuando cambia la obra, el eje o el redondeo. Permisos: notificaciones y servicio de ubicación en primer plano.

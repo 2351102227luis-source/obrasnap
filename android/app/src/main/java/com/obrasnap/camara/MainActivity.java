@@ -69,6 +69,7 @@ public class MainActivity extends Activity {
     private boolean jsReady = false;
     private volatile boolean volumeShutter = false; // la página lo activa solo en la pestaña Cámara
     private String pendingImport;   // llamada JS lista para entregar cuando la página esté cargada
+    private String pendingGo;       // botón del widget (foto, seccion, enviar) para cuando la página esté lista
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -133,6 +134,12 @@ public class MainActivity extends Activity {
     @SuppressWarnings("deprecation")
     private void handleIntent(Intent intent) {
         if (intent == null) return;
+        String g = intent.getStringExtra("go");
+        if (g != null && g.matches("[a-z]{1,12}")) {
+            if (!"abrir".equals(g)) { pendingGo = g; deliverImport(); }
+            setIntent(new Intent());
+            return;
+        }
         Uri uri = null;
         if (Intent.ACTION_VIEW.equals(intent.getAction())) uri = intent.getData();
         else if (Intent.ACTION_SEND.equals(intent.getAction())) uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
@@ -163,6 +170,10 @@ public class MainActivity extends Activity {
     }
 
     private void deliverImport() {
+        if (jsReady && pendingGo != null) {
+            final String g = pendingGo; pendingGo = null;
+            runOnUiThread(() -> web.evaluateJavascript("window.obrasnapGo&&obrasnapGo('" + g + "')", null));
+        }
         if (!jsReady || pendingImport == null) return;
         final String js = pendingImport;
         pendingImport = null;
@@ -500,6 +511,14 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public boolean pkNotifyOn() { return PkService.running; }
+
+        /** Datos para el widget de la pantalla de inicio (obra, PK, sección, actividad, fotos de hoy, miniatura). */
+        @JavascriptInterface
+        public void updateWidget(String json) {
+            if (json == null || json.length() > 400000) return;
+            getSharedPreferences(ObraWidget.PREFS, MODE_PRIVATE).edit().putString("data", json).apply();
+            ObraWidget.refresh(MainActivity.this);
+        }
 
         /** Color de la barra de arriba (hora, batería) y de la de abajo según la pantalla; íconos oscuros si el fondo es claro. */
         @JavascriptInterface

@@ -8,7 +8,7 @@ final class PkMath {
         double a = 6378137, e2 = 0.00669437999014, sn = Math.sin(Math.toRadians(lat0)), w = 1 - e2 * sn * sn;
         M = a * (1 - e2) / Math.pow(w, 1.5); N = a / Math.sqrt(w); total = ds[ds.length - 1];
     }
-    /** {pk (ya redondeado), distancia al eje, 1 si va a la izquierda / 0 a la derecha} */
+    /** {pk (ya redondeado), distancia al eje, 1 si va a la izquierda / 0 a la derecha, pk sin redondear} */
     double[] at(double lat, double lon) {
         double r = Math.PI / 180, px = lon * r * N * Math.cos(lat0 * r), py = lat * r * M;
         double best = Double.MAX_VALUE, along = 0, cross = 0;
@@ -19,9 +19,9 @@ final class PkMath {
             double d = Math.hypot(px - (xs[i] + t * dx), py - (ys[i] + t * dy));
             if (d < best) { best = d; along = ds[i] + t * (ds[i + 1] - ds[i]); cross = dx * (py - ys[i]) - dy * (px - xs[i]); }
         }
-        double pk = pkFromAlong(along);
+        double raw = pkFromAlong(along), pk = raw;
         if (round > 1) pk = Math.round(pk / round) * (double) round;
-        return new double[]{pk, best, ((cross > 0) != rev) ? 1 : 0};
+        return new double[]{pk, best, ((cross > 0) != rev) ? 1 : 0, raw};
     }
     double pkFromAlong(double along) {
         if (tbl != null && tbl.length >= 2) {

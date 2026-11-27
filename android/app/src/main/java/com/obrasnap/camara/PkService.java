@@ -42,6 +42,8 @@ public class PkService extends Service {
     private Location last;
     // eje
     private PkMath pm;
+    private double[][] secs; // resumen de secciones del LandXML: {estación, rasante, terreno}
+    private long lastWidget = 0;
     private String obra = "", sideFmt = "izqder";
 
     private final LocationListener listener = new LocationListener() {
@@ -114,6 +116,12 @@ public class PkService extends Service {
                 tbl = new double[t.length()][2];
                 for (int i = 0; i < t.length(); i++) { tbl[i][0] = t.getJSONArray(i).getDouble(0); tbl[i][1] = t.getJSONArray(i).getDouble(1); }
             }
+            JSONArray sc = o.optJSONArray("sec");
+            secs = null;
+            if (sc != null && sc.length() > 0) {
+                secs = new double[sc.length()][3];
+                for (int i = 0; i < sc.length(); i++) { JSONArray q = sc.getJSONArray(i); secs[i][0] = q.getDouble(0); secs[i][1] = q.isNull(1) ? Double.NaN : q.getDouble(1); secs[i][2] = q.isNull(2) ? Double.NaN : q.getDouble(2); }
+            }
             pm = new PkMath(xs, ys, ds, tbl, o.getDouble("lat0"), o.optDouble("pk0", 0), o.optBoolean("rev", false), o.optInt("round", 1));
         } catch (Exception e) { Log.e(TAG, "eje", e); pm = null; }
     }
@@ -132,11 +140,46 @@ public class PkService extends Service {
             if (best > 500) s = (best >= 1000 ? String.format(java.util.Locale.US, "%.1f km", best / 1000) : d + " m") + " del eje · fuera de ruta";
             else if (d < 1) s = "sobre el eje";
             else s = "lild".equals(sideFmt) ? (side.startsWith("I") ? "LI " : "LD ") + d + " m" : d + " m " + side;
-            if (best <= 500) { title += " · " + s; text = obra.isEmpty() ? "ObraSnap" : obra; }
+            String sec = secText(q[3]);
+            if (best <= 500) { title += " · " + s; text = (sec.isEmpty() ? "" : sec + " · ") + (obra.isEmpty() ? "ObraSnap" : obra); }
             else text = s + (obra.isEmpty() ? "" : " · " + obra);
+            // también al widget (cada 10 s como máximo)
+            long now = System.currentTimeMillis();
+            if (now - lastWidget > 10000) {
+                lastWidget = now;
+                try {
+                    JSONObject lv = new JSONObject();
+                    lv.put("pk", PkMath.fmtPK(q[0])); lv.put("side", best > 500 ? "fuera de ruta" : s); lv.put("sec", best <= 500 ? secFull(q[3]) : ""); lv.put("t", now);
+                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString("live", lv.toString()).apply();
+                    ObraWidget.refresh(this);
+                } catch (Exception ignored) { }
+            }
         }
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         try { nm.notify(NOTIF_ID, build(title, text)); } catch (SecurityException ignored) { }
+    }
+
+    /** Sección más cercana al PK: "Terraplén 5.58 m" / "Corte 2.10 m" / "Estructura" */
+    private double[] nearSec(double pk) {
+        if (secs == null || secs.length == 0) return null;
+        int lo = 0, hi = secs.length - 1;
+        if (pk <= secs[0][0]) return secs[0];
+        if (pk >= secs[hi][0]) return secs[hi];
+        while (hi - lo > 1) { int m = (lo + hi) >> 1; if (secs[m][0] <= pk) lo = m; else hi = m; }
+        return pk - secs[lo][0] <= secs[hi][0] - pk ? secs[lo] : secs[hi];
+    }
+    private String secText(double pk) {
+        double[] x = nearSec(pk); if (x == null) return "";
+        if (Double.isNaN(x[1]) || Double.isNaN(x[2])) return "Estructura";
+        double h = x[1] - x[2];
+        return (h > 0 ? "Terraplén " : "Corte ") + String.format(java.util.Locale.US, "%.2f m", Math.abs(h));
+    }
+    private String secFull(double pk) {
+        double[] x = nearSec(pk); if (x == null) return "";
+        String t = secText(pk);
+        if (!Double.isNaN(x[1])) t += String.format(java.util.Locale.US, " · Rasante %.2f", x[1]);
+        if (!Double.isNaN(x[2])) t += String.format(java.util.Locale.US, " · TN %.2f", x[2]);
+        return t;
     }
 
     private Notification build(String title, String text) {

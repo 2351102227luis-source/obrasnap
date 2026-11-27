@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="14dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/w_thumb"
+            android:layout_width="78dp"
+            android:layout_height="78dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/widget_thumb"
+            android:clipToOutline="true"
+            android:scaleType="centerCrop"
+            android:contentDescription="Última foto" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/w_thumb"
+            android:orientation="vertical">
+
+            <TextView android:id="@+id/w_obra" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="#FFE8DCC4" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" android:text="ObraSnap" />
+            <TextView android:id="@+id/w_pk" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed" android:textStyle="bold" android:textColor="#FFFFFFFF" android:textSize="28sp"
+                android:maxLines="1" android:text="PK --+---" />
+            <TextView android:id="@+id/w_side" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="#FFFFC53D" android:textStyle="bold" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/w_sec" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="#FFFFFFFF" android:textSize="12.5sp" android:maxLines="2" android:ellipsize="end" android:layout_marginTop="2dp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <TextView android:id="@+id/w_info" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#FFB9C3D2" android:textSize="11.5sp" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="4dp" />
+
+    <TextView android:id="@+id/w_resumen" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textColor="#FFF3EAD8" android:textSize="13sp" android:lineSpacingExtra="3dp" android:layout_marginTop="6dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <TextView android:id="@+id/w_btn_foto" android:layout_width="0dp" android:layout_height="38dp" android:layout_weight="1"
+            android:background="@drawable/widget_btn_go" android:gravity="center" android:text="Foto"
+            android:textColor="#FF1F2A3A" android:textStyle="bold" android:textSize="13sp" />
+        <TextView android:id="@+id/w_btn_sec" android:layout_width="0dp" android:layout_height="38dp" android:layout_weight="1"
+            android:layout_marginStart="8dp" android:background="@drawable/widget_btn" android:gravity="center" android:text="Sección"
+            android:textColor="#FFF3EAD8" android:textStyle="bold" android:textSize="13sp" />
+        <TextView android:id="@+id/w_btn_env" android:layout_width="0dp" android:layout_height="38dp" android:layout_weight="1"
+            android:layout_marginStart="8dp" android:background="@drawable/widget_btn" android:gravity="center" android:text="Enviar"
+            android:textColor="#FFF3EAD8" android:textStyle="bold" android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>
