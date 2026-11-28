@@ -181,7 +181,9 @@ body.cam-tall #cam-top{position:absolute;left:0;right:0;top:0;z-index:6;backgrou
 .secm-hd .head-back{background:none;border:none;color:var(--accent);font:600 15px var(--sans);padding:6px 2px;cursor:pointer;white-space:nowrap;}
 .secm-hd b{flex:1;text-align:center;font:700 21px var(--cond);color:var(--text);}
 .secm-ar{width:36px;height:34px;border-radius:9px;border:1px solid var(--surface2);background:var(--bg);color:var(--accent);font-size:20px;font-weight:700;cursor:pointer;}
-#secm-draw{height:44vh;background:#fff;touch-action:none;overflow:hidden;}
+#secm-draw{height:44vh;background:#fff;touch-action:none;overflow:hidden;position:relative;}
+#secm-loupe{display:none;position:absolute;width:124px;height:124px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.35);pointer-events:none;z-index:2;}
+#secm-loupe-lbl{display:none;position:absolute;transform:translateX(-50%);max-width:calc(100% - 8px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 8px;border-radius:10px;background:#e11d48;color:#fff;font:600 12px var(--sans);pointer-events:none;z-index:2;}
 #secm-alt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 12px 0;font:600 12px var(--sans);color:#e11d48;}
 #secm-alt:empty{display:none;}
 #secm-alt button{padding:6px 10px;border-radius:14px;border:1px solid #e11d48;background:var(--bg2);color:#e11d48;font:600 12px var(--sans);cursor:pointer;}
@@ -977,7 +979,7 @@ input[type=file]{display:none;}
 </div>
 <div id="secm">
   <div class="secm-hd"><button class="head-back" onclick="secmClose()">‹ Mapa</button><button class="secm-ar" onclick="secmStep(-1)" aria-label="Sección anterior">‹</button><b id="secm-pk"></b><button class="secm-ar" onclick="secmStep(1)" aria-label="Sección siguiente">›</button></div>
-  <div id="secm-draw"></div>
+  <div id="secm-draw"><div id="secm-svgbox"></div><div id="secm-loupe"></div><div id="secm-loupe-lbl"></div></div>
   <div id="secm-alt"></div>
   <div id="secm-chips"></div>
   <div id="secm-res"></div>
@@ -1007,7 +1009,7 @@ function logEv(level,msg){LOG.push(`${new Date().toTimeString().slice(0,8)} ${le
 ['error','warn'].forEach(l=>{const o=console[l].bind(console);console[l]=(...a)=>{try{logEv(l.toUpperCase(),a.map(x=>x&&x.stack?x.stack.split('\n').slice(0,3).join(' | '):typeof x==='object'?JSON.stringify(x):String(x)).join(' '));}catch(e){}o(...a);};});
 window.addEventListener('error',e=>logEv('ERROR',`${e.message} @${(e.filename||'').split('/').pop()}:${e.lineno}`));
 window.addEventListener('unhandledrejection',e=>logEv('ERROR','Promesa: '+((e.reason&&e.reason.message)||e.reason)));
-const APP_VERSION='2026.11.28-2.28';
+const APP_VERSION='2026.11.28-2.29';
 // ── STATE ──
 const state = {
   stampStyle:{bg:'negro',op:0.6,size:'M',pos:'bl'}, facing:'environment', flash:false, zoom:1,
@@ -4202,72 +4204,135 @@ function secmBaseView(sec){
   const zs=[];[sec.r,sec.b,sec.t,...Object.values(sec.x||{})].forEach(p=>{if(p)for(let i=0;i<p.length;i+=2)if(p[i]>=x0&&p[i]<=x1)zs.push(p[i+1]);});
   return{cx:(x0+x1)/2,cz:(Math.min(...zs)+Math.max(...zs))/2,w:x1-x0,zr:Math.max(...zs)-Math.min(...zs)+2,k:1};
 }
-function secmMap(){
-  const box=document.getElementById('secm-draw'),Wd=box.clientWidth||400,Hd=box.clientHeight||300,v=SECM.view;
+function secmMapV(v,Wd,Hd){
   const sx=Wd/(v.w/v.k),sz=Math.min(Hd/(v.zr/v.k),sx*2.5);
   return{Wd,Hd,X:o=>Wd/2+(o-v.cx)*sx,Y:z=>Hd/2-(z-v.cz)*sz,O:x=>v.cx+(x-Wd/2)/sx,Z:y=>v.cz-(y-Hd/2)/sz,sx,sz};
+}
+function secmMap(){const box=document.getElementById('secm-draw');return secmMapV(SECM.view,box.clientWidth||400,box.clientHeight||300);}
+// líneas de la sección con su nombre
+function secmLines(sec){
+  const X=state.secc;
+  return[[sec.r,'Rasante'],[sec.b,'Subrasante'],[sec.t,'Terreno'],...Object.entries(sec.x||{}).map(([id,p])=>[p,(X.names||{})[id]||id])].filter(l=>l[0]).map(([p,name])=>({p,name}));
+}
+// intersecciones entre todas las líneas (piedra × talud, terreno × subrasante, …); se calculan una vez por sección
+const secIxCache=new WeakMap();
+function secIntersections(sec){
+  const nk=JSON.stringify(state.secc.names||{}),c=secIxCache.get(sec);if(c&&c.nk===nk)return c.out;
+  const L=secmLines(sec),out=[];
+  for(let a=0;a<L.length;a++)for(let b=a+1;b<L.length;b++){
+    const P=L[a].p,Q=L[b].p;
+    for(let i=0;i<P.length-2;i+=2){const x1=P[i],y1=P[i+1],x2=P[i+2],y2=P[i+3];
+      for(let j=0;j<Q.length-2;j+=2){const x3=Q[j],y3=Q[j+1],x4=Q[j+2],y4=Q[j+3];
+        if(Math.max(x1,x2)<Math.min(x3,x4)||Math.max(x3,x4)<Math.min(x1,x2))continue;
+        const den=(x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);if(Math.abs(den)<1e-12)continue;
+        const t=((x1-x3)*(y3-y4)-(y1-y3)*(x3-x4))/den,u=-((x1-x2)*(y1-y3)-(y1-y2)*(x1-x3))/den;
+        if(t<-1e-9||t>1+1e-9||u<-1e-9||u>1+1e-9)continue;
+        const o=x1+t*(x2-x1),z=y1+t*(y2-y1);
+        if(!out.some(q=>Math.abs(q.o-o)<0.02&&Math.abs(q.z-z)<0.02))out.push({o,z,name:`${L[a].name} × ${L[b].name}`,ix:true});
+      }}
+  }
+  // si cae sobre un vértice con nombre (cero, hombro…) se queda el nombre del vértice
+  const vs=secVertices(sec).filter(v=>v.surf!=='t');
+  const res=out.filter(q=>!vs.some(v=>Math.abs(v.o-q.o)<0.05&&Math.abs(v.z-q.z)<0.05));
+  secIxCache.set(sec,{nk,out:res});return res;
+}
+// qué hay bajo el dedo: intersecciones primero, luego vértices con nombre, puntos del terreno y, al final, cualquier punto de una línea
+function secmSnap(sec,M,x,y){
+  const cand=[];
+  secIntersections(sec).forEach(v=>cand.push({...v,d:Math.hypot(M.X(v.o)-x,M.Y(v.z)-y)-3}));
+  secVertices(sec).forEach(v=>cand.push({o:v.o,z:v.z,name:v.name,d:Math.hypot(M.X(v.o)-x,M.Y(v.z)-y)+(v.surf==='t'?10:0)}));
+  const inR=cand.filter(c=>c.d<22).sort((a,b)=>a.d-b.d);
+  let best=inR[0]?{o:inR[0].o,z:inR[0].z,name:inR[0].name,ix:inR[0].ix}:null;
+  const alt=[],seen=new Set();inR.filter(c=>!/^Terreno$/.test(c.name)).forEach(c=>{if(!alt.some(q=>Math.abs(q.o-c.o)<0.05&&Math.abs(q.z-c.z)<0.05))alt.push({o:c.o,z:c.z,name:c.name});});
+  if(!best){let bl=16;secmLines(sec).forEach(({p,name})=>{for(let i=0;i<p.length-2;i+=2){const ax=M.X(p[i]),ay=M.Y(p[i+1]),bx=M.X(p[i+2]),by=M.Y(p[i+3]),vx=bx-ax,vy=by-ay,L2=vx*vx+vy*vy;if(!L2)continue;
+    const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/L2)),px=ax+t*vx,py=ay+t*vy,d=Math.hypot(px-x,py-y);
+    if(d<bl){bl=d;const o=p[i]+t*(p[i+2]-p[i]);best={o,z:p[i+1]+t*(p[i+3]-p[i+1]),name:`${name} (${Math.abs(o).toFixed(1)} m ${o<0?'izq.':'der.'})`};}}});}
+  return{best,alt:alt.length>=2?alt:[]};
+}
+// dibujo de la sección (lo usan la vista y la lupa)
+function secmSvgBody(sec,M,marks){
+  const{X,Y,Wd,Hd}=M;
+  const ps=p=>{const o=[];for(let i=0;i<p.length;i+=2)o.push(X(p[i]).toFixed(1)+','+Y(p[i+1]).toFixed(1));return o.join(' ');};
+  const pl=(p,c,w,d)=>p?`<polyline points="${ps(p)}" fill="none" stroke="${c}" stroke-width="${w}" ${d?'stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`:'';
+  let svg='';
+  if(sec.t)svg+=`<polygon points="${ps(sec.t)} ${X(sec.t[sec.t.length-2]).toFixed(1)},${Hd+5} ${X(sec.t[0]).toFixed(1)},${Hd+5}" fill="#e9dcc0"/>`+pl(sec.t,'#8c6f49',2);
+  Object.values(sec.x||{}).forEach((p,i)=>svg+=pl(p,['#7c3aed','#0f766e','#be123c'][i%3],2,1));
+  svg+=pl(sec.b,'#6b7280',2)+pl(sec.r,'#1f3a5f',3)+`<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="${Hd}" stroke="#1f3a5f" stroke-dasharray="3 4"/>`;
+  if(marks!==false){
+    secVertices(sec).filter(v=>v.surf!=='t').forEach(v=>svg+=`<circle cx="${X(v.o).toFixed(1)}" cy="${Y(v.z).toFixed(1)}" r="3.5" fill="#fff" stroke="#1f3a5f" stroke-width="1.5"/>`);
+    secIntersections(sec).forEach(v=>{const x=X(v.o),y=Y(v.z);svg+=`<path d="M${x-4.5} ${y}L${x} ${y-4.5}L${x+4.5} ${y}L${x} ${y+4.5}Z" fill="#fff" stroke="#e11d48" stroke-width="1.6"/>`;});
+  }
+  return svg;
 }
 function secmPaint(){
   if(!SECM.open)return;const X0=state.secc,sec=X0.S[SECM.idx];
   if(!SECM.view)SECM.view=secmBaseView(sec);
   document.getElementById('secm-pk').textContent='Sección '+fmtPK(sec.s);
   const M=secmMap(),{X,Y,Wd,Hd}=M;
-  const ps=p=>{const o=[];for(let i=0;i<p.length;i+=2)o.push(X(p[i]).toFixed(1)+','+Y(p[i+1]).toFixed(1));return o.join(' ');};
-  const pl=(p,c,w,d)=>p?`<polyline points="${ps(p)}" fill="none" stroke="${c}" stroke-width="${w}" ${d?'stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`:'';
-  let svg=`<svg width="${Wd}" height="${Hd}">`;
-  if(sec.t)svg+=`<polygon points="${ps(sec.t)} ${X(sec.t[sec.t.length-2]).toFixed(1)},${Hd} ${X(sec.t[0]).toFixed(1)},${Hd}" fill="#e9dcc0"/>`+pl(sec.t,'#8c6f49',2);
-  Object.values(sec.x||{}).forEach((p,i)=>svg+=pl(p,['#7c3aed','#0f766e','#be123c'][i%3],2,1));
-  svg+=pl(sec.b,'#6b7280',2)+pl(sec.r,'#1f3a5f',3)+`<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="${Hd}" stroke="#1f3a5f" stroke-dasharray="3 4"/>`;
-  secVertices(sec).filter(v=>v.surf!=='t').forEach(v=>svg+=`<circle cx="${X(v.o).toFixed(1)}" cy="${Y(v.z).toFixed(1)}" r="3.5" fill="#fff" stroke="#1f3a5f" stroke-width="1.5"/>`);
+  let svg=`<svg width="${Wd}" height="${Hd}">`+secmSvgBody(sec,M);
   const r=secmResult(),P=r?[r.A,r.B]:SECM.pts;
   if(r){const ax=X(r.A.o),ay=Y(r.A.z),bx=X(r.B.o),by=Y(r.B.z),dy=Math.max(14,Math.min(ay,by)-26);
     svg+=`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#e11d48" stroke-width="2.5"/><line x1="${ax}" y1="${dy}" x2="${bx}" y2="${dy}" stroke="#e11d48" stroke-width="1.5"/>`+
       `<line x1="${ax}" y1="${dy-6}" x2="${ax}" y2="${ay}" stroke="#e11d48" stroke-dasharray="3 3"/><line x1="${bx}" y1="${dy-6}" x2="${bx}" y2="${by}" stroke="#e11d48" stroke-dasharray="3 3"/>`+
       `<rect x="${(ax+bx)/2-34}" y="${dy-20}" width="68" height="18" rx="5" fill="#e11d48"/><text x="${(ax+bx)/2}" y="${dy-7}" text-anchor="middle" font-family="Barlow" font-weight="700" font-size="12" fill="#fff">${r.hz.toFixed(2)} m</text>`;}
   P.forEach((p,i)=>svg+=`<circle cx="${X(p.o)}" cy="${Y(p.z)}" r="7" fill="#fff" stroke="#e11d48" stroke-width="3"/><text x="${X(p.o)+9}" y="${Y(p.z)+18}" font-family="Barlow" font-weight="700" font-size="12" fill="#e11d48">${'AB'[i]}</text>`);
-  document.getElementById('secm-draw').innerHTML=svg+'</svg>';
+  document.getElementById('secm-svgbox').innerHTML=svg+'</svg>';
   const qs=secQuick(sec);
   const alt=document.getElementById('secm-alt');alt.innerHTML=SECM.alt&&SECM.alt.length&&!SECM.quick?'<span>¿Cuál punto?</span>'+SECM.alt.slice(0,4).map((v,i)=>`<button onclick="secmPickAlt(${i})" class="${SECM.pts.length&&SECM.pts[SECM.pts.length-1].name===v.name?'on':''}">${v.name}</button>`).join(''):'';
   document.getElementById('secm-chips').innerHTML=SECM_QUICK.filter(([k])=>qs[k]).map(([k,l])=>`<button class="${SECM.quick===k?'on':''}" onclick="secmQuick('${k}')">${l}</button>`).join('');
   const res=document.getElementById('secm-res');
-  if(!r){res.innerHTML=`<div class="secm-ab">${SECM.pts.length?'Toca el segundo punto':'Toca dos puntos para medir · se enganchan a bordes, hombros, cunetas, ceros y terreno'}</div>`;return;}
+  if(!r){res.innerHTML=`<div class="secm-ab">${SECM.pts.length?'Toca el segundo punto':'Toca dos puntos para medir · se enganchan a intersecciones (◇), bordes, hombros, cunetas, ceros y terreno'}<br>Deja el dedo apretado para ver la lupa</div>`;return;}
   const cells=[['Horizontal',r.hz.toFixed(2)+' m'],['Desnivel',(r.dz>=0?'+':'')+r.dz.toFixed(2)+' m'],['Inclinada',r.sl.toFixed(2)+' m'],['Pendiente',isFinite(r.pend)?r.pend.toFixed(1)+' %':'vertical'],...(r.talud?[['Talud',r.talud]]:[]),['Desde eje',`${Math.abs(r.A.o).toFixed(1)} · ${Math.abs(r.B.o).toFixed(1)}`]];
   res.innerHTML=`<div class="secm-big">${r.hz.toFixed(2)} m</div><div class="secm-ab">A: ${r.A.name} · B: ${r.B.name}</div><div class="secm-g">${cells.map(([k,v])=>`<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>`;
 }
-function secmTap(x,y){
-  const sec=state.secc.S[SECM.idx],M=secmMap();let best=null,bd=20;
-  // los puntos con nombre (ceros, hombros, bordes) ganan a los del terreno cuando están juntos
-  const near=[];
-  secVertices(sec).forEach(v=>{const d=Math.hypot(M.X(v.o)-x,M.Y(v.z)-y)+(v.surf==='t'?10:0);if(d<bd){bd=d;best={o:v.o,z:v.z,name:v.name};}if(d<22&&v.surf!=='t')near.push({o:v.o,z:v.z,name:v.name,d});});
-  // varios puntos con nombre casi encimados: ofrecer elegir cuál
-  SECM.alt=[];const seen=new Set();near.sort((a,b)=>a.d-b.d).forEach(v=>{const k=v.name+v.o.toFixed(2);if(!seen.has(k)){seen.add(k);SECM.alt.push(v);}});
-  if(SECM.alt.length<2)SECM.alt=[];
-  if(!best){ // sobre una línea
-    let bl=16;[[sec.r,'Rasante'],[sec.b,'Subrasante'],[sec.t,'Terreno'],...Object.entries(sec.x||{}).map(([id,p])=>[p,(state.secc.names||{})[id]||id])].forEach(([p,nm])=>{if(!p)return;
-      for(let i=0;i<p.length-2;i+=2){const ax=M.X(p[i]),ay=M.Y(p[i+1]),bx=M.X(p[i+2]),by=M.Y(p[i+3]),vx=bx-ax,vy=by-ay,L2=vx*vx+vy*vy;if(!L2)continue;
-        const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/L2)),px=ax+t*vx,py=ay+t*vy,d=Math.hypot(px-x,py-y);
-        if(d<bl){bl=d;const o=p[i]+t*(p[i+2]-p[i]);best={o,z:p[i+1]+t*(p[i+3]-p[i+1]),name:`${nm} (${Math.abs(o).toFixed(1)} m ${o<0?'izq.':'der.'})`};}}});
-  }
+function secmTap(x,y,fromLoupe){
+  const sec=state.secc.S[SECM.idx],M=secmMap(),{best,alt}=secmSnap(sec,M,x,y);
+  SECM.alt=fromLoupe?[]:alt;
   if(!best)return;
   if(SECM.quick){SECM.quick=null;SECM.pts=[];}
   if(SECM.pts.length>=2)SECM.pts=[];
   SECM.pts.push(best);if(navigator.vibrate)navigator.vibrate(15);secmPaint();
 }
+// lupa: el área bajo el dedo ampliada, con la cruz del dedo y el punto donde se va a enganchar
+function secmLoupe(x,y){
+  const sec=state.secc.S[SECM.idx],M=secmMap(),lp=document.getElementById('secm-loupe'),lb=document.getElementById('secm-loupe-lbl');
+  const S=124,R=S/2,v=SECM.view,zv={...v,k:v.k*3,cx:M.O(x),cz:M.Z(y)};
+  const ML=secmMapV(zv,S,S);
+  // misma relación de escalas que la vista (las alturas no se deforman distinto en la lupa)
+  ML.sz=ML.sx*(M.sz/M.sx);ML.Y=z=>S/2-(z-zv.cz)*ML.sz;
+  const{best}=secmSnap(sec,M,x,y);
+  let body=secmSvgBody(sec,ML);
+  body+=`<path d="M${R-9} ${R}H${R+9}M${R} ${R-9}V${R+9}" stroke="rgba(0,0,0,.55)" stroke-width="1"/>`;
+  if(best){const bx=ML.X(best.o),by=ML.Y(best.z);body+=`<line x1="${R}" y1="${R}" x2="${bx}" y2="${by}" stroke="#e11d48" stroke-dasharray="3 3"/><circle cx="${bx}" cy="${by}" r="7" fill="#fff" stroke="#e11d48" stroke-width="3"/><circle cx="${bx}" cy="${by}" r="2.2" fill="#e11d48"/>`;}
+  const box=document.getElementById('secm-draw'),W=box.clientWidth;
+  let lx=x-R,ly=y-S-40;if(ly<2){ly=Math.max(2,y-R);lx=x<W/2?x+40:x-S-40;}lx=Math.max(2,Math.min(W-S-2,lx));
+  lp.style.left=lx+'px';lp.style.top=ly+'px';lp.style.display='block';
+  lp.innerHTML=`<svg width="${S}" height="${S}" style="background:#fff">${body}</svg>`;
+  lb.textContent=best?best.name:'Sin punto cerca';lb.style.display='block';
+  const lw=lb.offsetWidth;lb.style.left=Math.max(4+lw/2,Math.min(W-4-lw/2,lx+R))+'px';lb.style.top=(ly+S+4)+'px';
+}
+function secmLoupeHide(){document.getElementById('secm-loupe').style.display='none';document.getElementById('secm-loupe-lbl').style.display='none';}
 function secmPickAlt(i){const v=SECM.alt[i];if(!v||!SECM.pts.length)return;SECM.pts[SECM.pts.length-1]={o:v.o,z:v.z,name:v.name};SECM.alt=[];secmPaint();}
 (function secmGestures(){
-  const box=document.getElementById('secm-draw');let g=null;
+  const box=document.getElementById('secm-draw');let g=null,lastT=0;
   const rel=t=>{const r=box.getBoundingClientRect();return[t.clientX-r.left,t.clientY-r.top];};
   box.addEventListener('touchstart',e=>{const t=e.touches;
-    if(t.length>=2){const a=rel(t[0]),b=rel(t[1]);g={pinch:true,d0:Math.hypot(a[0]-b[0],a[1]-b[1]),k0:SECM.view.k,m:[(a[0]+b[0])/2,(a[1]+b[1])/2],v0:{...SECM.view}};return;}
-    const p=rel(t[0]);g={x:p[0],y:p[1],t0:Date.now(),moved:false,v0:{...SECM.view}};},{passive:true});
+    if(t.length>=2){if(g)clearTimeout(g.lt);secmLoupeHide();const a=rel(t[0]),b=rel(t[1]);g={pinch:true,d0:Math.hypot(a[0]-b[0],a[1]-b[1]),k0:SECM.view.k,m:[(a[0]+b[0])/2,(a[1]+b[1])/2],v0:{...SECM.view}};return;}
+    const p=rel(t[0]),G={x:p[0],y:p[1],t0:Date.now(),moved:false,v0:{...SECM.view}};g=G;
+    G.lt=setTimeout(()=>{if(g===G&&!G.moved){G.loupe=true;G.fx=G.x;G.fy=G.y;if(navigator.vibrate)navigator.vibrate(12);secmLoupe(G.fx,G.fy);}},250);},{passive:true});
   box.addEventListener('touchmove',e=>{if(!g)return;e.preventDefault();const t=e.touches;
     if(g.pinch&&t.length>=2){const a=rel(t[0]),b=rel(t[1]),k=Math.max(1,Math.min(25,g.k0*Math.hypot(a[0]-b[0],a[1]-b[1])/g.d0));
       const M0=(()=>{const keep=SECM.view;SECM.view=g.v0;const m=secmMap();SECM.view=keep;return m;})();const o=M0.O(g.m[0]),z=M0.Z(g.m[1]);
       SECM.view.k=k;const M=secmMap();SECM.view.cx+=o-M.O(g.m[0]);SECM.view.cz+=z-M.Z(g.m[1]);secmPaint();return;}
-    if(g.pinch)return;const p=rel(t[0]);if(Math.hypot(p[0]-g.x,p[1]-g.y)>8)g.moved=true;
+    if(g.pinch)return;const p=rel(t[0]);
+    if(g.loupe){g.fx=p[0];g.fy=p[1];secmLoupe(g.fx,g.fy);return;}
+    if(Math.hypot(p[0]-g.x,p[1]-g.y)>8){g.moved=true;clearTimeout(g.lt);}
     if(g.moved&&SECM.view.k>1){const M=secmMap();SECM.view.cx=g.v0.cx-(p[0]-g.x)/M.sx;SECM.view.cz=g.v0.cz+(p[1]-g.y)/M.sz;secmPaint();}},{passive:false});
-  box.addEventListener('touchend',e=>{if(!g||e.touches.length)return;const G=g;g=null;if(!G.pinch&&!G.moved&&Date.now()-G.t0<400)secmTap(G.x,G.y);},{passive:true});
-  box.addEventListener('click',e=>{if(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents)return;const p=rel(e);secmTap(p[0],p[1]);});
+  box.addEventListener('touchend',e=>{lastT=Date.now();if(!g||e.touches.length)return;const G=g;g=null;clearTimeout(G.lt);
+    if(G.loupe){secmLoupeHide();secmTap(G.fx,G.fy,true);return;}
+    if(!G.pinch&&!G.moved&&Date.now()-G.t0<400)secmTap(G.x,G.y);},{passive:true});
+  box.addEventListener('touchcancel',()=>{if(g)clearTimeout(g.lt);g=null;secmLoupeHide();});
+  box.addEventListener('click',e=>{if(Date.now()-lastT<800||(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents))return;const p=rel(e);secmTap(p[0],p[1]);});
 })();
 
 // ── MEDIR EN EL MAPA: 2 puntos · ir a un punto (desde mi posición) · tramo; se engancha a puntos, vértices y líneas ──
