@@ -1,6 +1,6 @@
 {
-  "versionCode": 29,
-  "versionName": "2.27",
+  "versionCode": 30,
+  "versionName": "2.28",
   "apk": "https://2351102227luis-source.github.io/obrasnap/descargas/ObraSnap.apk",
-  "notas": "Secciones desde LandXML (corte/terraplén, rasante, subrasante, terreno, anchos, ceros y capas como la cota de piedra) y widget de la obra para la pantalla de inicio."
+  "notas": "Medir en la sección: ancho entre ceros, corona, calzada, taludes, a nivel de piedra y medida libre entre dos puntos."
 }

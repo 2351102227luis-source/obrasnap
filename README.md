@@ -72,6 +72,10 @@ Etiquetas: `{AAMMDD}` `{AAAAMMDD}` `{HHMM}` `{HHMMSS}` `{PK}` (1+250) `{PKN}` (0
 `{OBRA}` `{ACT}` `{LADO}` `{AAAA}` `{AA}` `{MM}` `{DD}` `{HH}` `{mm}` `{ss}`. Por defecto: `{AAMMDD}_{PK}_{HHMM}_{N}` → `261120_1+250_0915_001`.
 El consecutivo es por obra y por teléfono (reinicia cada día o sigue siempre); las iniciales evitan nombres repetidos entre compañeros.
 
+## Versión 2.28
+
+- **Medir en la sección**: al tocar el dibujo de la tarjeta de sección se abre a pantalla completa (pellizco para acercar, ‹ › para cambiar de sección). Medidas rápidas: entre ceros, corona, calzada, talud izquierdo y derecho (hombro a cero) y a nivel de una capa extra (ej. cota de piedra). Medida libre entre dos puntos que se enganchan a los vértices con nombre (ceros, hombros, bordes, cunetas) o a las líneas; si hay varios puntos encimados, se elige cuál. Resultado: horizontal, desnivel, inclinada, pendiente, talud H:V (solo si la pendiente pasa de 10 %) y distancia al eje; Copiar medida. Las secciones guardan los códigos de los vértices (`rc`, `bc`).
+
 ## Versión 2.27
 
 - **LandXML** (Istram / Civil 3D) en Config › Capas y planos (o "Cargar capa" en el Mapa): eje en planta (rectas, curvas y clotoides; muestreado cada 2 m), rasante (PVI y curvas verticales) y secciones transversales. Reconoce rasante, subrasante y terreno natural; las demás capas se pueden nombrar (ej. "Cota de piedra"). Se puede usar solo para secciones o también como eje principal (PK exacto del diseño). Viaja en el archivo `.obrasnap` (`secc`).
